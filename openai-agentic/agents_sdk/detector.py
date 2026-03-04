@@ -16,12 +16,17 @@ Why Claude for Detector:
     - Consistent, reliable verdicts
 """
 
-from agents import Agent
+from agents import Agent, ModelSettings
+from agents.extensions.models.litellm_model import LitellmModel
+from dotenv import load_dotenv
+import os
+
 from .prompts import (
     get_detection_prompt,
     get_system_prompt_detector
 )
 
+load_dotenv()
 
 def create_detector_agent():
     """
@@ -49,7 +54,7 @@ def create_detector_agent():
         >>> detector = create_detector_agent()
         >>> # Agent will analyze email and provide detailed verdict
     """
-    
+    api_key = os.getenv('ANTHROPIC_API_KEY')
     # Load system prompt from centralized prompts file
     system_instructions = get_system_prompt_detector()
     
@@ -105,8 +110,8 @@ ANALYSIS GUIDELINES:
     agent = Agent(
         name="PhishingDetector",
         instructions=full_instructions,
-        model="claude-3-5-haiku-20241022",  # Use Claude for detection
-        temperature=0.3  # Lower temperature for consistent, analytical responses
+        model=LitellmModel(model="claude-3-5-haiku-20241022",api_key=api_key),  # Use Claude for detection
+        model_settings=ModelSettings(temperature=0.3) # Lower temperature for consistent, analytical responses
     )
     
     return agent

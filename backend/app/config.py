@@ -60,66 +60,52 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
-    """Testing configuration.
-
-    Uses in-memory SQLite by default for fast local testing.
-    Can use PostgreSQL if DATABASE_URL environment variable is set (for CI/CD).
-    """
-
+    """Testing configuration."""
+    
     TESTING = True
-    # Use PostgreSQL if DATABASE_URL is set (for CI), otherwise use SQLite in-memory
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        'sqlite:///:memory:'
-    )
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
     SERVER_NAME = os.environ.get('TEST_SERVER_NAME', 'localhost')
 
 
 class ProductionConfig(Config):
-    """Production configuration.
-
-    Note: Validation happens in get_config() when production is actually used,
-    not at import time, to avoid errors during testing/CI.
-    """
-
+    """Production configuration."""
+    
     DEBUG = False
     SQLALCHEMY_ECHO = False
     SESSION_COOKIE_SECURE = True
-
+    
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'PROD_DATABASE_URL',
         'postgresql://localhost/phishing_db'
     )
+    
+    # Ensure critical settings are set in production
+    if not os.environ.get('SECRET_KEY') or os.environ.get('SECRET_KEY') == 'dev-secret-key-change-in-production':
+        raise ValueError('SECRET_KEY must be set in .env for production')
+    
+    if not os.environ.get('PROD_DATABASE_URL'):
+        raise ValueError('PROD_DATABASE_URL must be set in .env for production')
 
 
 def get_config(env=None):
     """
     Get configuration based on environment.
-
+    
     Args:
         env: Environment name ('development', 'testing', 'production')
              Defaults to FLASK_ENV from .env or 'development'
-
+    
     Returns:
         Configuration class
     """
     if env is None:
         env = os.environ.get('FLASK_ENV', 'development')
-
+    
     configs = {
         'development': DevelopmentConfig,
         'testing': TestingConfig,
         'production': ProductionConfig,
     }
-
-    config = configs.get(env, DevelopmentConfig)
-
-    # Validate production config only when production is actually used
-    if config == ProductionConfig:
-        if not os.environ.get('SECRET_KEY') or os.environ.get('SECRET_KEY') == 'dev-secret-key-change-in-production':
-            raise ValueError('SECRET_KEY must be set in .env for production')
-        if not os.environ.get('PROD_DATABASE_URL'):
-            raise ValueError('PROD_DATABASE_URL must be set in .env for production')
-
-    return config
+    
+    return configs.get(env, DevelopmentConfig)
