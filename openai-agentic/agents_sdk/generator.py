@@ -16,7 +16,12 @@ Why Gemini for Generator:
     - Supports long outputs (emails with metadata)
 """
 
-from agents import Agent
+from agents import Agent, ModelSettings
+from agents.extensions.models.litellm_model import LitellmModel
+
+from dotenv import load_dotenv
+import os
+
 import random
 from .prompts import (
     get_phishing_email_prompt,
@@ -24,6 +29,7 @@ from .prompts import (
     get_system_prompt_generator
 )
 
+load_dotenv()
 
 def create_generator_agent():
     """
@@ -46,6 +52,7 @@ def create_generator_agent():
         >>> # Agent will randomly create phishing or legitimate email
     """
     
+    api_key = os.getenv('GOOGLE_API_KEY')
     # Load system prompt from centralized prompts file
     system_instructions = get_system_prompt_generator()
     
@@ -93,8 +100,8 @@ IMPORTANT RULES:
     agent = Agent(
         name="EmailGenerator",
         instructions=full_instructions,
-        model="gemini-2.0-flash-exp",  # Use Gemini for generation
-        temperature=0.8  # Higher temperature for creative, varied outputs
+        model=LitellmModel(model="gemini-2.0-flash-exp", api_key=api_key),  # Use Gemini for generation
+        model_settings=ModelSettings(temperature=0.8)  # Higher temperature for creative, varied outputs
     )
     
     return agent

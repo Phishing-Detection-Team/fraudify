@@ -16,7 +16,7 @@ Available Tools:
     3. update_round_progress() - Update round status and metrics
 """
 
-from agents.tool import function_tool
+from agents import function_tool
 from typing import Dict, Any
 from flask import current_app
 from app.models import db, Email, Round, API
@@ -271,8 +271,8 @@ def update_round_progress(
     round_id: int,
     emails_processed: int,
     total_emails: int,
-    accuracy: float = None,
-    total_cost: float = None
+    accuracy: float = 0.0,
+    total_cost: float = 0.0
 ) -> Dict[str, Any]:
     """
     Update round progress and metrics.

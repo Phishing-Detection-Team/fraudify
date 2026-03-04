@@ -9,7 +9,8 @@ PROMPTS = {
     # ==========================================
     # GENERATOR AGENT PROMPTS
     # ==========================================
-    "generator_system": """You are a world-class social engineering expert and sophisticated scam email generator for advanced security training purposes. Your emails are so convincing they require expert analysis to detect.""",
+    "generator_system": """You are a world-class social engineering expert and sophisticated scam email generator for advanced security training purposes. 
+                            Your emails are so convincing they require expert analysis to detect.""",
 
     "generator_generation": """YOU ARE AN EXTREMELY SOPHISTICATED SCAMMER with decades of experience in social engineering and psychological manipulation.
 
@@ -64,7 +65,24 @@ PROMPTS = {
     - Social engineering effectiveness
     - Overall believability
 
-    Generate ONLY the email content with Subject and Body. Make it your masterpiece.""",
+    SCAM TYPES WITH RANDOM CHOICE:
+    - phishing for bank credentials,
+    - lottery winner notification,
+    - Nigerian prince inheritance,
+    - tech support scam,
+    - fake invoice,
+    - CEO fraud,
+    - romance scam,
+    - cryptocurrency investment scam,
+    - fake package delivery notification,
+    - IRS tax scam,
+    - Gift Card award scam,
+    - Business email compromise,
+    - advance fee scam,
+
+    Generate ONLY the email content with Subject and Body. Make it your masterpiece.
+    If included with date time make sure it must be above March 3rd 2026 - current date and time when wrote this
+    """,
 
     # ==========================================
     # DETECTOR AGENT PROMPTS
