@@ -6,9 +6,9 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
 
-from app.models import db
-from app.config import config
-from app.utils.errors import AppError, error_response
+from .models import db
+from .config import config
+from .utils.errors import AppError, error_response
 
 # Global extension instances
 socketio = SocketIO()
@@ -48,7 +48,7 @@ def create_app(config_name=None):
 
 def _register_blueprints(app):
     """Register all API blueprints."""
-    from app.routes import health_bp, rounds_bp, emails_bp, logs_bp
+    from .routes import health_bp, rounds_bp, emails_bp, logs_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(rounds_bp)

@@ -6,7 +6,10 @@ class BaseConfig:
 
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-prod')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL',
+        os.environ.get('DEV_DATABASE_URL', os.environ.get('PROD_DATABASE_URL', 'sqlite:///app.db'))
+    )
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     CORS_ORIGINS = '*'
     JSON_SORT_KEYS = False
