@@ -23,6 +23,6 @@ class DetectorAgentEntity(BaseEntity):
         self.agent = Agent(
             name="PhishingDetector",
             instructions=full_instructions,
-            model=LitellmModel(model="anthropic/claude-3-5-haiku-20241022", api_key=self.api_key),
+            model=LitellmModel(model="anthropic/claude-3-haiku-20240307", api_key=self.api_key),
             model_settings=ModelSettings(temperature=0.3) # Low temperature for analytical tasks
         )

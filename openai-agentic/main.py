@@ -196,7 +196,7 @@ class Orchestrator:
                 
                 # Estimate tokens and cost
                 det_tokens = self._estimate_tokens(det_result.final_output)
-                det_cost = self._estimate_cost(det_tokens, 'claude-3-5-haiku-20241022')
+                det_cost = self._estimate_cost(det_tokens, 'claude-3-haiku-20240307')
                 
                 # Calculate total processing time
                 processing_time = time.time() - email_start_time
@@ -209,7 +209,7 @@ class Orchestrator:
                     risk_score=scam_score,
                     reasoning=reasoning,
                     llm_provider='claude',
-                    llm_model='claude-3-5-haiku-20241022',
+                    llm_model='claude-3-haiku-20240307',
                     llm_tokens=det_tokens,
                     llm_cost=det_cost,
                     latency_ms=det_latency_ms,
