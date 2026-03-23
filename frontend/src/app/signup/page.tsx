@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { motion, AnimatePresence } from "framer-motion";
+<<<<<<< HEAD
 import { ShieldAlert, Database, Mail, ArrowRight, Check } from "lucide-react";
+=======
+import { ShieldAlert, Database, Mail, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
+>>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
 import Link from "next/link";
 
 type SignupStep = "details" | "consent" | "provider";
@@ -15,7 +19,13 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+<<<<<<< HEAD
   const [adminSecret, setAdminSecret] = useState("");
+=======
+  const [showPassword, setShowPassword] = useState(false);
+  const [adminSecret, setAdminSecret] = useState("");
+  const [showAdminSecret, setShowAdminSecret] = useState(false);
+>>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
   
   // Default to just read
   const [allowTraining, setAllowTraining] = useState(false);
@@ -120,18 +130,29 @@ export default function SignupPage() {
                 />
               </div>
               <div className="space-y-2">
+<<<<<<< HEAD
                 <label className="text-sm font-medium">Email Address</label>
                 <input
                   type="email"
+=======
+                <label className="text-sm font-medium">Email Address / Username</label>
+                <input
+                  type="text"
+>>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+<<<<<<< HEAD
                   placeholder="john@example.com"
+=======
+                  placeholder="john@example.com / demo-user"
+>>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Password</label>
+<<<<<<< HEAD
                 <input
                   type="password"
                   required
@@ -140,12 +161,33 @@ export default function SignupPage() {
                   className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
                   placeholder="••••••••"
                 />
+=======
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+>>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium flex justify-between">
                   <span>Admin Secret</span>
                   <span className="text-muted-foreground font-normal text-xs">(Optional)</span>
                 </label>
+<<<<<<< HEAD
                 <input
                   type="password"
                   value={adminSecret}
@@ -153,6 +195,25 @@ export default function SignupPage() {
                   className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
                   placeholder="Enter secret for admin access"
                 />
+=======
+                <div className="relative">
+                  <input
+                    type={showAdminSecret ? "text" : "password"}
+                    value={adminSecret}
+                    onChange={(e) => setAdminSecret(e.target.value)}
+                    className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+                    placeholder="Enter secret for admin access"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setShowAdminSecret(!showAdminSecret)}
+                    tabIndex={-1}
+                  >
+                    {showAdminSecret ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+>>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
               </div>
               <button
                 type="submit"

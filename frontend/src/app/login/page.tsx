@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ShieldCheck, LogIn, AlertCircle } from "lucide-react";
+import { ShieldCheck, LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,6 +19,22 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // Test Admin Bypass for Demo
+    if (email === "test-admin" && password === "test-admin") {
+      localStorage.setItem("sentra-role", "admin");
+      localStorage.setItem("is-demo", "true");
+      router.push("/dashboard/admin");
+      return;
+    }
+    localStorage.removeItem("is-demo");
+    
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
 
     // Test Admin Bypass for Demo
     if (email === "test-admin" && password === "test-admin") {
@@ -95,6 +112,9 @@ export default function LoginPage() {
               readOnly
               value={role === "admin" ? "admin@sentra.ai" : "user@sentra.ai"}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+              readOnly
+              value={role === "admin" ? "admin@sentra.ai" : "user@sentra.ai"}
+              className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -105,14 +125,24 @@ export default function LoginPage() {
           
           <div className="space-y-2">
             <label className="text-sm font-medium">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
-              placeholder="••••••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+                placeholder="••••••••••••"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -153,4 +183,5 @@ export default function LoginPage() {
       </motion.div>
     </div>
   );
+}
 }
