@@ -93,6 +93,15 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
               placeholder="you@example.com"
+              type="text"
+              readOnly
+              value={role === "admin" ? "admin@sentra.ai" : "user@sentra.ai"}
+              className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+              placeholder="you@example.com / test-admin"
             />
           </div>
           
