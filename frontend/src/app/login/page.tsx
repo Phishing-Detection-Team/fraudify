@@ -15,6 +15,19 @@ export default function LoginPage() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+<<<<<<< Updated upstream
+=======
+    setError("");
+
+    // Test Admin Bypass for Demo
+    if (email === "test-admin" && password === "test-admin") {
+      localStorage.setItem("sentra-role", "admin");
+      localStorage.setItem("is-demo", "true");
+      router.push("/dashboard/admin");
+      return;
+    }
+    localStorage.removeItem("is-demo");
+>>>>>>> Stashed changes
     
     // TODO(AUTH): Replace mockup timeout with real authentication API request (NextAuth signIn)
     localStorage.setItem("sentra-role", role);
@@ -41,12 +54,20 @@ export default function LoginPage() {
 
         <form onSubmit={handleSignIn} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Email Address</label>
+            <label className="text-sm font-medium">Email Address / Username</label>
             <input
               type="text"
+<<<<<<< Updated upstream
               readOnly
               value={role === "admin" ? "admin@sentra.ai" : "user@sentra.ai"}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+=======
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+              placeholder="you@example.com / test-admin"
+>>>>>>> Stashed changes
             />
           </div>
           
