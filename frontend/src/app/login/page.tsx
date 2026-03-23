@@ -5,22 +5,49 @@ import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ShieldCheck, LogIn } from "lucide-react";
+import { ShieldCheck, LogIn, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState<"user" | "admin">("user");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     
-    // TODO(AUTH): Replace mockup timeout with real authentication API request (NextAuth signIn)
-    localStorage.setItem("sentra-role", role);
-    setTimeout(() => {
-      router.push(role === "admin" ? "/dashboard/admin" : "/dashboard/user");
-    }, 600);
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Check roles
+      const userRoles = data.user?.roles || ['user'];
+      const is_admin = userRoles.includes('admin');
+      const assignedRole = is_admin ? "admin" : "user";
+      
+      // Temporary token handling. TODO: NextAuth session integration
+      localStorage.setItem("sentra-role", assignedRole);
+      
+      router.push(is_admin ? "/dashboard/admin" : "/dashboard/user");
+    } catch (err) {
+      console.error(err);
+      setError("Unable to reach the server.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,13 +67,22 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSignIn} className="space-y-6">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-sm p-3 rounded-lg flex items-center gap-2">
+              <AlertCircle size={16} />
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Email Address</label>
             <input
-              type="text"
-              readOnly
-              value={role === "admin" ? "admin@sentra.ai" : "user@sentra.ai"}
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+              placeholder="you@example.com"
             />
           </div>
           
@@ -54,31 +90,12 @@ export default function LoginPage() {
             <label className="text-sm font-medium">Password</label>
             <input
               type="password"
-              readOnly
-              value="••••••••••••"
-              className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+              placeholder="••••••••••••"
             />
-          </div>
-
-          <div className="flex bg-background/50 p-1 rounded-lg border border-border/50">
-            <button
-              type="button"
-              onClick={() => setRole("user")}
-              className={`flex-1 py-2 text-sm font-medium leading-none rounded-md transition-all ${
-                role === "user" ? "bg-card text-foreground shadow-sm border border-border/50" : "text-muted-foreground"
-              }`}
-            >
-              User Role
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("admin")}
-              className={`flex-1 py-2 text-sm font-medium leading-none rounded-md transition-all ${
-                role === "admin" ? "bg-card text-foreground shadow-sm border border-border/50" : "text-muted-foreground"
-              }`}
-            >
-              Admin Role
-            </button>
           </div>
 
           <button
@@ -96,6 +113,15 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        <div className="text-center mt-6">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-accent-cyan hover:text-accent-cyan/80 transition-colors">
+              Sign up
+            </Link>
+          </p>
+        </div>
 
         <div className="mt-8 text-center border-t border-border/50 pt-6">
           <Link
