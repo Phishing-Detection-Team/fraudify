@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { motion, AnimatePresence } from "framer-motion";
 <<<<<<< HEAD
@@ -14,7 +13,6 @@ import Link from "next/link";
 type SignupStep = "details" | "consent" | "provider";
 
 export default function SignupPage() {
-  const router = useRouter();
   const [step, setStep] = useState<SignupStep>("details");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

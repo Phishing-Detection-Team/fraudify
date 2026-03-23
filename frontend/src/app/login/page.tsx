@@ -36,13 +36,29 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       });
 
-    // Test Admin Bypass for Demo
-    if (email === "test-admin" && password === "test-admin") {
-      localStorage.setItem("sentra-role", "admin");
-      localStorage.setItem("is-demo", "true");
-      router.push("/dashboard/admin");
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Check roles
+      const userRoles = data.user?.roles || ['user'];
+      const is_admin = userRoles.includes('admin');
+      const assignedRole = is_admin ? "admin" : "user";
+      
+      // Temporary token handling. TODO: NextAuth session integration
+      localStorage.setItem("sentra-role", assignedRole);
+      
+      router.push(is_admin ? "/dashboard/admin" : "/dashboard/user");
+    } catch (err) {
+      console.error(err);
+      setError("Unable to reach the server.");
+      setLoading(false);
     }
+<<<<<<< HEAD
     localStorage.removeItem("is-demo");
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {
@@ -73,6 +89,8 @@ export default function LoginPage() {
       setError("Unable to reach the server.");
       setLoading(false);
     }
+=======
+>>>>>>> e4cbb23 (refactor: remove unused state setters in Admin and User dashboards; clean up code for better readability)
   };
 
   return (
@@ -109,17 +127,24 @@ export default function LoginPage() {
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
               placeholder="you@example.com"
               type="text"
+<<<<<<< HEAD
               readOnly
               value={role === "admin" ? "admin@sentra.ai" : "user@sentra.ai"}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
               readOnly
               value={role === "admin" ? "admin@sentra.ai" : "user@sentra.ai"}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+=======
+>>>>>>> e4cbb23 (refactor: remove unused state setters in Admin and User dashboards; clean up code for better readability)
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+<<<<<<< HEAD
               placeholder="you@example.com / test-admin"
+=======
+              placeholder="you@example.com"
+>>>>>>> e4cbb23 (refactor: remove unused state setters in Admin and User dashboards; clean up code for better readability)
             />
           </div>
           
@@ -163,7 +188,11 @@ export default function LoginPage() {
 
         <div className="text-center mt-6">
           <p className="text-sm text-muted-foreground">
+<<<<<<< HEAD
             Don't have an account?{" "}
+=======
+            Don&apos;t have an account?{" "}
+>>>>>>> e4cbb23 (refactor: remove unused state setters in Admin and User dashboards; clean up code for better readability)
             <Link href="/signup" className="text-accent-cyan hover:text-accent-cyan/80 transition-colors">
               Sign up
             </Link>
