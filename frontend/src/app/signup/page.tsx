@@ -1,22 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { motion, AnimatePresence } from "framer-motion";
+<<<<<<< HEAD
 <<<<<<< HEAD
 import { ShieldAlert, Database, Mail, ArrowRight, Check } from "lucide-react";
 =======
 import { ShieldAlert, Database, Mail, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 >>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
+=======
+import { ShieldAlert, Database, Mail, ArrowRight, Check } from "lucide-react";
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
 import Link from "next/link";
 
 type SignupStep = "details" | "consent" | "provider";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [step, setStep] = useState<SignupStep>("details");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+<<<<<<< HEAD
 <<<<<<< HEAD
   const [adminSecret, setAdminSecret] = useState("");
 =======
@@ -24,6 +31,9 @@ export default function SignupPage() {
   const [adminSecret, setAdminSecret] = useState("");
   const [showAdminSecret, setShowAdminSecret] = useState(false);
 >>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
+=======
+  const [adminSecret, setAdminSecret] = useState("");
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
   
   // Default to just read
   const [allowTraining, setAllowTraining] = useState(false);
@@ -129,6 +139,7 @@ export default function SignupPage() {
               </div>
               <div className="space-y-2">
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <label className="text-sm font-medium">Email Address</label>
                 <input
                   type="email"
@@ -137,20 +148,32 @@ export default function SignupPage() {
                 <input
                   type="text"
 >>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
+=======
+                <label className="text-sm font-medium">Email Address</label>
+                <input
+                  type="email"
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
 <<<<<<< HEAD
+<<<<<<< HEAD
                   placeholder="john@example.com"
 =======
                   placeholder="john@example.com / demo-user"
 >>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
+=======
+                  placeholder="john@example.com"
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Password</label>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
                 <input
                   type="password"
                   required
@@ -159,6 +182,7 @@ export default function SignupPage() {
                   className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
                   placeholder="••••••••"
                 />
+<<<<<<< HEAD
 =======
                 <div className="relative">
                   <input
@@ -179,6 +203,8 @@ export default function SignupPage() {
                   </button>
                 </div>
 >>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
+=======
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium flex justify-between">
@@ -186,6 +212,9 @@ export default function SignupPage() {
                   <span className="text-muted-foreground font-normal text-xs">(Optional)</span>
                 </label>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
                 <input
                   type="password"
                   value={adminSecret}
@@ -193,6 +222,7 @@ export default function SignupPage() {
                   className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
                   placeholder="Enter secret for admin access"
                 />
+<<<<<<< HEAD
 =======
                 <div className="relative">
                   <input
@@ -212,6 +242,8 @@ export default function SignupPage() {
                   </button>
                 </div>
 >>>>>>> 1720d2e (feat: add signup page with multi-step form; implement secure user registration and OAuth integration)
+=======
+>>>>>>> f13339c (feat(auth): add OAuth authentication endpoints for Gmail and Outlook)
               </div>
               <button
                 type="submit"
