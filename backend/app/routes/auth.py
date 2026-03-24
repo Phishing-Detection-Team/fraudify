@@ -1,6 +1,6 @@
 """Auth and permissions endpoints."""
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from app import db
 from app.models.email_permission import EmailPermission
 from app.models.admin import Admin
@@ -103,7 +103,7 @@ def grant_email_access():
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
-    """Handle new user signup with hashed credentials and optional admin secret."""
+    """Handle new user signup with hashed credentials."""
     data = request.json
     
     if not data:
@@ -111,21 +111,9 @@ def signup():
         
     email = data.get('email')
     password = data.get('password')
-    provided_secret = data.get('admin_secret')  # Optional
     
     if not email or not password:
         return jsonify({'error': 'Email and password are required'}), 400
-        
-    # Check admin secret
-    is_admin = False
-    expected_secret = current_app.config.get('ADMIN_SECRET')
-    
-    if provided_secret:
-        if expected_secret and provided_secret == expected_secret:
-            is_admin = True
-        else:
-            Log.create_log('warning', f'Failed admin signup attempt (invalid secret) for email: {email}')
-            return jsonify({'error': 'Invalid admin secret'}), 401
             
     # Standard email validation
     email = email.lower().strip()
@@ -152,16 +140,15 @@ def signup():
         db.session.add(new_user)
         db.session.flush() # Flush to get new_user.id
         
-        roles = ['user']
-        if is_admin:
-            new_admin = Admin(user_id=new_user.id)
-            db.session.add(new_admin)
-            roles.append('admin')
+        # Every authenticated account has admin privileges.
+        new_admin = Admin(user_id=new_user.id)
+        db.session.add(new_admin)
+        roles = ['user', 'admin']
             
         db.session.commit()
         
         # Log successful signup
-        Log.create_log('info', f'New user signed up', context={'email': email, 'is_admin': is_admin, 'user_id': str(new_user.id)})
+        Log.create_log('info', f'New user signed up', context={'email': email, 'is_admin': True, 'user_id': str(new_user.id)})
         
         user_data = new_user.to_dict()
         user_data['roles'] = roles
@@ -209,9 +196,7 @@ def login():
             Log.create_log('warning', f'Failed login attempt (inactive user)', context={'email': email, 'user_id': str(user.id)})
             return jsonify({'error': 'Account is inactive'}), 403
             
-        roles = ['user']
-        if user.admin:
-            roles.append('admin')
+        roles = ['user', 'admin']
             
         # Log successful login
         Log.create_log('info', f'User logged in successfully', context={'email': email, 'user_id': str(user.id), 'roles': roles})
