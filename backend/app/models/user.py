@@ -12,9 +12,9 @@ class User(db.Model):
 
     # TABLE-LEVEL CONSTRAINTS
     __table_args__ = (
-        # Check constraint: email must contain @
+        # Check constraint: email can be username or email format
         db.CheckConstraint(
-            "email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$'",
+            "email ~ '^[a-z0-9._%+\\-]+(@[a-z0-9.-]+\\.[a-z]{2,})?$'",
             name='ck_user_email_format'
         ),
 
@@ -56,8 +56,10 @@ class User(db.Model):
         
         value = value.lower().strip()
 
-        # Regex pattern for email validation
-        email_pattern = r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'
+        # Regex pattern for email validation - allows either username or email format
+        # Email format: user@domain.com
+        # Username format: sentra-admin, admin_user, etc.
+        email_pattern = r'^[a-z0-9._%+\-]+(@[a-z0-9.-]+\.[a-z]{2,})?$'
         if not re.match(email_pattern, value):
             raise ValueError('Invalid email format')
     
