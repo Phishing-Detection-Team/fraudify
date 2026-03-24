@@ -8,19 +8,75 @@ import Link from "next/link";
 
 type SignupStep = "details" | "consent" | "provider";
 
+const MIN_PASSWORD_LENGTH = 11;
+
+const validatePassword = (value: string): string | null => {
+  if (value.length < MIN_PASSWORD_LENGTH) {
+    return "Password must be more than 10 characters.";
+  }
+
+  if (!/\d/.test(value)) {
+    return "Password must include at least one number.";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(value)) {
+    return "Password must include at least one symbol.";
+  }
+
+  return null;
+};
+
+const getPasswordStrength = (value: string): { score: number; label: string; colorClass: string } => {
+  const checks = [
+    value.length >= MIN_PASSWORD_LENGTH,
+    /\d/.test(value),
+    /[^A-Za-z0-9]/.test(value),
+    /[a-z]/.test(value) && /[A-Z]/.test(value),
+  ];
+
+  const score = checks.filter(Boolean).length;
+
+  if (score <= 1) {
+    return { score, label: "Weak", colorClass: "bg-red-500" };
+  }
+
+  if (score === 2) {
+    return { score, label: "Fair", colorClass: "bg-amber-500" };
+  }
+
+  if (score === 3) {
+    return { score, label: "Good", colorClass: "bg-cyan-500" };
+  }
+
+  return { score, label: "Strong", colorClass: "bg-emerald-500" };
+};
+
 export default function SignupPage() {
   const [step, setStep] = useState<SignupStep>("details");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   
   // Default to just read
   const [allowTraining, setAllowTraining] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const passwordValidationError = validatePassword(password);
+  const passwordStrength = getPasswordStrength(password);
+  const isContinueDisabled = !name.trim() || !email.trim() || !!passwordValidationError;
+
   const handleNextToConsent = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationError = validatePassword(password);
+    if (validationError) {
+      setPasswordError(validationError);
+      return;
+    }
+
+    setPasswordError(null);
     setStep("consent");
   };
 
@@ -29,6 +85,13 @@ export default function SignupPage() {
   };
 
   const handleConnectProvider = async (provider: 'gmail' | 'outlook') => {
+    const validationError = validatePassword(password);
+    if (validationError) {
+      setPasswordError(validationError);
+      setStep("details");
+      return;
+    }
+
     setLoading(true);
     try {
       // 1. Create the user account securely BEFORE redirecting, 
@@ -133,9 +196,16 @@ export default function SignupPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     required
+                    minLength={MIN_PASSWORD_LENGTH}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
+                    onChange={(e) => {
+                      const nextPassword = e.target.value;
+                      setPassword(nextPassword);
+                      if (passwordError) {
+                        setPasswordError(validatePassword(nextPassword));
+                      }
+                    }}
+                    className={`w-full bg-background/50 border rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 ${passwordError ? "border-red-500/70" : "border-border/50"}`}
                     placeholder="••••••••"
                   />
                   <button
@@ -147,10 +217,28 @@ export default function SignupPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                <p className={`text-xs ${passwordError ? "text-red-400" : "text-muted-foreground"}`}>
+                  Password must be more than 10 characters and include at least one number and one symbol.
+                </p>
+                <div className="space-y-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map((segment) => (
+                      <div
+                        key={segment}
+                        className={`h-1.5 flex-1 rounded-full ${passwordStrength.score >= segment ? passwordStrength.colorClass : "bg-border/50"}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Strength: <span className="font-medium text-foreground">{password ? passwordStrength.label : "-"}</span>
+                  </p>
+                </div>
+                {passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
               </div>
               <button
                 type="submit"
-                className="w-full btn-primary flex items-center justify-center gap-2 group mt-6"
+                disabled={isContinueDisabled}
+                className="w-full btn-primary flex items-center justify-center gap-2 group mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continue <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
