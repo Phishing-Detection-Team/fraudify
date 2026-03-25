@@ -9,7 +9,8 @@ PROMPTS = {
     # ==========================================
     # GENERATOR AGENT PROMPTS
     # ==========================================
-    "generator_system": """You are a world-class social engineering expert and sophisticated scam email generator for advanced security training purposes. Your emails are so convincing they require expert analysis to detect.""",
+    "generator_system": """You are a world-class social engineering expert and sophisticated scam email generator for advanced security training purposes. 
+                            Your emails are so convincing they require expert analysis to detect.""",
 
     "generator_generation": """YOU ARE AN EXTREMELY SOPHISTICATED SCAMMER with decades of experience in social engineering and psychological manipulation.
 
@@ -64,7 +65,62 @@ PROMPTS = {
     - Social engineering effectiveness
     - Overall believability
 
-    Generate ONLY the email content with Subject and Body. Make it your masterpiece.""",
+    SCAM TYPES WITH RANDOM CHOICE:
+        "phishing for bank credentials",
+        "lottery winner notification",
+        "Nigerian prince inheritance",
+        "tech support scam",
+        "fake invoice",
+        "CEO fraud",
+        "romance scam",
+        "cryptocurrency investment scam",
+        "fake package delivery notification",
+        "IRS tax scam",
+        "Gift Card award scam",
+        "Business email compromise",
+        "advance fee scam",
+        "data breach notification",
+        "account suspension notice",
+        "fake charity request",
+        "social media impersonation",
+        "fake job offer",
+        "travel scam",
+        "fake subscription renewal",
+        "fake event invitation",
+        "RULE: update more if needed"
+
+    CRITICAL: You are using the OpenAI Agents SDK framework.
+
+    WORKFLOW:
+    1. Decide randomly: phishing (50%) or legitimate (50%) email
+    2. Follow the specific instructions and constraints for the chosen email type
+    3. Apply appropriate tactics from the prompt above
+    4. Generate email with realistic details (NO placeholders!)
+    5. Output ONLY valid JSON (no markdown, no code blocks, no explanations)
+
+    REQUIRED JSON OUTPUT FORMAT:
+    {{
+        "email_type": "phishing" or "legitimate",
+        "subject": "realistic email subject",
+        "from": "realistic_sender@company.com",
+        "body": "full email body with realistic details",
+        "is_phishing": true or false,
+        "metadata": {{
+            "tactics_used": ["urgency", "authority", "fear"],
+            "indicators": ["suspicious_link", "generic_greeting"],
+            "difficulty": "low" | "medium" | "high",
+            "scenario": "brief description of scenario"
+        }}
+    }}
+
+    IMPORTANT RULES:
+    - NO placeholders like [NAME], [COMPANY], [AMOUNT]
+    - Fill in ALL specific details with realistic values
+    - Use real company names, addresses, phone numbers
+    - Make phishing emails sophisticated enough to require analysis
+    - Make legitimate emails completely safe and professional
+    - Output ONLY the JSON object, nothing else
+""",
 
     # ==========================================
     # DETECTOR AGENT PROMPTS
@@ -307,3 +363,71 @@ def get_prompt(prompt_name: str) -> str:
     if prompt_name not in PROMPTS:
         raise KeyError(f"Prompt '{prompt_name}' not found. Available prompts: {list(PROMPTS.keys())}")
     return PROMPTS[prompt_name]
+
+
+# ==========================================
+# GENERATOR HELPER FUNCTIONS
+# ==========================================
+
+def get_system_prompt_generator() -> str:
+    """Get system prompt for generator agent."""
+    return PROMPTS["generator_system"]
+
+
+def get_generation_prompt() -> str:
+    """Get generation prompt for generator agent.
+    
+    Returns the prompt with scenario set to 'random' so the agent decides
+    internally whether to generate phishing or legitimate email (50/50).
+    """
+    return PROMPTS["generator_generation"].format(scenario="random")
+
+
+def get_phishing_email_prompt(scenario: str = "phishing") -> str:
+    """
+    Get phishing email generation prompt.
+    
+    Args:
+        scenario: The scenario type for generation
+    
+    Returns:
+        Formatted prompt for phishing email generation
+    """
+    base_prompt = PROMPTS["generator_generation"]
+    return base_prompt.format(scenario=scenario)
+
+
+def get_legitimate_email_prompt(scenario: str = "legitimate") -> str:
+    """
+    Get legitimate email generation prompt.
+    
+    Args:
+        scenario: The scenario type for generation
+    
+    Returns:
+        Formatted prompt for legitimate email generation
+    """
+    base_prompt = PROMPTS["generator_generation"]
+    return base_prompt.format(scenario=scenario)
+
+
+# ==========================================
+# DETECTOR HELPER FUNCTIONS
+# ==========================================
+
+def get_system_prompt_detector() -> str:
+    """Get system prompt for detector agent."""
+    return PROMPTS["detector_system"]
+
+
+def get_detection_prompt(email_content: str) -> str:
+    """
+    Get detection analysis prompt for specific email.
+    
+    Args:
+        email_content: The email content to analyze
+    
+    Returns:
+        Formatted prompt for email detection/analysis
+    """
+    return PROMPTS["detector_analysis"].format(email_content=email_content)

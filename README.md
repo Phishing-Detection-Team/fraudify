@@ -44,12 +44,16 @@ This system addresses the growing sophistication of phishing attacks by using AI
 
 ## 🚀 Current Implementation
 
-- ✅ Successfully ran all 3 agents (Generator, Detector, Orchestration) and saved results to PostgreSQL using Docker Compose.
+- ✅ Successfully ran all 3 agents (Generator, Detector, Orchestration) and saved results to PostgreSQL using Docker Compose via Semantic Kernel (`LLMs/` directory).
+- ✅ Built a second agent implementation using **OpenAI Agents SDK** with LiteLLM multi-model routing (`openai-agentic/` directory).
+- ✅ Verified OpenAI Agents SDK agents instantiate and connect to external LLMs (Gemini & Claude) end-to-end.
+- ✅ Fixed all import/module issues, LiteLLM model routing, and async event loop handling in the `openai-agentic` implementation.
 - 🚧 Now moving on to Redis caching and full Dockerization for backend services.
 - 🧪 Next: Implementing unit tests for backend logic.
 - 🖥️ Next: Starting frontend (React) dashboard development.
 
-### Multi-Agent System (LLMs Directory)
+
+### Multi-Agent System — Semantic Kernel (`LLMs/` Directory)
 
 A sophisticated multi-agent AI system using **Semantic Kernel orchestration** with AI-powered function calling where specialized agents compete in an adversarial competition.
 
@@ -132,6 +136,72 @@ kernel.add_plugin(service, "generator")
 result = await service.generate_scam(scenario="phishing")
 ```
 
+### Multi-Agent System — OpenAI Agents SDK (`openai-agentic/` Directory)
+
+A second implementation of the multi-agent system using **OpenAI Agents SDK** (`openai-agents`) with **LiteLLM** for multi-model routing. This replaces Semantic Kernel orchestration with a lighter-weight approach using `agents.Runner` and `LitellmModel`.
+
+#### 🏗️ Architecture
+
+**Same Entity-Service Pattern** as the `LLMs/` implementation, adapted for OpenAI Agents SDK:
+- **Entities**: Configure agent instances with `agents.Agent`, model via `LitellmModel`
+- **Services**: Thin wrappers calling `Runner.run()` on entity agents
+- **Prompts**: Shared centralized prompt templates (`utils/prompts.py`)
+- **Orchestrator**: `main.py` coordinates parallel Generate → Detect workflows via `asyncio`
+
+#### 🎭 Agents
+
+**1. Generator Agent (Google Gemini 2.0 Flash)**
+- **SDK**: OpenAI Agents SDK + LiteLLM (`gemini/gemini-2.0-flash`)
+- **Goal**: Create phishing or legitimate emails (50/50 random split)
+- **Output**: Structured JSON with email content, metadata, and ground truth label
+- **Temperature**: 0.8 (high creativity)
+
+**2. Detector Agent (Anthropic Claude 3.5 Haiku)**
+- **SDK**: OpenAI Agents SDK + LiteLLM (`anthropic/claude-3-5-haiku-20241022`)
+- **Goal**: Multi-layered phishing analysis (11 indicator framework)
+- **Output**: Structured JSON with verdict, confidence, risk score, reasoning
+- **Temperature**: 0.3 (consistent analytical output)
+
+**3. Orchestrator (`main.py`)**
+- **No LLM needed** — pure Python async coordination
+- Divides emails across N parallel workflows (`asyncio.gather`)
+- Automatic judging via simple comparison (verdict vs ground truth)
+- Database integration for persisting results to PostgreSQL backend
+
+#### Quick Start (OpenAI Agents SDK Implementation)
+
+```bash
+cd openai-agentic
+
+# Install dependencies (from project root)
+pip install -r requirements.txt
+
+# Configure API keys (.env file in project root)
+# GOOGLE_API_KEY=your_key_here      (for Generator - Gemini)
+# ANTHROPIC_API_KEY=your_key_here   (for Detector - Claude)
+
+# Run with defaults (10 emails, 1 round, 2 parallel workflows)
+PYTHONPATH=.. python main.py
+
+# Custom configuration
+PYTHONPATH=.. python main.py --emails 20 --rounds 3 --workflows 4
+```
+
+#### Architecture Example
+
+```python
+# Entity-Service pattern with OpenAI Agents SDK
+from entities.generator_agent_entity import GeneratorAgentEntity
+from services.generator_agent_service import GeneratorAgentService
+
+# Service creates its own entity internally
+gen_service = GeneratorAgentService()
+
+# Run agent via OpenAI Agents SDK Runner
+result = await gen_service.generate_email()
+# result.final_output → JSON string with email content
+```
+
 ---
 
 ## ✨ Key Features
@@ -140,8 +210,10 @@ result = await service.generate_scam(scenario="phishing")
 
 - **Generator Agent**: Creates synthetic phishing emails for training
 - **Detector Agent**: Analyzes emails and identifies threats
-- **AI Orchestration**: Semantic Kernel with function calling
-- **Multi-Model Architecture**: GPT-4o, Claude Sonnet 4.5
+- **Dual Orchestration Implementations**:
+  - Semantic Kernel with AI function calling (`LLMs/`)
+  - OpenAI Agents SDK with LiteLLM multi-model routing (`openai-agentic/`)
+- **Multi-Model Architecture**: Gemini 2.0 Flash (generation), Claude 3.5 Haiku (detection), GPT-4o (orchestration in SK)
 
 ### Real-Time Monitoring Dashboard (Phase 2 - Planned)
 
@@ -233,7 +305,7 @@ The system uses **Semantic Kernel** for intelligent workflow management:
 
 ## 🛠️ Technology Stack
 
-### Current Implementation (LLMs)
+### Current Implementation (LLMs — Semantic Kernel)
 - **Architecture**: Entity-Service pattern with optional binding
 - **Orchestration**: Semantic Kernel with AI function calling
 - **AI Models**:
@@ -244,6 +316,17 @@ The system uses **Semantic Kernel** for intelligent workflow management:
 - **APIs**: OpenAI, Anthropic, Google Generative AI
 - **Cost Tracking**: tokencost library for accurate pricing
 - **Utilities**: Centralized prompts, API tracking, DB integration
+
+### Current Implementation (openai-agentic — OpenAI Agents SDK)
+- **Architecture**: Entity-Service pattern with OpenAI Agents SDK
+- **Orchestration**: `agents.Runner` + `asyncio.gather` for parallel workflows
+- **Multi-Model Routing**: LiteLLM for provider-agnostic model access
+- **AI Models**:
+  - Google Gemini 2.0 Flash (generation via `gemini/gemini-2.0-flash`)
+  - Anthropic Claude 3.5 Haiku (detection via `anthropic/claude-3-5-haiku-20241022`)
+- **Language**: Python 3.11+ with async/await
+- **Database**: Shared Flask/SQLAlchemy backend (PostgreSQL)
+- **Packages**: `openai-agents>=0.10.0`, `openai-agents[litellm]`, `litellm`
 
 ### Backend (Planned - Flask Implementation)
 - **Framework**: Flask 3.1.2
@@ -407,10 +490,17 @@ SECRET_KEY=your_secret_key_here
 
 ### Heterogeneous Multi-Model Architecture
 
-This system demonstrates a **heterogeneous multi-model approach**:
+This system demonstrates a **heterogeneous multi-model approach** across two implementations:
+
+**Semantic Kernel (`LLMs/`)**:
 - **OpenAI GPT-4o-mini**: Orchestration and generation (128k context window, cost-effective)
 - **Claude Sonnet 4.5**: Advanced detection and analysis (200k context window)
 - **Google Gemini 2.5 Flash**: Fast evaluation and judging (optional)
+
+**OpenAI Agents SDK (`openai-agentic/`)**:
+- **Google Gemini 2.0 Flash**: Email generation via LiteLLM (`gemini/gemini-2.0-flash`)
+- **Anthropic Claude 3.5 Haiku**: Phishing detection via LiteLLM (`anthropic/claude-3-5-haiku-20241022`)
+- **No orchestration LLM**: Pure Python async coordination (no LLM cost for orchestration)
 
 Each agent uses a different AI model optimized for its specific task.
 
@@ -436,20 +526,29 @@ Each agent uses a different AI model optimized for its specific task.
 ### Current Phase: **Phase 1 - Foundation** (Weeks 1-4)
 
 #### ✅ Completed
-- Multi-agent system implementation (LLMs directory)
+- Multi-agent system implementation (LLMs directory — Semantic Kernel)
+- **OpenAI Agents SDK implementation** (`openai-agentic/` directory):
+  - Entity-Service pattern with `agents.Agent` + `LitellmModel`
+  - Generator (Gemini 2.0 Flash) and Detector (Claude 3.5 Haiku) agents
+  - Parallel workflow orchestration via `asyncio.gather`
+  - Automatic judging (no LLM needed — simple verdict comparison)
+  - Fixed LiteLLM model routing (`gemini/` and `anthropic/` prefixes)
+  - Fixed module imports, async event loop, and email content formatting
+  - Verified agents instantiate and connect to external APIs end-to-end
 - Generator, Detector, Orchestration agents running and saving results to PostgreSQL via Docker Compose
-- Database schema design (Email, Round, Log models)
-- SQLAlchemy models with proper relationships
+- Database schema design (Email, Round, Log, API, Override models)
+- SQLAlchemy models with proper relationships and constraints
+- Flask backend with blueprints, error handlers, and CORS
+- Database migrations with Alembic
 - Requirements.txt with comprehensive dependencies
-- Project architecture documentation (LLMs/ARCHITECTURE.md)
-- Detailed project scoping questionnaire
+- Project architecture documentation
 
 #### 🔄 In Progress
+- API key quota renewal (Gemini free tier daily limit + Anthropic key refresh) for full `openai-agentic` end-to-end runs
 - Redis caching integration and Dockerization
 - Unit testing for backend logic
 - Frontend (React) dashboard setup
-- Flask API setup and configuration
-- Integration of LLMs agents with Flask backend
+- Integration of LLMs/openai-agentic agents with Flask backend API
 - Celery task orchestration for competition rounds
 - Docker containerization
 
@@ -468,9 +567,7 @@ Each agent uses a different AI model optimized for its specific task.
 
 ```
 phishing_detection/
-├── LLMs/                         
-│   ├── agents/
-│   │   └── prompts.py            # Centralized prompt templates
+├── LLMs/                         # Semantic Kernel implementation
 │   ├── entities/                 # State holders (API keys, clients, config)
 │   │   ├── base_entity.py
 │   │   ├── generator_agent_entity.py    # OpenAI configuration
@@ -483,24 +580,45 @@ phishing_detection/
 │   │   └── orchestration_agent_service.py # Workflow coordination
 │   ├── utils/                    # Utilities
 │   │   ├── api_utils.py          # API tracking, cost calculation
-│   │   └── db_utils.py           # Database integration
-│   ├── main.py                   # Entry point (multi-round orchestration)
-│   ├── ARCHITECTURE.md           # Detailed architecture documentation
-│   └── .env.example              # Environment variable template
-├── backend/                       # ⏳ Flask backend (planned)
+│   │   ├── db_utils.py           # Database integration
+│   │   └── prompts.py            # Centralized prompt templates
+│   └── main.py                   # Entry point (multi-round orchestration)
+├── openai-agentic/               # ✅ OpenAI Agents SDK implementation
+│   ├── agents_sdk/               # Direct SDK agent definitions (alt. approach)
+│   │   ├── generator.py          # Generator agent factory
+│   │   ├── detector.py           # Detector agent factory
+│   │   ├── orchestrator.py       # Orchestrator classes
+│   │   └── tools.py              # Database tools for agents
+│   ├── entities/                 # Agent entities (Agent + LitellmModel config)
+│   │   ├── base_entity.py        # Base entity with prompt access
+│   │   ├── generator_agent_entity.py  # Gemini 2.0 Flash config
+│   │   └── detector_agent_entity.py   # Claude 3.5 Haiku config
+│   ├── services/                 # Service wrappers (Runner.run)
+│   │   ├── base_service.py
+│   │   ├── generator_agent_service.py
+│   │   └── detector_agent_service.py
+│   ├── utils/                    # Shared utilities
+│   │   ├── db_utils.py           # Database integration (Flask backend)
+│   │   └── prompts.py            # Centralized prompt templates
+│   └── main.py                   # CLI entry point (parallel workflows)
+├── backend/                      # ✅ Flask backend
 │   ├── app/
-│   │   ├── models/               # SQLAlchemy models
-│   │   ├── routes/               # Flask routes
+│   │   ├── models/               # SQLAlchemy models (Email, Round, Log, API, Override)
+│   │   ├── routes/               # Flask API blueprints
 │   │   ├── services/             # Business logic
-│   │   ├── tasks/                # Celery tasks
-│   │   └── utils/                # Helper functions
-│   └── requirements.txt
-├── frontend/                      # ⏳ React dashboard (planned)
-├── Documents/                     # 📚 Project documentation
+│   │   ├── tasks/                # Celery tasks (planned)
+│   │   ├── utils/                # Error handling utilities
+│   │   └── config.py             # Dev/Test/Prod configuration
+│   └── migrations/               # Alembic database migrations
+├── tests/                        # Test suite
+├── Documents/                    # 📚 Project documentation
 │   ├── Project_Scope.md
+│   ├── Implementation_Plan.md
 │   ├── Questions.md
-│   └── Project_Architecture.excalidraw
-└── README.md                      # This file
+│   └── *.excalidraw              # Architecture diagrams
+├── requirements.txt              # Python dependencies
+├── docker-compose.yml            # Docker services
+└── README.md                     # This file
 ```
 
 ---
@@ -575,10 +693,11 @@ This system is for **educational and research purposes only**. Do not use genera
 ## 🙏 Acknowledgments
 
 - **OpenPhish & PhishTank**: Public phishing datasets
-- **OpenAI**: GPT-4o-mini for generation and orchestration
-- **Anthropic**: Claude Sonnet 4.5 for advanced detection
-- **Google**: Gemini 2.5 Flash for evaluation
+- **OpenAI**: GPT-4o-mini for generation and orchestration; OpenAI Agents SDK for agentic workflows
+- **Anthropic**: Claude Sonnet 4.5 & Claude 3.5 Haiku for advanced detection
+- **Google**: Gemini 2.0 Flash & 2.5 Flash for generation and evaluation
 - **Microsoft**: Semantic Kernel framework
+- **BerriAI**: LiteLLM for multi-model routing
 - **Flask Community**: Excellent web framework documentation
 
 ### Data Protection
@@ -632,4 +751,4 @@ For questions or collaboration inquiries:
 
 ---
 
-**Status**: 🔄 Active Development | **Last Updated**: February 23, 2026
+**Status**: 🔄 Active Development | **Last Updated**: March 11, 2026
