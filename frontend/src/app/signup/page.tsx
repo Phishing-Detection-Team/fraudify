@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, Database, Mail, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
@@ -85,7 +85,6 @@ const getPasswordStrength = (value: string): { score: number; label: string; col
 };
 
 export default function SignupPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<SignupStep>("details");
   const [name, setName] = useState("");

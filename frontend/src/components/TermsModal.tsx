@@ -11,7 +11,7 @@ interface TermsModalProps {
 
 export function TermsModal({ isOpen, onClose }: TermsModalProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     const el = scrollRef.current;
