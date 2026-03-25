@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { config } from "@/lib/config";
+import { useSession, signOut } from "next-auth/react";
 import { Logo } from "@/components/Logo";
 
 import {
@@ -19,22 +21,29 @@ import {
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session } = useSession();
   
-  // TODO(AUTH): Replace with actual useSession context 
-  const isAdmin = pathname.includes('/dashboard/admin');
-  const basePath = isAdmin ? "/dashboard/admin" : "/dashboard/user";
+  // Try to use NextAuth session role first, then fallback to local storage for backward compatibility during transition
+  const isAdmin = pathname.includes(config.ROUTES.DASHBOARD_ADMIN) || session?.user?.role === 'admin';
+  const basePath = isAdmin ? config.ROUTES.DASHBOARD_ADMIN : config.ROUTES.DASHBOARD_USER;
   
   const [userName, setUserName] = useState("User");
   
   useEffect(() => {
     // Basic sync
-    const storedRole = localStorage.getItem("sentra-role");
-    setUserName(storedRole === "admin" ? "Bob Admin" : "Alice Security");
-  }, []);
+    if (session?.user?.name) {
+      setUserName(session.user.name);
+    } else {
+      const storedRole = localStorage.getItem("sentra-role");
+      setUserName(storedRole === "admin" ? "Bob Admin" : "Alice Security");
+    }
+  }, [session]);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     localStorage.removeItem("sentra-role");
-    router.push("/login");
+    localStorage.removeItem(config.STORAGE_KEYS.IS_DEMO);
+    await signOut({ redirect: false });
+    router.push(config.ROUTES.LOGIN);
   };
 
   const navLinks = [

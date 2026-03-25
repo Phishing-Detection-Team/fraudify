@@ -1,5 +1,6 @@
 "use client";
 
+import { config } from "@/lib/config";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RoundTable } from "@/components/dashboard/RoundTable";
 import { CostPieChart } from "@/components/dashboard/CostPieChart";
@@ -24,7 +25,7 @@ export default function AdminDashboard() {
   const [realAgents] = useState([]);
 
   useEffect(() => {
-    const demoFlag = localStorage.getItem("is-demo") === "true";
+    const demoFlag = localStorage.getItem(config.STORAGE_KEYS.IS_DEMO) === "true";
     setIsDemo(demoFlag);
     
     if (!demoFlag) {

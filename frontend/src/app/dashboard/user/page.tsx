@@ -1,5 +1,6 @@
 "use client";
 
+import { config } from "@/lib/config";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { LiveFeed } from "@/components/dashboard/LiveFeed";
 import { RoundTable } from "@/components/dashboard/RoundTable";
@@ -22,7 +23,7 @@ export default function UserDashboard() {
   const [realRounds] = useState([]);
 
   useEffect(() => {
-    const demoFlag = localStorage.getItem("is-demo") === "true";
+    const demoFlag = localStorage.getItem(config.STORAGE_KEYS.IS_DEMO) === "true";
     setIsDemo(demoFlag);
     
     if (!demoFlag) {

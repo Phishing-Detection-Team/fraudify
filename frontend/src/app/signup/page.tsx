@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { config } from "@/lib/config";
 import { Logo } from "@/components/Logo";
 import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
 import { TermsModal } from "@/components/TermsModal";
@@ -8,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, Database, Mail, ArrowRight, Check, Eye, EyeOff, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-type SignupStep = "details" | "consent" | "provider";
+type SignupStep = "details" | "consent" | "modals" | "provider";
 
 export default function SignupPage() {
   const [step, setStep] = useState<SignupStep>("details");
@@ -72,12 +73,18 @@ export default function SignupPage() {
     }
   };
 
+  const handleCompleteModals = () => {
+    if (privacyAgreed && termsAgreed) {
+      setStep("provider");
+    }
+  };
+
   const handleConnectProvider = async (provider: 'gmail' | 'outlook') => {
     setLoading(true);
     try {
       // 1. Create the user account securely BEFORE redirecting, 
       // preventing the need to store plaintext password in localStorage.
-      const signupResponse = await fetch(`http://localhost:5000/api/auth/signup`, {
+      const signupResponse = await fetch(config.API.AUTH.SIGNUP, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -102,12 +109,12 @@ export default function SignupPage() {
       
       // 2. Obtain the OAuth Redirect URL
       const scope = allowTraining ? "read_and_train" : "read";
-      const authUrlResponse = await fetch(`http://localhost:5000/api/auth/url?provider=${provider}&scope=${scope}`);
+      const authUrlResponse = await fetch(`${config.API.AUTH.AUTH_URL}?provider=${provider}&scope=${scope}`);
       const authUrlData = await authUrlResponse.json();
       
       if (authUrlData.url) {
         // Only store safe data. NEVER store passwords in localStorage.
-        localStorage.setItem("sentra-pending-signup", JSON.stringify({ 
+        localStorage.setItem(config.STORAGE_KEYS.PENDING_SIGNUP, JSON.stringify({ 
           email, 
           userId, 
           scope, 

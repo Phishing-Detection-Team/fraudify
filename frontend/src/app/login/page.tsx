@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
+import { config } from "@/lib/config";
 import { Logo } from "@/components/Logo";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -9,54 +12,98 @@ import { ShieldCheck, LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const targetRoute = session.user.role === "admin" ? config.ROUTES.DASHBOARD_ADMIN : config.ROUTES.DASHBOARD_USER;
+      console.log("User already authenticated, redirecting to:", targetRoute);
+      router.push(targetRoute);
+    }
+  }, [status, session, router]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // Test Admin Bypass for Demo
-    if (email === "test-admin" && password === "test-admin") {
-      localStorage.setItem("sentra-role", "admin");
-      localStorage.setItem("is-demo", "true");
-      router.push("/dashboard/admin");
-      return;
-    }
-    localStorage.removeItem("is-demo");
-    
-    try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
+    console.log("=== Login Attempt Start ===");
+    console.log("Email:", email);
 
-      const data = await response.json();
+    // Use NextAuth to authenticate
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
 
-      if (!response.ok) {
-        setError(data.error || "Login failed");
+    console.log("SignIn Result:", result);
+    console.log("Result - ok:", result?.ok, "error:", result?.error, "status:", result?.status, "url:", result?.url);
+
+    if (result?.error || !result?.ok) {
+      console.log("NextAuth credentials failed, trying backend...");
+      // If NextAuth fails (demo account not found), try backend
+      try {
+        const apiUrl = `${config.API.BASE_URL}${config.API.AUTH.LOGIN}`;
+        console.log("Backend endpoint:", apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        console.log("Backend response:", data);
+
+        if (!response.ok) {
+          setError(data.error || "Wrong email or password");
+          setLoading(false);
+          return;
+        }
+
+        // Check roles
+        const userRoles = data.user?.roles || ['user'];
+        const is_admin = userRoles.includes('admin');
+        const assignedRole = is_admin ? "admin" : "user";
+        
+        // Store user info for backend users
+        localStorage.setItem(config.STORAGE_KEYS.IS_DEMO, "false");
+        localStorage.setItem("sentra-role", assignedRole);
+        
+        const targetRoute = is_admin ? config.ROUTES.DASHBOARD_ADMIN : config.ROUTES.DASHBOARD_USER;
+        console.log("Backend success - redirecting to:", targetRoute);
         setLoading(false);
-        return;
+        router.push(targetRoute);
+      } catch (err) {
+        console.error("Backend error:", err);
+        setError("Unable to reach the server: " + (err instanceof Error ? err.message : String(err)));
+        setLoading(false);
       }
-
-      // Check roles
-      const userRoles = data.user?.roles || ['user'];
-      const is_admin = userRoles.includes('admin');
-      const assignedRole = is_admin ? "admin" : "user";
+    } else {
+      // Demo account authentication succeeded
+      console.log("NextAuth credentials successful!");
+      const is_admin = email === config.DEMO_ACCOUNTS.ADMIN.email;
+      localStorage.setItem(config.STORAGE_KEYS.IS_DEMO, "true");
+      localStorage.setItem("sentra-role", is_admin ? "admin" : "user");
       
-      // Temporary token handling. TODO: NextAuth session integration
-      localStorage.setItem("sentra-role", assignedRole);
+      const targetRoute = is_admin ? config.ROUTES.DASHBOARD_ADMIN : config.ROUTES.DASHBOARD_USER;
+      console.log("Demo login successful - Target route:", targetRoute);
       
-      router.push(is_admin ? "/dashboard/admin" : "/dashboard/user");
-    } catch (err) {
-      console.error(err);
-      setError("Unable to reach the server.");
+      // Give the session time to be established, then redirect
       setLoading(false);
+      console.log("Session established, navigating to:", targetRoute);
+      
+      // Use replace instead of push to avoid back button issues
+      setTimeout(() => {
+        router.replace(targetRoute);
+      }, 200);
     }
   };
 
