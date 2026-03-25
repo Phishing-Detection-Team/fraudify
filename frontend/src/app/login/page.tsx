@@ -85,7 +85,7 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Email Address</label>
+            <label className="text-sm font-medium">Email Address / Username</label>
             <input
               type="text"
               required
