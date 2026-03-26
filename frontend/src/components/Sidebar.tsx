@@ -16,9 +16,15 @@ import {
   LogOut,
   Users,
   BrainCircuit,
+  X,
 } from "lucide-react";
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
@@ -35,7 +41,7 @@ export function Sidebar() {
       setUserName(session.user.name);
     } else {
       const storedRole = localStorage.getItem("sentra-role");
-      setUserName(storedRole === "admin" ? "Bob Admin" : "Alice Security");
+      setUserName(storedRole === "admin" ? "Demo Admin" : "Demo User");
     }
   }, [session]);
 
@@ -60,13 +66,31 @@ export function Sidebar() {
   ];
 
   return (
-    <div className="w-64 h-full border-r border-border/50 glass-panel !rounded-none flex flex-col hidden md:flex sticky top-0">
-      <div className="p-6">
-        <Logo />
-      </div>
-      
-      <div className="flex-1 px-4 py-4 space-y-1">
-        {navLinks.map((link) => {
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar Content */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-border/50 glass-panel !rounded-none flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}>
+        <div className="p-6 flex items-center justify-between">
+          <Logo />
+          <button 
+            onClick={onClose}
+            className="md:hidden p-2 text-muted-foreground hover:bg-muted rounded-md"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+          {navLinks.map((link) => {
           const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== basePath);
           const Icon = link.icon;
           
@@ -74,6 +98,9 @@ export function Sidebar() {
             <Link
               key={link.name}
               href={link.href}
+              onClick={() => {
+                if (onClose) onClose();
+              }}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${
                 isActive 
                   ? "bg-accent-cyan/10 text-accent-cyan shadow-[inset_2px_0_0_hsl(var(--accent-cyan))]" 
@@ -107,5 +134,6 @@ export function Sidebar() {
         </button>
       </div>
     </div>
+    </>
   );
 }
