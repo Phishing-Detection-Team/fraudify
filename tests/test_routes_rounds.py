@@ -1,6 +1,7 @@
 """Unit tests for /api/rounds endpoints."""
 
 import json
+import threading
 import pytest
 from datetime import datetime, timezone
 from app.models import Round
@@ -186,14 +187,36 @@ class TestGetRound:
 class TestRunRound:
     """POST /api/rounds/<id>/run - Trigger AI orchestration."""
 
-    def test_run_round_no_kernel(self, client, sample_round):
-        """Reject if Semantic Kernel not initialized."""
+    def test_run_round_missing_api_keys(self, client, sample_round, monkeypatch):
+        """Reject if Gemini/Google and Anthropic keys are not configured."""
+        monkeypatch.delenv('GOOGLE_API_KEY', raising=False)
+        monkeypatch.delenv('GEMINI_API_KEY', raising=False)
+        monkeypatch.delenv('ANTHROPIC_API_KEY', raising=False)
         response = client.post(f'/api/rounds/{sample_round.id}/run')
-        # SK_KERNEL is not in config, so this should return 400
         assert response.status_code == 400
         data = response.get_json()
         assert data['success'] is False
-        assert 'Semantic Kernel' in data['error']['message']
+        assert 'GOOGLE_API_KEY' in data['error']['message'] or 'ANTHROPIC' in data['error']['message']
+
+    def test_run_round_accepts_with_api_keys(self, client, sample_round, monkeypatch):
+        """Return 202 when required LLM keys are present (worker not executed)."""
+        monkeypatch.setenv('GOOGLE_API_KEY', 'test-google-key')
+        monkeypatch.setenv('ANTHROPIC_API_KEY', 'test-anthropic-key')
+
+        class _DummyThread:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def start(self):
+                pass
+
+        monkeypatch.setattr(threading, 'Thread', _DummyThread)
+
+        response = client.post(f'/api/rounds/{sample_round.id}/run')
+        assert response.status_code == 202
+        data = response.get_json()
+        assert data['success'] is True
+        assert 'OpenAI Agents' in data['message']
 
     def test_run_round_wrong_status(self, client, db):
         """Reject if round is not in 'running' status."""

@@ -7,15 +7,16 @@ GET  /api/rounds/<id>     - Get a single round with metrics
 POST /api/rounds/<id>/run - Trigger AI orchestration for a round
 """
 
-import asyncio
+import os
 import threading
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
 from sqlalchemy import desc, asc
 
-from app.models import db, Round, Email
+from app.models import db, Round
 from app.errors import ValidationError, NotFoundError, ConflictError
 from app.utils import paginate
+from app.services.openai_orchestration_runner import run_openai_round_in_thread
 
 rounds_bp = Blueprint('rounds', __name__)
 
@@ -138,103 +139,20 @@ def get_round(round_id):
     return jsonify({'success': True, 'data': data}), 200
 
 
-def _run_orchestration(app, round_id, total_emails):
-    """Background worker that runs the AI orchestration pipeline.
-
-    Runs in a separate thread so it doesn't block the Flask request.
-    Creates its own app context since threads don't inherit it.
-    """
-    with app.app_context():
-        kernel = app.config.get('SK_KERNEL')
-        if not kernel:
-            round_obj = db.session.get(Round, round_id)
-            if round_obj:
-                round_obj.status = 'failed'
-                round_obj.completed_at = datetime.now(timezone.utc)
-                db.session.commit()
-            return
-
-        orchestration_plugin = kernel.get_plugin('orchestration')
-
-        start_time = datetime.now(timezone.utc)
-        processed = 0
-
-        for i in range(1, total_emails + 1):
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                result = loop.run_until_complete(
-                    orchestration_plugin['ai_orchestrate'].invoke(
-                        kernel=kernel,
-                        round_id=round_id,
-                    )
-                )
-                loop.close()
-
-                email_result = result.value if result else None
-                if email_result and isinstance(email_result, dict):
-                    generated_content = email_result.get('generated_content') or '[Generation failed]'
-
-                    raw_verdict = str(email_result.get('detection_verdict', '')).upper()
-                    if any(w in raw_verdict for w in ['SCAM', 'PHISHING', 'SUSPICIOUS', 'FRAUD']):
-                        detector_verdict = 'phishing'
-                    else:
-                        detector_verdict = 'legitimate'
-
-                    confidence = email_result.get('detection_confidence')
-                    if confidence is not None:
-                        confidence = max(0.0, min(1.0, float(confidence)))
-
-                    email_record = Email(
-                        round_id=round_id,
-                        generated_content=generated_content,
-                        generated_prompt=email_result.get('generated_prompt'),
-                        generated_subject=email_result.get('generated_subject'),
-                        generated_body=email_result.get('generated_body'),
-                        is_phishing=email_result.get('is_phishing', True),
-                        generated_email_metadata=email_result.get('generated_email_metadata', {}),
-                        generator_latency_ms=email_result.get('generated_latency_ms'),
-                        detector_verdict=detector_verdict,
-                        detector_risk_score=email_result.get('detection_risk_score'),
-                        detector_confidence=confidence,
-                        detector_reasoning=email_result.get('detection_reasoning'),
-                        detector_latency_ms=email_result.get('detector_latency_ms'),
-                        cost=email_result.get('cost', 0.0),
-                        created_at=datetime.now(timezone.utc),
-                    )
-                    db.session.add(email_record)
-                    processed += 1
-
-            except Exception as e:
-                current_app.logger.error(f'Orchestration email {i}/{total_emails} failed: {e}')
-
-            round_obj = db.session.get(Round, round_id)
-            if round_obj:
-                round_obj.processed_emails = processed
-                db.session.commit()
-
-        end_time = datetime.now(timezone.utc)
-        round_obj = db.session.get(Round, round_id)
-        if round_obj:
-            round_obj.status = 'completed'
-            round_obj.completed_at = end_time
-            round_obj.processed_emails = processed
-            round_obj.processing_time = int((end_time - start_time).total_seconds())
-            round_obj.detector_accuracy = round_obj.calculate_accuracy()
-            db.session.commit()
-
-
 @rounds_bp.route('/rounds/<int:round_id>/run', methods=['POST'])
 def run_round(round_id):
     """
-    Trigger AI orchestration for an existing round.
+    Trigger OpenAI Agents SDK orchestration (Gemini generator + Claude detector) for a round.
 
     The pipeline runs in a background thread. Poll GET /api/rounds/<id>
     to track progress (processed_emails, status).
 
+    Optional JSON body:
+        parallel_workflows (int): defaults to ORCHESTRATION_PARALLEL_WORKFLOWS or 2
+
     Returns 202 Accepted immediately.
     Raises 404 if round not found, 409 if round is not in 'running' state,
-    400 if Semantic Kernel is not initialized.
+    400 if required API keys are missing.
     """
     round_obj = db.session.get(Round, round_id)
     if not round_obj:
@@ -246,23 +164,36 @@ def run_round(round_id):
             'Only rounds with status "running" can be executed.'
         )
 
-    kernel = current_app.config.get('SK_KERNEL')
-    if not kernel:
+    google = os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY')
+    anthropic = os.environ.get('ANTHROPIC_API_KEY')
+    if not google or not anthropic:
         raise ValidationError(
-            'Semantic Kernel is not initialized. '
-            'Check that OPENAI_API_KEY is set in .env and dependencies are installed.'
+            'GOOGLE_API_KEY (or GEMINI_API_KEY) and ANTHROPIC_API_KEY must be set '
+            'for OpenAI Agents orchestration.'
         )
+
+    data = request.get_json(silent=True) or {}
+    workflows = data.get('parallel_workflows', current_app.config.get('ORCHESTRATION_PARALLEL_WORKFLOWS', 2))
+    try:
+        workflows = int(workflows)
+        if workflows < 1:
+            raise ValueError
+    except (TypeError, ValueError):
+        raise ValidationError('parallel_workflows must be a positive integer')
 
     app = current_app._get_current_object()
     thread = threading.Thread(
-        target=_run_orchestration,
-        args=(app, round_id, round_obj.total_emails),
+        target=run_openai_round_in_thread,
+        args=(app, round_id, round_obj.total_emails, workflows),
         daemon=True,
     )
     thread.start()
 
     return jsonify({
         'success': True,
-        'message': f'Orchestration started for round {round_id} ({round_obj.total_emails} emails)',
+        'message': (
+            f'OpenAI Agents orchestration started for round {round_id} '
+            f'({round_obj.total_emails} emails, {workflows} parallel workflows)'
+        ),
         'data': round_obj.to_dict(),
     }), 202

@@ -66,6 +66,9 @@ class BaseConfig:
     RATELIMIT_STORAGE_URI = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     RATELIMIT_DEFAULT = '60 per minute'
 
+    # OpenAI Agents SDK orchestrator (POST /api/rounds/<id>/run)
+    ORCHESTRATION_PARALLEL_WORKFLOWS = int(os.environ.get('ORCHESTRATION_PARALLEL_WORKFLOWS', '2'))
+
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration."""

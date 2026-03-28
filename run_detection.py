@@ -7,6 +7,7 @@ Unified CLI interface to run either OpenAI Agents SDK or Semantic Kernels implem
 Usage:
     python run_detection.py --method openai --rounds 3 --emails 10 --workflows 2
     python run_detection.py --method semantic-kernels --rounds 3 --emails 10
+    python run_detection.py --method "semantic kernels" --rounds 3 --emails 10
 """
 
 import argparse
@@ -79,8 +80,15 @@ def main():
                '  python run_detection.py --method semantic-kernels --rounds 3 --emails 10'
     )
     
-    parser.add_argument('--method', required=True, choices=['openai', 'semantic kernels'],
-                       help='Implementation method')
+    parser.add_argument(
+        '--method',
+        required=True,
+        choices=['openai', 'semantic-kernels', 'semantic kernels'],
+        help=(
+            'Implementation method: openai (OpenAI Agents SDK) or '
+            'semantic-kernels / "semantic kernels" (Semantic Kernel / LLMs/)'
+        ),
+    )
     parser.add_argument('--rounds', type=int, required=True, help='Number of rounds')
     parser.add_argument('--emails', type=int, required=True, help='Emails per round')
     parser.add_argument('--workflows', type=int, default=2,
@@ -103,6 +111,7 @@ def main():
         if args.method == 'openai':
             asyncio.run(run_openai_method(args.rounds, args.emails, args.workflows))
         else:
+            # semantic-kernels or legacy "semantic kernels" (space)
             asyncio.run(run_semantic_kernels_method(args.rounds, args.emails))
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")

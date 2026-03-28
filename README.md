@@ -96,18 +96,15 @@ A sophisticated multi-agent AI system using **Semantic Kernel orchestration** wi
 #### Quick Start (LLMs Implementation)
 
 ```bash
-cd LLMs
-
-# Install dependencies
+# From repository root — single .env for all components (see root .env.example)
 pip install -r requirements.txt
-
-# Configure API keys (.env file)
 cp .env.example .env
 # Edit .env with your keys:
 # OPENAI_API_KEY=your_key_here
 # ANTHROPIC_API_KEY=your_key_here
 # GOOGLE_API_KEY=your_key_here (optional, for Judge Agent)
 
+cd LLMs
 # Run the multi-agent competition
 python main.py
 
@@ -353,20 +350,12 @@ The system uses **Semantic Kernel** for intelligent workflow management:
 ### Quick Start (Current LLMs Implementation)
 
 ```bash
-# Navigate to LLMs directory
-cd LLMs
-
-# Install dependencies
+# Repository root: dependencies and environment (LLMs/main.py loads ../.env)
 pip install -r requirements.txt
-
-# Configure API keys
 cp .env.example .env
-# Edit .env and add your API keys:
-#   OPENAI_API_KEY=your_key_here
-#   ANTHROPIC_API_KEY=your_key_here
-#   GOOGLE_API_KEY=your_key_here
+# Edit .env — at minimum: OPENAI_API_KEY, ANTHROPIC_API_KEY (GOOGLE_API_KEY optional)
 
-# Run the multi-agent competition
+cd LLMs
 python main.py
 
 # Interactive prompts:
@@ -426,49 +415,41 @@ cd phishing_detection
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install backend dependencies
-cd backend
-pip install -r app/requirements.txt
+# Install dependencies (project root lists Flask, agents, DB drivers, etc.)
+pip install -r requirements.txt
 
-# Set up environment variables
+# Environment: copy root template and edit (backend/app/config.py loads ../../.env)
 cp .env.example .env
-# Edit .env with your database credentials and API keys
 
-# Initialize database
-flask db init
-flask db migrate -m "Initial migration"
+# Initialize database (from backend/, with FLASK_APP set — see Flask docs)
+cd backend
+export FLASK_APP=run.py
 flask db upgrade
 
-# Start Redis server
-redis-server
+# Optional: Redis for rate limiting / JWT blocklist (docker compose up -d)
+# redis-server
 
-# Run Celery worker
-celery -A app.celery worker --loglevel=info
-
-# Run Flask application
-python app/run.py
+# Run Flask + SocketIO
+python run.py
 ```
 
 #### Configuration
 
-Create a `.env` file in the `backend/` directory:
+Use a `.env` file at the **repository root** (see root `.env.example`). Key variables:
 
 ```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/phishing_detection
-
-# Redis
+FLASK_ENV=development
+DEV_DATABASE_URL=postgresql://user:password@localhost:5432/phishing_db
 REDIS_URL=redis://localhost:6379/0
-
-# AI API Keys
+SECRET_KEY=your_secret_key_here
+JWT_SECRET_KEY=your_jwt_secret_here
 OPENAI_API_KEY=your_openai_key_here
 ANTHROPIC_API_KEY=your_anthropic_key_here
 GOOGLE_API_KEY=your_google_key_here
-
-# Flask
-FLASK_ENV=development
-SECRET_KEY=your_secret_key_here
+ORCHESTRATION_PARALLEL_WORKFLOWS=2
 ```
+
+`DATABASE_URL` is optional if `DEV_DATABASE_URL` / `PROD_DATABASE_URL` are set per environment.
 
 ---
 

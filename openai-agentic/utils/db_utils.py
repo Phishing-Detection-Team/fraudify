@@ -29,9 +29,13 @@ if os.path.exists(env_file):
 else:
     print(f"⚠️  Warning: .env file not found at {env_file}")
 
-# Import backend modules
-from backend.app import create_app
-from backend.app.models import db, API, Email, Round, Log
+# Import backend modules (prefer `app.*` when backend/ is on sys.path — same as tests/Flask)
+try:
+    from app import create_app
+    from app.models import db, API, Email, Round, Log
+except ImportError:  # noqa: PERF203 — CLI may only have project root layout
+    from backend.app import create_app
+    from backend.app.models import db, API, Email, Round, Log
 
 # Global Flask app instance
 _app = None
@@ -68,6 +72,36 @@ def init_db() -> None:
     masked_url = database_url.split('@')[1] if '@' in database_url else '...'
     print(f"Connecting to database: {masked_url}")
     print(f"Database connection initialized")
+
+
+def bind_flask_app(app) -> None:
+    """
+    Use an existing Flask app for DB helpers (e.g. API background thread).
+
+    Replaces a previous binding from init_db() so the running server's app,
+    config, and SQLAlchemy bindings are used for openai-agentic persistence.
+    """
+    global _app, _app_context
+
+    if app is None:
+        return
+
+    if _app is app:
+        return
+
+    if _app is not None:
+        try:
+            if _app_context is not None:
+                _app_context.pop()
+        except Exception:
+            pass
+        _app = None
+        _app_context = None
+
+    _app = app
+    _app_context = _app.app_context()
+    _app_context.push()
+
 
 def get_db():
     '''Get the database instance'''

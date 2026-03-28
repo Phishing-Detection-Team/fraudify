@@ -18,8 +18,12 @@ else:
     print(f"⚠️  Warning: .env file not found at {env_file}")
 
 # NOW import backend modules after environment is configured
-from backend.app import create_app
-from backend.app.models import db, API, Email, Round, Log
+try:
+    from app import create_app
+    from app.models import db, API, Email, Round, Log
+except ImportError:
+    from backend.app import create_app
+    from backend.app.models import db, API, Email, Round, Log
 from sqlalchemy.orm import scoped_session
 from datetime import datetime
 
