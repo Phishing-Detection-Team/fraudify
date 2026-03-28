@@ -42,6 +42,7 @@ export const authConfig = {
         token.fromDemo = user.fromDemo;
         token.id = user.id;
         token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
       }
       if (trigger === "update" && session?.role) {
         token.role = session.role;
@@ -56,6 +57,7 @@ export const authConfig = {
         session.user.id = token.id as string;
       }
       session.accessToken = token.accessToken as string | undefined;
+      session.refreshToken = token.refreshToken as string | undefined;
       return session;
     }
   },

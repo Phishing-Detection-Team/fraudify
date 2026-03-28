@@ -56,7 +56,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
         // First, try to authenticate with real backend
         const backendResult = await loginWithBackend(email, password);
         if (backendResult) {
-          const { user: backendUser, accessToken } = backendResult;
+          const { user: backendUser, accessToken, refreshToken } = backendResult;
           return {
             id: String(backendUser.id),
             name: backendUser.username,
@@ -66,6 +66,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
             isActive: backendUser.is_active,
             fromBackend: true,
             accessToken,
+            refreshToken,
           };
         }
 

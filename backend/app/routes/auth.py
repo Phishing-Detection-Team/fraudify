@@ -214,3 +214,59 @@ def admin_signup():
     db.session.commit()
 
     return jsonify({'success': True, 'user': user.to_dict()}), 201
+
+
+# ---------------------------------------------------------------------------
+# GET /api/auth/me
+# ---------------------------------------------------------------------------
+
+@auth_bp.route('/auth/me', methods=['GET'])
+@jwt_required()
+def get_me():
+    """Return the authenticated user's profile."""
+    identity = get_jwt_identity()
+    user = db.session.get(User, int(identity))
+    if not user:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+    return jsonify({'success': True, 'user': user.to_dict()}), 200
+
+
+# ---------------------------------------------------------------------------
+# PUT /api/auth/me/password
+# ---------------------------------------------------------------------------
+
+@auth_bp.route('/auth/me/password', methods=['PUT'])
+@jwt_required()
+def change_password():
+    """
+    Change the authenticated user's password.
+
+    Body (JSON):
+        current_password (str, required): current password for verification
+        new_password     (str, required): new password (min 8 chars)
+    """
+    identity = get_jwt_identity()
+    user = db.session.get(User, int(identity))
+    if not user:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+
+    body = request.get_json(silent=True) or {}
+    current_password = body.get('current_password', '')
+    new_password = body.get('new_password', '')
+
+    if not current_password or not new_password:
+        return jsonify({
+            'success': False,
+            'error': 'current_password and new_password are required',
+        }), 400
+
+    if not user.check_password(current_password):
+        return jsonify({'success': False, 'error': 'Current password is incorrect'}), 401
+
+    if len(new_password) < 8:
+        return jsonify({'success': False, 'error': 'New password must be at least 8 characters'}), 400
+
+    user.set_password(new_password)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Password updated successfully'}), 200

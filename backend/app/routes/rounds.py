@@ -11,11 +11,12 @@ import os
 import threading
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
+from flask_jwt_extended import jwt_required
 from sqlalchemy import desc, asc
 
 from app.models import db, Round
 from app.errors import ValidationError, NotFoundError, ConflictError
-from app.utils import paginate
+from app.utils import paginate, require_role
 from app.services.openai_orchestration_runner import run_openai_round_in_thread
 
 rounds_bp = Blueprint('rounds', __name__)
@@ -31,6 +32,7 @@ SORTABLE_FIELDS = {
 
 
 @rounds_bp.route('/rounds', methods=['POST'])
+@jwt_required()
 def create_round():
     """
     Start a new competition round.
@@ -43,6 +45,10 @@ def create_round():
     Returns 201 with the new round object.
     Raises 400 on invalid input, 409 if a round is already running.
     """
+    forbidden = require_role('admin', 'super_admin')
+    if forbidden:
+        return forbidden
+
     data = request.get_json(silent=True)
     if not data:
         raise ValidationError('Request body must be valid JSON')
@@ -83,6 +89,7 @@ def create_round():
 
 
 @rounds_bp.route('/rounds', methods=['GET'])
+@jwt_required()
 def list_rounds():
     """
     List rounds with pagination, filtering, and sorting.
@@ -121,6 +128,7 @@ def list_rounds():
 
 
 @rounds_bp.route('/rounds/<int:round_id>', methods=['GET'])
+@jwt_required()
 def get_round(round_id):
     """
     Get a single round by ID with computed metrics.
@@ -140,6 +148,7 @@ def get_round(round_id):
 
 
 @rounds_bp.route('/rounds/<int:round_id>/run', methods=['POST'])
+@jwt_required()
 def run_round(round_id):
     """
     Trigger OpenAI Agents SDK orchestration (Gemini generator + Claude detector) for a round.
@@ -154,6 +163,10 @@ def run_round(round_id):
     Raises 404 if round not found, 409 if round is not in 'running' state,
     400 if required API keys are missing.
     """
+    forbidden = require_role('admin', 'super_admin')
+    if forbidden:
+        return forbidden
+
     round_obj = db.session.get(Round, round_id)
     if not round_obj:
         raise NotFoundError(f'Round {round_id} not found')

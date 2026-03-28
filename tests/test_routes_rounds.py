@@ -8,12 +8,16 @@ from app.models import Round
 
 
 class TestCreateRound:
-    """POST /api/rounds - Start a new competition round."""
+    """POST /api/rounds - Start a new competition round (admin only)."""
+
+    @pytest.fixture(autouse=True)
+    def _inject_auth(self, auth_headers_admin):
+        self.headers = auth_headers_admin
 
     def test_create_round_success(self, client, db):
         """Create a new round with valid input."""
         payload = {'total_emails': 10}
-        response = client.post('/api/rounds', json=payload)
+        response = client.post('/api/rounds', json=payload, headers=self.headers)
         assert response.status_code == 201
         data = response.get_json()
         assert data['success'] is True
@@ -28,7 +32,7 @@ class TestCreateRound:
             'created_by': 'test_user',
             'notes': 'Test round'
         }
-        response = client.post('/api/rounds', json=payload)
+        response = client.post('/api/rounds', json=payload, headers=self.headers)
         assert response.status_code == 201
         data = response.get_json()
         assert data['data']['created_by'] == 'test_user'
@@ -37,7 +41,7 @@ class TestCreateRound:
     def test_create_round_missing_field(self, client, db):
         """Reject POST without total_emails."""
         payload = {}
-        response = client.post('/api/rounds', json=payload)
+        response = client.post('/api/rounds', json=payload, headers=self.headers)
         assert response.status_code == 400
         data = response.get_json()
         assert data['success'] is False
@@ -45,7 +49,7 @@ class TestCreateRound:
     def test_create_round_invalid_type(self, client, db):
         """Reject non-integer total_emails."""
         payload = {'total_emails': 'abc'}
-        response = client.post('/api/rounds', json=payload)
+        response = client.post('/api/rounds', json=payload, headers=self.headers)
         assert response.status_code == 400
         data = response.get_json()
         assert data['success'] is False
@@ -53,19 +57,19 @@ class TestCreateRound:
     def test_create_round_zero_emails(self, client, db):
         """Reject zero or negative total_emails."""
         payload = {'total_emails': 0}
-        response = client.post('/api/rounds', json=payload)
+        response = client.post('/api/rounds', json=payload, headers=self.headers)
         assert response.status_code == 400
 
     def test_create_round_negative_emails(self, client, db):
         """Reject negative total_emails."""
         payload = {'total_emails': -5}
-        response = client.post('/api/rounds', json=payload)
+        response = client.post('/api/rounds', json=payload, headers=self.headers)
         assert response.status_code == 400
 
     def test_create_round_conflict_running(self, client, db, sample_round):
         """Reject new round if one is already running."""
         payload = {'total_emails': 10}
-        response = client.post('/api/rounds', json=payload)
+        response = client.post('/api/rounds', json=payload, headers=self.headers)
         assert response.status_code == 409
         data = response.get_json()
         assert data['success'] is False
@@ -73,16 +77,39 @@ class TestCreateRound:
 
     def test_create_round_invalid_json(self, client):
         """Reject invalid JSON body."""
-        response = client.post('/api/rounds', data='not json', content_type='application/json')
+        response = client.post(
+            '/api/rounds',
+            data='not json',
+            content_type='application/json',
+            headers=self.headers
+        )
         assert response.status_code == 400
+
+    def test_create_round_requires_admin(self, client, db, auth_headers_user):
+        """Regular user cannot create a round."""
+        response = client.post(
+            '/api/rounds',
+            json={'total_emails': 5},
+            headers=auth_headers_user
+        )
+        assert response.status_code == 403
+
+    def test_create_round_requires_jwt(self, client, db):
+        """Unauthenticated request is rejected."""
+        response = client.post('/api/rounds', json={'total_emails': 5})
+        assert response.status_code == 401
 
 
 class TestListRounds:
     """GET /api/rounds - List rounds with pagination and filters."""
 
+    @pytest.fixture(autouse=True)
+    def _inject_auth(self, auth_headers_user):
+        self.headers = auth_headers_user
+
     def test_list_rounds_empty(self, client, db):
         """List rounds when none exist."""
-        response = client.get('/api/rounds')
+        response = client.get('/api/rounds', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
@@ -91,7 +118,7 @@ class TestListRounds:
 
     def test_list_rounds_with_data(self, client, db, sample_round):
         """List rounds with paginated data."""
-        response = client.get('/api/rounds')
+        response = client.get('/api/rounds', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['total'] >= 1
@@ -100,7 +127,7 @@ class TestListRounds:
 
     def test_list_rounds_filter_status(self, client, db, sample_round):
         """Filter rounds by status."""
-        response = client.get('/api/rounds?status=running')
+        response = client.get('/api/rounds?status=running', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert len(data['items']) >= 1
@@ -108,7 +135,7 @@ class TestListRounds:
 
     def test_list_rounds_filter_status_invalid(self, client):
         """Reject invalid status filter."""
-        response = client.get('/api/rounds?status=invalid')
+        response = client.get('/api/rounds?status=invalid', headers=self.headers)
         assert response.status_code == 400
 
     def test_list_rounds_filter_created_by(self, client, db):
@@ -130,14 +157,14 @@ class TestListRounds:
         db.session.add_all([r1, r2])
         db.session.commit()
 
-        response = client.get('/api/rounds?created_by=user_a')
+        response = client.get('/api/rounds?created_by=user_a', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert all(r['created_by'] == 'user_a' for r in data['items'])
 
     def test_list_rounds_sort_by_id_asc(self, client, db, sample_round):
         """Sort rounds by ID ascending."""
-        response = client.get('/api/rounds?sort_by=id&order=asc')
+        response = client.get('/api/rounds?sort_by=id&order=asc', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         if len(data['items']) > 1:
@@ -146,7 +173,7 @@ class TestListRounds:
 
     def test_list_rounds_pagination(self, client, db):
         """Test pagination parameters."""
-        response = client.get('/api/rounds?page=1&per_page=10')
+        response = client.get('/api/rounds?page=1&per_page=10', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert 'page' in data
@@ -155,13 +182,22 @@ class TestListRounds:
         assert 'has_next' in data
         assert 'has_prev' in data
 
+    def test_list_rounds_requires_jwt(self, client, db):
+        """Unauthenticated request is rejected."""
+        response = client.get('/api/rounds')
+        assert response.status_code == 401
+
 
 class TestGetRound:
     """GET /api/rounds/<id> - Get a single round with metrics."""
 
+    @pytest.fixture(autouse=True)
+    def _inject_auth(self, auth_headers_user):
+        self.headers = auth_headers_user
+
     def test_get_round_success(self, client, sample_round):
         """Retrieve an existing round."""
-        response = client.get(f'/api/rounds/{sample_round.id}')
+        response = client.get(f'/api/rounds/{sample_round.id}', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
@@ -171,28 +207,37 @@ class TestGetRound:
 
     def test_get_round_not_found(self, client):
         """Return 404 for non-existent round."""
-        response = client.get('/api/rounds/9999')
+        response = client.get('/api/rounds/9999', headers=self.headers)
         assert response.status_code == 404
         data = response.get_json()
         assert data['success'] is False
 
     def test_get_round_with_emails(self, client, db, sample_round, sample_email):
         """Round includes computed email_count and accuracy."""
-        response = client.get(f'/api/rounds/{sample_round.id}')
+        response = client.get(f'/api/rounds/{sample_round.id}', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['data']['email_count'] >= 1
 
+    def test_get_round_requires_jwt(self, client, db, sample_round):
+        """Unauthenticated request is rejected."""
+        response = client.get(f'/api/rounds/{sample_round.id}')
+        assert response.status_code == 401
+
 
 class TestRunRound:
-    """POST /api/rounds/<id>/run - Trigger AI orchestration."""
+    """POST /api/rounds/<id>/run - Trigger AI orchestration (admin only)."""
+
+    @pytest.fixture(autouse=True)
+    def _inject_auth(self, auth_headers_admin):
+        self.headers = auth_headers_admin
 
     def test_run_round_missing_api_keys(self, client, sample_round, monkeypatch):
         """Reject if Gemini/Google and Anthropic keys are not configured."""
         monkeypatch.delenv('GOOGLE_API_KEY', raising=False)
         monkeypatch.delenv('GEMINI_API_KEY', raising=False)
         monkeypatch.delenv('ANTHROPIC_API_KEY', raising=False)
-        response = client.post(f'/api/rounds/{sample_round.id}/run')
+        response = client.post(f'/api/rounds/{sample_round.id}/run', headers=self.headers)
         assert response.status_code == 400
         data = response.get_json()
         assert data['success'] is False
@@ -212,7 +257,7 @@ class TestRunRound:
 
         monkeypatch.setattr(threading, 'Thread', _DummyThread)
 
-        response = client.post(f'/api/rounds/{sample_round.id}/run')
+        response = client.post(f'/api/rounds/{sample_round.id}/run', headers=self.headers)
         assert response.status_code == 202
         data = response.get_json()
         assert data['success'] is True
@@ -230,12 +275,25 @@ class TestRunRound:
         db.session.add(completed_round)
         db.session.commit()
 
-        response = client.post(f'/api/rounds/{completed_round.id}/run')
+        response = client.post(f'/api/rounds/{completed_round.id}/run', headers=self.headers)
         assert response.status_code == 409
         data = response.get_json()
         assert data['success'] is False
 
     def test_run_round_not_found(self, client):
         """Return 404 for non-existent round."""
-        response = client.post('/api/rounds/9999/run')
+        response = client.post('/api/rounds/9999/run', headers=self.headers)
         assert response.status_code == 404
+
+    def test_run_round_requires_admin(self, client, db, sample_round, auth_headers_user):
+        """Regular user cannot trigger a round."""
+        response = client.post(
+            f'/api/rounds/{sample_round.id}/run',
+            headers=auth_headers_user
+        )
+        assert response.status_code == 403
+
+    def test_run_round_requires_jwt(self, client, db, sample_round):
+        """Unauthenticated request is rejected."""
+        response = client.post(f'/api/rounds/{sample_round.id}/run')
+        assert response.status_code == 401

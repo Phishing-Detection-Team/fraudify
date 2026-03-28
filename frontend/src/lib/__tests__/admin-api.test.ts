@@ -1,0 +1,224 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import {
+  getExtensionInstances,
+  getAllExtensionInstances,
+  registerExtensionInstance,
+  getUsers,
+  updatePassword,
+} from '../admin-api'
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function mockFetch(body: unknown, ok = true, status = 200) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok,
+      status,
+      json: async () => body,
+    })
+  )
+}
+
+beforeEach(() => {
+  vi.restoreAllMocks()
+})
+
+// ---------------------------------------------------------------------------
+// getExtensionInstances
+// ---------------------------------------------------------------------------
+
+describe('getExtensionInstances', () => {
+  it('returns the data array', async () => {
+    const fakeInstances = [
+      { id: 1, user_id: 10, instance_token: 'abc', is_active: true },
+      { id: 2, user_id: 10, instance_token: 'def', is_active: false },
+    ]
+    mockFetch({ success: true, data: fakeInstances })
+
+    const result = await getExtensionInstances('token')
+    expect(result).toHaveLength(2)
+    expect(result[0].instance_token).toBe('abc')
+  })
+
+  it('returns empty array when data is missing', async () => {
+    mockFetch({ success: true })
+    const result = await getExtensionInstances('token')
+    expect(result).toEqual([])
+  })
+
+  it('throws on non-ok response', async () => {
+    mockFetch({ error: 'Unauthorized' }, false, 401)
+    await expect(getExtensionInstances('bad')).rejects.toThrow(
+      'Failed to fetch extension instances'
+    )
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getAllExtensionInstances
+// ---------------------------------------------------------------------------
+
+describe('getAllExtensionInstances', () => {
+  it('returns data, total, and active fields', async () => {
+    const fakeInstances = [
+      { id: 1, user_id: 1, instance_token: 'aaa', is_active: true, user: { email: 'a@b.com' } },
+    ]
+    mockFetch({ success: true, data: fakeInstances, total: 1, active: 1 })
+
+    const result = await getAllExtensionInstances('token')
+    expect(result.total).toBe(1)
+    expect(result.active).toBe(1)
+    expect(result.data).toHaveLength(1)
+    expect(result.data[0].user?.email).toBe('a@b.com')
+  })
+
+  it('defaults total and active to zero when missing', async () => {
+    mockFetch({ success: true, data: [] })
+    const result = await getAllExtensionInstances('token')
+    expect(result.total).toBe(0)
+    expect(result.active).toBe(0)
+  })
+
+  it('throws on non-ok response', async () => {
+    mockFetch({ error: 'Forbidden' }, false, 403)
+    await expect(getAllExtensionInstances('user-token')).rejects.toThrow(
+      'Failed to fetch all extension instances'
+    )
+  })
+})
+
+// ---------------------------------------------------------------------------
+// registerExtensionInstance
+// ---------------------------------------------------------------------------
+
+describe('registerExtensionInstance', () => {
+  it('POSTs to the register endpoint and returns the new instance', async () => {
+    const fake = { id: 5, user_id: 1, instance_token: 'xyz123', is_active: true }
+    mockFetch({ success: true, data: fake }, true, 201)
+
+    const result = await registerExtensionInstance('token', 'Chrome 124', 'Linux')
+    expect(result.instance_token).toBe('xyz123')
+    expect(result.id).toBe(5)
+  })
+
+  it('sends browser and os_name in the request body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ success: true, data: { id: 1, instance_token: 'tok' } }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await registerExtensionInstance('token', 'Firefox 125', 'Windows 11')
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.browser).toBe('Firefox 125')
+    expect(body.os_name).toBe('Windows 11')
+  })
+
+  it('throws with the server error message on failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ message: 'Invalid payload' }),
+      })
+    )
+    await expect(registerExtensionInstance('token')).rejects.toThrow('Invalid payload')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getUsers
+// ---------------------------------------------------------------------------
+
+describe('getUsers', () => {
+  it('returns the items array from the response', async () => {
+    const fakeUsers = [
+      { id: 1, email: 'admin@x.com', username: 'admin', roles: ['admin'], is_active: true },
+      { id: 2, email: 'user@x.com', username: 'user', roles: ['user'], is_active: true },
+    ]
+    mockFetch({ success: true, items: fakeUsers })
+
+    const users = await getUsers('admin-token')
+    expect(users).toHaveLength(2)
+    expect(users[0].email).toBe('admin@x.com')
+  })
+
+  it('falls back to "data" key when "items" is absent', async () => {
+    const fakeUsers = [{ id: 3, email: 'c@x.com', username: 'c', roles: [], is_active: false }]
+    mockFetch({ success: true, data: fakeUsers })
+
+    const users = await getUsers('admin-token')
+    expect(users[0].email).toBe('c@x.com')
+  })
+
+  it('returns empty array when neither key exists', async () => {
+    mockFetch({ success: true })
+    expect(await getUsers('admin-token')).toEqual([])
+  })
+
+  it('throws on non-ok response', async () => {
+    mockFetch({ error: 'Forbidden' }, false, 403)
+    await expect(getUsers('user-token')).rejects.toThrow('Failed to fetch users')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// updatePassword
+// ---------------------------------------------------------------------------
+
+describe('updatePassword', () => {
+  it('resolves without error on success', async () => {
+    mockFetch({ success: true })
+    await expect(updatePassword('token', 'OldPass1', 'NewPass9')).resolves.toBeUndefined()
+  })
+
+  it('sends current_password and new_password in body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updatePassword('token', 'OldPass1', 'NewPass9')
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.current_password).toBe('OldPass1')
+    expect(body.new_password).toBe('NewPass9')
+  })
+
+  it('throws with the server error message on failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({ error: 'Wrong current password' }),
+      })
+    )
+    await expect(updatePassword('token', 'WrongPass1', 'NewPass9')).rejects.toThrow(
+      'Wrong current password'
+    )
+  })
+
+  it('throws with fallback message when server returns no error field', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({}),
+      })
+    )
+    await expect(updatePassword('token', 'OldPass1', 'NewPass9')).rejects.toThrow(
+      'Failed to update password'
+    )
+  })
+})

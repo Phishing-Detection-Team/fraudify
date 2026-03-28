@@ -828,7 +828,7 @@ export function SentraMascot({ phase, active, instant }: SentraMascotProps) {
                 ? `drop-shadow(0 0 22px rgba(${accent.rgb},0.9)) drop-shadow(0 0 50px rgba(${accent.rgb},0.45)) drop-shadow(0 4px 12px rgba(0,0,0,0.7))`
                 : `drop-shadow(0 12px 30px rgba(${accent.rgb},0.35)) drop-shadow(0 4px 12px rgba(0,0,0,0.6))`,
               transform:    "perspective(700px) rotateY(-12deg) rotateX(-4deg)",
-              pointerEvents:"auto",
+              pointerEvents:"none",
               transition:   "filter 0.3s ease",
             }}
           >

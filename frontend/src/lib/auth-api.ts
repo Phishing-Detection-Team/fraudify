@@ -56,6 +56,7 @@ export async function loginWithBackend(email: string, password: string) {
     return {
       user: data.user,
       accessToken: data.access_token,
+      refreshToken: data.refresh_token,
     };
   } catch (error) {
     console.error('Backend login error:', error);

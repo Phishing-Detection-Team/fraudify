@@ -6,6 +6,7 @@ GET /api/logs - List logs with level, time range, and round filters
 
 from datetime import datetime
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from sqlalchemy import desc
 
 from app.models import Log
@@ -16,6 +17,7 @@ logs_bp = Blueprint('logs', __name__)
 
 
 @logs_bp.route('/logs', methods=['GET'])
+@jwt_required()
 def list_logs():
     """
     List system logs with filters and pagination.

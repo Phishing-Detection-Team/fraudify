@@ -9,9 +9,13 @@ from app.models import Log
 class TestListLogs:
     """GET /api/logs - List system logs with filters."""
 
+    @pytest.fixture(autouse=True)
+    def _inject_auth(self, auth_headers_user):
+        self.headers = auth_headers_user
+
     def test_list_logs_empty(self, client, db):
         """List logs when none exist."""
-        response = client.get('/api/logs')
+        response = client.get('/api/logs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
@@ -19,7 +23,7 @@ class TestListLogs:
 
     def test_list_logs_success(self, client, sample_log):
         """List logs with data."""
-        response = client.get('/api/logs')
+        response = client.get('/api/logs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert len(data['items']) >= 1
@@ -28,7 +32,6 @@ class TestListLogs:
 
     def test_list_logs_paginated(self, client, db):
         """Test pagination."""
-        # Create multiple logs
         for i in range(5):
             log = Log(
                 level='info',
@@ -38,7 +41,7 @@ class TestListLogs:
             db.session.add(log)
         db.session.commit()
 
-        response = client.get('/api/logs?page=1&per_page=3')
+        response = client.get('/api/logs?page=1&per_page=3', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert len(data['items']) <= 3
@@ -57,14 +60,14 @@ class TestListLogs:
             db.session.add(log)
         db.session.commit()
 
-        response = client.get('/api/logs?level=error')
+        response = client.get('/api/logs?level=error', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert all(log['level'] == 'error' for log in data['items'])
 
     def test_list_logs_filter_level_invalid(self, client):
         """Reject invalid log level."""
-        response = client.get('/api/logs?level=verbose')
+        response = client.get('/api/logs?level=verbose', headers=self.headers)
         assert response.status_code == 400
         data = response.get_json()
         assert data['success'] is False
@@ -79,19 +82,19 @@ class TestListLogs:
         log2 = Log(
             level='info',
             message='System log',
-            round_id=None  # System-level log
+            round_id=None
         )
         db.session.add_all([log1, log2])
         db.session.commit()
 
-        response = client.get(f'/api/logs?round_id={sample_round.id}')
+        response = client.get(f'/api/logs?round_id={sample_round.id}', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert all(log['round_id'] == sample_round.id for log in data['items'])
 
     def test_list_logs_filter_round_invalid_type(self, client):
         """Reject non-integer round_id."""
-        response = client.get('/api/logs?round_id=abc')
+        response = client.get('/api/logs?round_id=abc', headers=self.headers)
         assert response.status_code == 400
 
     def test_list_logs_filter_by_time_range(self, client, db):
@@ -112,22 +115,21 @@ class TestListLogs:
         db.session.add_all([log1, log2])
         db.session.commit()
 
-        # Filter using ISO format without timezone (endpoint uses fromisoformat)
         from_iso = past.replace(tzinfo=None).isoformat()
         to_iso = now.replace(tzinfo=None).isoformat()
-        response = client.get(f'/api/logs?from={from_iso}&to={to_iso}')
+        response = client.get(f'/api/logs?from={from_iso}&to={to_iso}', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert len(data['items']) >= 1
 
     def test_list_logs_filter_from_invalid_format(self, client):
         """Reject invalid ISO datetime."""
-        response = client.get('/api/logs?from=not-a-date')
+        response = client.get('/api/logs?from=not-a-date', headers=self.headers)
         assert response.status_code == 400
 
     def test_list_logs_filter_to_invalid_format(self, client):
         """Reject invalid ISO datetime in 'to' param."""
-        response = client.get('/api/logs?to=not-a-date')
+        response = client.get('/api/logs?to=not-a-date', headers=self.headers)
         assert response.status_code == 400
 
     def test_list_logs_search(self, client, db):
@@ -143,7 +145,7 @@ class TestListLogs:
         db.session.add_all([log1, log2])
         db.session.commit()
 
-        response = client.get('/api/logs?search=database')
+        response = client.get('/api/logs?search=database', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert all('database' in log['message'].lower() for log in data['items'])
@@ -157,7 +159,7 @@ class TestListLogs:
         db.session.add(log)
         db.session.commit()
 
-        response = client.get('/api/logs?search=error')
+        response = client.get('/api/logs?search=error', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert len(data['items']) >= 1
@@ -173,7 +175,8 @@ class TestListLogs:
         db.session.commit()
 
         response = client.get(
-            f'/api/logs?round_id={sample_round.id}&level=error&search=critical'
+            f'/api/logs?round_id={sample_round.id}&level=error&search=critical',
+            headers=self.headers
         )
         assert response.status_code == 200
         data = response.get_json()
@@ -184,7 +187,7 @@ class TestListLogs:
 
     def test_list_logs_response_format(self, client, sample_log):
         """Verify response has correct format."""
-        response = client.get('/api/logs')
+        response = client.get('/api/logs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert 'success' in data

@@ -47,18 +47,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     router.push(config.ROUTES.LOGIN);
   };
 
-  const navLinks = [
-    { name: "Dashboard", href: basePath, icon: LayoutDashboard },
-    { name: "Rounds", href: `${basePath}/rounds`, icon: ShieldAlert },
-    { name: "Live Feed", href: `${basePath}/feed`, icon: Activity },
-    ...(isAdmin ? [
-      { name: "Team Overview", href: `${basePath}/team`, icon: Users },
-      { name: "Training", href: `${basePath}/training`, icon: BrainCircuit },
-    ] : [
-      { name: "Credits", href: `${basePath}/credits`, icon: CreditCard },
-    ]),
-    { name: "Settings", href: `${basePath}/settings`, icon: Settings },
-  ];
+  const navLinks = isAdmin
+    ? [
+        { name: "Dashboard", href: basePath, icon: LayoutDashboard },
+        { name: "Rounds", href: `${basePath}/rounds`, icon: ShieldAlert },
+        { name: "Live Feed", href: `${basePath}/feed`, icon: Activity },
+        { name: "Users", href: `${basePath}/team`, icon: Users },
+        { name: "Training", href: `${basePath}/training`, icon: BrainCircuit },
+        { name: "Settings", href: `${basePath}/settings`, icon: Settings },
+      ]
+    : [
+        { name: "Dashboard", href: basePath, icon: LayoutDashboard },
+        { name: "Credits", href: `${basePath}/credits`, icon: CreditCard },
+        { name: "Settings", href: `${basePath}/settings`, icon: Settings },
+      ];
 
   return (
     <>

@@ -79,6 +79,7 @@ def create_app(config_name=None):
         from .models.role import Role, user_roles  # noqa: F401
         from .models.invite_code import InviteCode  # noqa: F401
         from .models.training_data_log import TrainingDataLog  # noqa: F401
+        from .models.extension_instance import ExtensionInstance  # noqa: F401
 
     _register_blueprints(app)
 
@@ -115,6 +116,9 @@ def _register_blueprints(app):
     from .routes.logs import logs_bp
     from .routes.costs import costs_bp
     from .routes.auth import auth_bp
+    from .routes.stats import stats_bp
+    from .routes.extension import extension_bp
+    from .routes.users import users_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(rounds_bp, url_prefix='/api')
@@ -122,3 +126,6 @@ def _register_blueprints(app):
     app.register_blueprint(logs_bp, url_prefix='/api')
     app.register_blueprint(costs_bp, url_prefix='/api')
     app.register_blueprint(auth_bp, url_prefix='/api')
+    app.register_blueprint(stats_bp, url_prefix='/api')
+    app.register_blueprint(extension_bp, url_prefix='/api')
+    app.register_blueprint(users_bp, url_prefix='/api')

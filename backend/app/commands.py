@@ -57,4 +57,27 @@ def seed_cmd():
         click.echo(f'  Admin already exists: {admin_email}')
 
     db.session.commit()
+
+    # --- Normal user account ---
+    user_email    = os.environ.get('SEED_USER_EMAIL',    'user@user.com')
+    user_username = os.environ.get('SEED_USER_USERNAME', 'testuser')
+    user_password = os.environ.get('SEED_USER_PASSWORD')
+    if user_password:
+        normal_user = User.query.filter_by(email=user_email).first()
+        if not normal_user:
+            normal_user = User(
+                email=user_email,
+                username=user_username,
+                email_verified=True,
+            )
+            normal_user.set_password(user_password)
+            normal_user.roles.append(created_roles['user'])
+            db.session.add(normal_user)
+            click.echo(f'  Created user: {user_email}')
+        else:
+            click.echo(f'  User already exists: {user_email}')
+        db.session.commit()
+    else:
+        click.echo('  INFO: SEED_USER_PASSWORD not set — skipping normal user creation.')
+
     click.echo('Seed complete.')

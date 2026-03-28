@@ -9,9 +9,11 @@ declare module "next-auth" {
     fromDemo?: boolean;
     fromBackend?: boolean;
     accessToken?: string;
+    refreshToken?: string;
   }
   interface Session {
     accessToken?: string;
+    refreshToken?: string;
     user: {
       id?: string;
       role?: string;
@@ -24,6 +26,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     accessToken?: string;
+    refreshToken?: string;
     role?: string;
     fromBackend?: boolean;
     fromDemo?: boolean;

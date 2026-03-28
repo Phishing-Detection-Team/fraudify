@@ -8,16 +8,18 @@ POST /api/emails/<id>/override  - Submit manual verdict correction
 
 from datetime import datetime
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from sqlalchemy import desc
 
 from app.models import db, Round, Email, Override, API as APICall
 from app.errors import ValidationError, NotFoundError, ConflictError
-from app.utils import paginate
+from app.utils import paginate, require_role
 
 emails_bp = Blueprint('emails', __name__)
 
 
 @emails_bp.route('/rounds/<int:round_id>/emails', methods=['GET'])
+@jwt_required()
 def list_emails_by_round(round_id):
     """
     List emails belonging to a round with optional verdict filter.
@@ -56,6 +58,7 @@ def list_emails_by_round(round_id):
 
 
 @emails_bp.route('/emails/<int:email_id>', methods=['GET'])
+@jwt_required()
 def get_email(email_id):
     """
     Get a single email with all agent outputs (generator, detector, override, API calls).
@@ -83,6 +86,7 @@ def get_email(email_id):
 
 
 @emails_bp.route('/emails/<int:email_id>/override', methods=['POST'])
+@jwt_required()
 def create_override(email_id):
     """
     Submit a manual verdict correction for an email.
@@ -95,6 +99,10 @@ def create_override(email_id):
     After saving the override, updates the Email record and
     recalculates the parent round's accuracy.
     """
+    forbidden = require_role('admin', 'super_admin')
+    if forbidden:
+        return forbidden
+
     email = db.session.get(Email, email_id)
     if not email:
         raise NotFoundError(f'Email {email_id} not found')

@@ -5,6 +5,7 @@ GET /api/costs - Aggregated cost breakdown by agent type, round, and model
 """
 
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from sqlalchemy import func
 
 from app.models import db, Round, API as APICall
@@ -14,6 +15,7 @@ costs_bp = Blueprint('costs', __name__)
 
 
 @costs_bp.route('/costs', methods=['GET'])
+@jwt_required()
 def get_costs():
     """
     Get cost breakdown with optional round filter.

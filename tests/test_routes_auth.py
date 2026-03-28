@@ -334,3 +334,118 @@ class TestAdminSignup:
             'password': 'Pass1234',
         })
         assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# GET /api/auth/me
+# ---------------------------------------------------------------------------
+
+class TestGetMe:
+    def test_get_me_requires_jwt(self, client, db):
+        resp = client.get('/api/auth/me')
+        assert resp.status_code == 401
+
+    def test_get_me_returns_own_profile(self, client, db, sample_user, auth_headers_user):
+        resp = client.get('/api/auth/me', headers=auth_headers_user)
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['success'] is True
+        user = data['user']
+        assert user['email'] == sample_user.email
+        assert user['username'] == sample_user.username
+
+    def test_get_me_response_shape(self, client, db, sample_user, auth_headers_user):
+        resp = client.get('/api/auth/me', headers=auth_headers_user)
+        user = resp.get_json()['user']
+        for key in ('id', 'email', 'username', 'roles'):
+            assert key in user, f"Missing key: {key}"
+
+    def test_get_me_roles_is_list(self, client, db, sample_user, auth_headers_user):
+        resp = client.get('/api/auth/me', headers=auth_headers_user)
+        assert isinstance(resp.get_json()['user']['roles'], list)
+
+    def test_get_me_returns_correct_roles(self, client, db, sample_user, auth_headers_user):
+        resp = client.get('/api/auth/me', headers=auth_headers_user)
+        assert 'user' in resp.get_json()['user']['roles']
+
+    def test_get_me_admin_returns_admin_role(
+        self, client, db, sample_admin, auth_headers_admin
+    ):
+        resp = client.get('/api/auth/me', headers=auth_headers_admin)
+        assert resp.status_code == 200
+        assert 'admin' in resp.get_json()['user']['roles']
+
+
+# ---------------------------------------------------------------------------
+# PUT /api/auth/me/password
+# ---------------------------------------------------------------------------
+
+class TestChangePassword:
+    def test_change_password_requires_jwt(self, client, db):
+        resp = client.put('/api/auth/me/password', json={
+            'current_password': 'Password1',
+            'new_password': 'NewPass99',
+        })
+        assert resp.status_code == 401
+
+    def test_change_password_success(self, client, db, sample_user, auth_headers_user):
+        resp = client.put(
+            '/api/auth/me/password',
+            json={'current_password': 'Password1', 'new_password': 'NewPass99'},
+            headers=auth_headers_user,
+        )
+        assert resp.status_code == 200
+        assert resp.get_json()['success'] is True
+
+        # Can now log in with the new password
+        login_resp = _post(client, '/api/auth/login', {
+            'email': sample_user.email,
+            'password': 'NewPass99',
+        })
+        assert login_resp.status_code == 200
+
+    def test_change_password_wrong_current(self, client, db, sample_user, auth_headers_user):
+        resp = client.put(
+            '/api/auth/me/password',
+            json={'current_password': 'WrongPass1', 'new_password': 'NewPass99'},
+            headers=auth_headers_user,
+        )
+        assert resp.status_code == 401
+
+    def test_change_password_too_short(self, client, db, sample_user, auth_headers_user):
+        resp = client.put(
+            '/api/auth/me/password',
+            json={'current_password': 'Password1', 'new_password': 'Sh0rt'},
+            headers=auth_headers_user,
+        )
+        assert resp.status_code == 400
+
+    def test_change_password_missing_current(self, client, db, sample_user, auth_headers_user):
+        resp = client.put(
+            '/api/auth/me/password',
+            json={'new_password': 'NewPass99'},
+            headers=auth_headers_user,
+        )
+        assert resp.status_code == 400
+
+    def test_change_password_missing_new(self, client, db, sample_user, auth_headers_user):
+        resp = client.put(
+            '/api/auth/me/password',
+            json={'current_password': 'Password1'},
+            headers=auth_headers_user,
+        )
+        assert resp.status_code == 400
+
+    def test_change_password_old_no_longer_works(
+        self, client, db, sample_user, auth_headers_user
+    ):
+        client.put(
+            '/api/auth/me/password',
+            json={'current_password': 'Password1', 'new_password': 'NewPass99'},
+            headers=auth_headers_user,
+        )
+        login_resp = _post(client, '/api/auth/login', {
+            'email': sample_user.email,
+            'password': 'Password1',
+        })
+        assert login_resp.status_code == 401

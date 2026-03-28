@@ -18,6 +18,7 @@ for path in [PROJECT_ROOT, BACKEND_PATH, LLMS_PATH]:
 
 from app import create_app
 from app.models import db as _db, Round, Email, Log, API, Override, User, Role, InviteCode
+from app.models.extension_instance import ExtensionInstance
 
 
 @pytest.fixture(scope='session')
@@ -181,6 +182,51 @@ def sample_admin(db, sample_role_admin):
     db.session.add(user)
     db.session.commit()
     return user
+
+
+# ---------------------------------------------------------------------------
+# Extension instance fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def sample_extension_instance(db, sample_user):
+    """An extension instance belonging to sample_user with a recent heartbeat."""
+    from datetime import timezone
+    inst = ExtensionInstance(
+        user_id=sample_user.id,
+        browser='Chrome 124',
+        os_name='Linux',
+        last_seen=datetime.now(timezone.utc),
+    )
+    db.session.add(inst)
+    db.session.commit()
+    return inst
+
+
+# ---------------------------------------------------------------------------
+# JWT auth header fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def auth_headers_user(client, sample_user):
+    """JWT Authorization header for a regular user (password = 'Password1')."""
+    resp = client.post('/api/auth/login', json={
+        'email': sample_user.email,
+        'password': 'Password1',
+    })
+    token = resp.get_json()['access_token']
+    return {'Authorization': f'Bearer {token}'}
+
+
+@pytest.fixture
+def auth_headers_admin(client, sample_admin):
+    """JWT Authorization header for an admin (password = 'Admin123')."""
+    resp = client.post('/api/auth/login', json={
+        'email': sample_admin.email,
+        'password': 'Admin123',
+    })
+    token = resp.get_json()['access_token']
+    return {'Authorization': f'Bearer {token}'}
 
 
 @pytest.fixture

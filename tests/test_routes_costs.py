@@ -9,9 +9,13 @@ from app.models import API, Round, Email
 class TestGetCosts:
     """GET /api/costs - Get cost breakdown and analytics."""
 
+    @pytest.fixture(autouse=True)
+    def _inject_auth(self, auth_headers_user):
+        self.headers = auth_headers_user
+
     def test_get_costs_empty_database(self, client, db):
         """Get costs when no API calls exist."""
-        response = client.get('/api/costs')
+        response = client.get('/api/costs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
@@ -21,7 +25,7 @@ class TestGetCosts:
 
     def test_get_costs_with_data(self, client, sample_api_call):
         """Get costs with API call data."""
-        response = client.get('/api/costs')
+        response = client.get('/api/costs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['data']['total_cost'] > 0.0
@@ -30,7 +34,7 @@ class TestGetCosts:
 
     def test_get_costs_response_structure(self, client, sample_api_call):
         """Verify response has all expected fields."""
-        response = client.get('/api/costs')
+        response = client.get('/api/costs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert 'success' in data
@@ -47,7 +51,6 @@ class TestGetCosts:
 
     def test_get_costs_by_agent(self, client, db, sample_round, sample_email):
         """Cost breakdown by agent type."""
-        # Create calls for different agent types
         api_call_gen = API(
             round_id=sample_round.id,
             email_id=sample_email.id,
@@ -67,7 +70,7 @@ class TestGetCosts:
         db.session.add_all([api_call_gen, api_call_det])
         db.session.commit()
 
-        response = client.get('/api/costs')
+        response = client.get('/api/costs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         by_agent = data['data']['by_agent']
@@ -76,7 +79,6 @@ class TestGetCosts:
         assert 'generator' in agent_types
         assert 'detector' in agent_types
 
-        # Verify agent details
         for agent in by_agent:
             assert 'agent_type' in agent
             assert 'total_cost' in agent
@@ -85,7 +87,7 @@ class TestGetCosts:
 
     def test_get_costs_by_round(self, client, db, sample_round, sample_api_call):
         """Cost breakdown by round."""
-        response = client.get('/api/costs')
+        response = client.get('/api/costs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         by_round = data['data']['by_round']
@@ -118,7 +120,7 @@ class TestGetCosts:
         db.session.add_all([api_call1, api_call2])
         db.session.commit()
 
-        response = client.get('/api/costs')
+        response = client.get('/api/costs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         by_model = data['data']['by_model']
@@ -187,14 +189,14 @@ class TestGetCosts:
         db.session.add_all([api1, api2])
         db.session.commit()
 
-        response = client.get(f'/api/costs?round_id={r1.id}')
+        response = client.get(f'/api/costs?round_id={r1.id}', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['data']['total_cost'] == 0.001
 
     def test_get_costs_filter_round_invalid_type(self, client):
         """Reject non-integer round_id."""
-        response = client.get('/api/costs?round_id=abc')
+        response = client.get('/api/costs?round_id=abc', headers=self.headers)
         assert response.status_code == 400
         data = response.get_json()
         assert data['success'] is False
@@ -232,10 +234,9 @@ class TestGetCosts:
         db.session.add(api_call)
         db.session.commit()
 
-        response = client.get(f'/api/costs?round_id={round_obj.id}')
+        response = client.get(f'/api/costs?round_id={round_obj.id}', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
-        # avg_cost_per_email = total_cost / processed_emails
         avg = data['data']['avg_cost_per_email']
         expected = 0.01 / 10
         assert abs(avg - expected) < 0.0001
@@ -251,26 +252,22 @@ class TestGetCosts:
         db.session.add(round_obj)
         db.session.commit()
 
-        response = client.get(f'/api/costs?round_id={round_obj.id}')
+        response = client.get(f'/api/costs?round_id={round_obj.id}', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
         assert data['data']['avg_cost_per_email'] == 0
 
     def test_get_costs_numeric_types(self, client, sample_api_call):
         """Verify numeric types in response."""
-        response = client.get('/api/costs')
+        response = client.get('/api/costs', headers=self.headers)
         assert response.status_code == 200
         data = response.get_json()
 
-        # Costs should be floats
         assert isinstance(data['data']['total_cost'], (int, float))
         assert isinstance(data['data']['avg_cost_per_email'], (int, float))
-
-        # Tokens should be integers
         assert isinstance(data['data']['total_tokens'], int)
         assert isinstance(data['data']['total_api_calls'], int)
 
-        # By-agent items should also have correct types
         for agent in data['data']['by_agent']:
             assert isinstance(agent['total_cost'], (int, float))
             assert isinstance(agent['total_tokens'], int)

@@ -4,6 +4,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { RoundTable } from "@/components/dashboard/RoundTable";
 import { CostPieChart } from "@/components/dashboard/CostPieChart";
 import { AgentLogsTable } from "@/components/dashboard/AgentLogsTable";
+import { RecentLogsSection } from "@/components/dashboard/RecentLogsSection";
 import { Mail, ShieldAlert, BadgeDollarSign, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -128,6 +129,7 @@ export default function AdminDashboard() {
           transition={{ duration: 0.5, delay: 0.5 }}
         >
           <RoundTable rounds={rounds} />
+          {session?.user?.fromBackend && <RecentLogsSection />}
         </motion.div>
         
         <motion.div 
