@@ -86,7 +86,8 @@ jobs:
       run: npm test
 
     - name: Send failure notification
-      if: failure() && secrets.EMAIL_USERNAME != '' && secrets.EMAIL_RECIPIENTS != ''
+      if: failure()
+      continue-on-error: true
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
