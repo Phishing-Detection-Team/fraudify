@@ -1,21 +1,22 @@
-# Phishing Detection System
+# Sentra — AI-Powered Phishing Detection System
 
-> **AI-Powered Email Security through Adversarial Training**
+> **Adversarial AI Email Security with a Full-Stack Dashboard**
 
-An intelligent email security system that uses frontier AI models in a three-agent architecture to detect phishing emails. The system employs competitive learning where a Generator creates realistic phishing emails, a Detector identifies them and continuously improving detection accuracy through offline training rounds.
+Sentra is an end-to-end phishing detection platform that uses frontier AI models in a two-agent adversarial pipeline to generate synthetic phishing emails and continuously train a detector. A production-grade Flask API, Next.js dashboard, and browser-extension infrastructure back the system.
 
 ---
 
 ## 📋 Table of Contents
 
 - [Project Overview](#project-overview)
-- [Current Implementation](#current-implementation)
-- [Key Features](#key-features)
+- [What's Built](#whats-built)
 - [System Architecture](#system-architecture)
 - [Technology Stack](#technology-stack)
 - [Getting Started](#getting-started)
-- [Multi-Agent System Details](#multi-agent-system-details)
-- [Project Status](#project-status)
+- [Multi-Agent Pipeline](#multi-agent-pipeline)
+- [API Reference](#api-reference)
+- [Project Structure](#project-structure)
+- [Development Phases](#development-phases)
 - [Team](#team)
 - [Documentation](#documentation)
 
@@ -25,13 +26,13 @@ An intelligent email security system that uses frontier AI models in a three-age
 
 ### Purpose
 
-This system addresses the growing sophistication of phishing attacks by using AI models that compete against each other to generate training data and improve detection accuracy. Unlike traditional rule-based filters, this approach continuously evolves to counter new attack techniques.
+Phishing attacks grow more sophisticated every year. Sentra combats this by pitting two AI models against each other in training rounds: a **Generator** (Google Gemini) crafts convincing phishing and legitimate emails, and a **Detector** (Anthropic Claude) identifies them. Results are stored, analysed in a dashboard, and — eventually — used to fine-tune a smaller on-device model for the browser extension.
 
 ### Target Users
 
-- **Individual email users** seeking personal email protection
-- **Small business employees** lacking advanced cybersecurity awareness
-- **Security operations teams** needing automated threat detection
+- **Individual email users** who install the Sentra browser extension
+- **Security operations teams** who manage detection rounds from the admin dashboard
+- **Researchers** studying adversarial AI systems and multi-agent architectures
 
 ### Success Metrics
 
@@ -42,694 +43,501 @@ This system addresses the growing sophistication of phishing attacks by using AI
 
 ---
 
-## 🚀 Current Implementation
+## 🚀 What's Built
 
-- ✅ Successfully ran all 3 agents (Generator, Detector, Orchestration) and saved results to PostgreSQL using Docker Compose via Semantic Kernel (`LLMs/` directory).
-- ✅ Built a second agent implementation using **OpenAI Agents SDK** with LiteLLM multi-model routing (`openai-agentic/` directory).
-- ✅ Verified OpenAI Agents SDK agents instantiate and connect to external LLMs (Gemini & Claude) end-to-end.
-- ✅ Fixed all import/module issues, LiteLLM model routing, and async event loop handling in the `openai-agentic` implementation.
-- 🚧 Now moving on to Redis caching and full Dockerization for backend services.
-- 🧪 Next: Implementing unit tests for backend logic.
-- 🖥️ Next: Starting frontend (React) dashboard development.
+All items below are **fully implemented and running** in the current codebase.
 
+### Backend (Flask)
+- ✅ JWT authentication with access tokens, Redis blocklist, and session-expiry handling
+- ✅ Role-based access control (`admin` / `user`) enforced on every protected route
+- ✅ Full CRUD for Rounds, Emails, API Calls, Logs, Overrides
+- ✅ User management: registration, login, password change, forgot/reset-password (Flask-Mail)
+- ✅ Invite-code based registration — regular users never see the mechanism
+- ✅ Browser extension instance registration and tracking
+- ✅ User-specific email scanning: `POST /api/scan` + `GET /api/scan/history`
+- ✅ Per-model API cost breakdown: `GET /api/stats/costs`
+- ✅ Rate limiting on auth endpoints (Flask-Limiter + Redis)
+- ✅ Database seeding with admin + regular user test accounts
+- ✅ Full Alembic migration history
 
-### Multi-Agent System — Semantic Kernel (`LLMs/` Directory)
+### Frontend (Next.js 14 App Router)
+- ✅ Dark-mode dashboard with Tailwind CSS and `framer-motion` animations
+- ✅ NextAuth.js credential-based auth with JWT session
+- ✅ **Admin dashboard**: stats cards, round management, live feed, system logs, users panel, extension instances, settings
+- ✅ **User dashboard**: onboarding checklist, extension setup guide, scan email form + history, profile settings
+- ✅ Round detail page with clickable email rows → full-content dialog (subject, body, detector reasoning, ground truth)
+- ✅ API Cost Breakdown pie chart fetching live per-model cost data
+- ✅ Active Agents panel with live call counts, cost, and relative-time last-active
+- ✅ Session-expiry toast + auto-redirect to login
+- ✅ Rate-limit (429) feedback toast
+- ✅ Invite-link copy button for admins (generates a signed invite code, builds `?invite=` URL)
 
-A sophisticated multi-agent AI system using **Semantic Kernel orchestration** with AI-powered function calling where specialized agents compete in an adversarial competition.
-
-#### 🏗️ Architecture
-
-**Entity-Service Pattern with Optional Binding**
-- **Entities**: Independent state holders (API keys, clients, configuration)
-- **Services**: Flexible operation providers supporting dual-mode usage
-- **Optional Binding**: Services can be bound to entities (for Semantic Kernel) or stateless (with entity parameter)
-- **No Adapter Layer**: Services register directly with Semantic Kernel
-
-#### 🎭 Agents
-
-**1. Generator Agent (OpenAI GPT-4o)**
-- **Goal**: Create highly convincing and sophisticated scam emails
-- **Strategy**: Advanced psychological manipulation, authenticity engineering, subtle manipulation
-- **Capabilities**:
-  - Various scam types (phishing, lottery, Nigerian prince, tech support, CEO fraud)
-  - Professional formatting and specific details
-  - Social engineering tactics
-- **Scoring**: Technical realism (0-25), psychological impact (0-25), subtlety factor (0-25), social engineering (0-25)
-
-**2. Detector Agent (Claude Sonnet 4.5)**
-- **Goal**: Detect and analyze sophisticated scam emails with comprehensive indicator analysis
-- **Strategy**: Multi-layered analysis framework
-  - **Layer 1**: Structural Analysis (sender, linguistics, formatting)
-  - **Layer 2**: Content Analysis (urgency, information requests, financial indicators)
-  - **Layer 3**: Psychological Analysis (emotional manipulation, social engineering)
-  - **Layer 4**: Technical Analysis (links, attachments, anomalies)
-- **Scoring**: Accuracy (0-25), analytical depth (0-25), indicator identification (0-25), reasoning quality (0-25)
-
-**3. Orchestration Agent (OpenAI GPT-4o)**
-- **Goal**: AI-powered workflow management using function calling
-- **Strategy**: Automatically plans and executes the workflow
-- **Capabilities**:
-  - Intelligent agent coordination
-  - Multi-round processing with status tracking
-  - Cost calculation and performance metrics
-
-#### Quick Start (LLMs Implementation)
-
-```bash
-# From repository root — single .env for all components (see root .env.example)
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env with your keys:
-# OPENAI_API_KEY=your_key_here
-# ANTHROPIC_API_KEY=your_key_here
-# GOOGLE_API_KEY=your_key_here (optional, for Judge Agent)
-
-cd LLMs
-# Run the multi-agent competition
-python main.py
-
-# You'll be prompted for:
-# - Number of rounds (default: 1)
-# - Number of emails per round (default: 1)
-```
-
-#### Architecture Example
-
-```python
-# Entity-Service pattern with optional binding
-from entities.generator_agent_entity import GeneratorAgentEntity
-from services.generator_agent_service import GeneratorAgentService
-
-# Create entity (configuration + API client)
-entity = GeneratorAgentEntity()
-
-# Bind entity to service for Semantic Kernel
-service = GeneratorAgentService(entity=entity)
-
-# Register directly with kernel (no adapter needed)
-kernel.add_plugin(service, "generator")
-
-# Service automatically uses bound entity
-result = await service.generate_scam(scenario="phishing")
-```
-
-### Multi-Agent System — OpenAI Agents SDK (`openai-agentic/` Directory)
-
-A second implementation of the multi-agent system using **OpenAI Agents SDK** (`openai-agents`) with **LiteLLM** for multi-model routing. This replaces Semantic Kernel orchestration with a lighter-weight approach using `agents.Runner` and `LitellmModel`.
-
-#### 🏗️ Architecture
-
-**Same Entity-Service Pattern** as the `LLMs/` implementation, adapted for OpenAI Agents SDK:
-- **Entities**: Configure agent instances with `agents.Agent`, model via `LitellmModel`
-- **Services**: Thin wrappers calling `Runner.run()` on entity agents
-- **Prompts**: Shared centralized prompt templates (`utils/prompts.py`)
-- **Orchestrator**: `main.py` coordinates parallel Generate → Detect workflows via `asyncio`
-
-#### 🎭 Agents
-
-**1. Generator Agent (Google Gemini 2.0 Flash)**
-- **SDK**: OpenAI Agents SDK + LiteLLM (`gemini/gemini-2.0-flash`)
-- **Goal**: Create phishing or legitimate emails (50/50 random split)
-- **Output**: Structured JSON with email content, metadata, and ground truth label
-- **Temperature**: 0.8 (high creativity)
-
-**2. Detector Agent (Anthropic Claude 3.5 Haiku)**
-- **SDK**: OpenAI Agents SDK + LiteLLM (`anthropic/claude-3-5-haiku-20241022`)
-- **Goal**: Multi-layered phishing analysis (11 indicator framework)
-- **Output**: Structured JSON with verdict, confidence, risk score, reasoning
-- **Temperature**: 0.3 (consistent analytical output)
-
-**3. Orchestrator (`main.py`)**
-- **No LLM needed** — pure Python async coordination
-- Divides emails across N parallel workflows (`asyncio.gather`)
-- Automatic judging via simple comparison (verdict vs ground truth)
-- Database integration for persisting results to PostgreSQL backend
-
-#### Quick Start (OpenAI Agents SDK Implementation)
-
-```bash
-cd openai-agentic
-
-# Install dependencies (from project root)
-pip install -r requirements.txt
-
-# Configure API keys (.env file in project root)
-# GOOGLE_API_KEY=your_key_here      (for Generator - Gemini)
-# ANTHROPIC_API_KEY=your_key_here   (for Detector - Claude)
-
-# Run with defaults (10 emails, 1 round, 2 parallel workflows)
-PYTHONPATH=.. python main.py
-
-# Custom configuration
-PYTHONPATH=.. python main.py --emails 20 --rounds 3 --workflows 4
-```
-
-#### Architecture Example
-
-```python
-# Entity-Service pattern with OpenAI Agents SDK
-from entities.generator_agent_entity import GeneratorAgentEntity
-from services.generator_agent_service import GeneratorAgentService
-
-# Service creates its own entity internally
-gen_service = GeneratorAgentService()
-
-# Run agent via OpenAI Agents SDK Runner
-result = await gen_service.generate_email()
-# result.final_output → JSON string with email content
-```
-
----
-
-## ✨ Key Features
-
-### Two-Agent Competition System (Phase 1 - In Progress)
-
-- **Generator Agent**: Creates synthetic phishing emails for training
-- **Detector Agent**: Analyzes emails and identifies threats
-- **Dual Orchestration Implementations**:
-  - Semantic Kernel with AI function calling (`LLMs/`)
-  - OpenAI Agents SDK with LiteLLM multi-model routing (`openai-agentic/`)
-- **Multi-Model Architecture**: Gemini 2.0 Flash (generation), Claude 3.5 Haiku (detection), GPT-4o (orchestration in SK)
-
-### Real-Time Monitoring Dashboard (Phase 2 - Planned)
-
-- Live competition round progress tracking
-- WebSocket-powered instant updates
-- Historical accuracy trend visualization
-- Drill-down into individual email analysis
-- Manual verdict override capability
-
-### Browser Extension (Phase 3 - Future)
-
-- Real-time email scanning for Gmail, Outlook, etc.
-- Risk score overlay on emails
-- Privacy-first local pre-filtering
-- User consent and data protection
+### Infrastructure
+- ✅ `start.sh` — one-command startup script (Docker, migrations, Flask, Next.js)
+- ✅ Docker Compose for PostgreSQL 16 + Redis 7
+- ✅ 237+ backend unit and integration tests (pytest)
 
 ---
 
 ## 🏗️ System Architecture
 
-### Three-Agent Architecture
+### High-Level Diagram
 
 ```
-┌─────────────────────┐
-│ Orchestration Agent │ → AI-powered workflow management
-│    (GPT-4o)         │    • Function calling coordination
-└──────────┬──────────┘    • Multi-round processing
-           │               • Status tracking & metrics
-           ▼
-┌──────────────────┐       ┌──────────────────┐
-│  Generator Agent │       │  Detector Agent  │
-│   (GPT-4o)       │       │ (Claude Sonnet)  │
-└────────┬─────────┘       └────────┬─────────┘
-         │                          │
-         ▼                          ▼
-   Creates phishing            Multi-layered
-   emails with                 threat analysis
-   metadata                    & detection
+Browser / Extension
+        │  HTTPS
+        ▼
+┌───────────────────┐
+│  Next.js Frontend │  ← NextAuth sessions, role-based routing
+│  (port 3000)      │
+└────────┬──────────┘
+         │  REST API (JWT Bearer)
+         ▼
+┌───────────────────┐
+│  Flask Backend    │  ← Blueprints: auth, rounds, emails, stats,
+│  (port 5000)      │     scan, extension, users, logs, agents
+└────┬──────────────┘
+     │
+     ├── PostgreSQL 16  (primary persistence)
+     └── Redis 7        (JWT blocklist, rate limiting)
 
-   Entity-Service Architecture:
-   ┌─────────┐   Optional    ┌─────────┐
-   │ Entity  │◄────Binding──►│ Service │
-   │ (State) │               │ (Logic) │
-   └─────────┘               └─────────┘
+Admin trigger "Run Round"
+         │
+         ▼
+┌─────────────────────────────────────┐
+│  OpenAI Agents SDK + LiteLLM       │
+│  openai-agentic/                    │
+│                                     │
+│  ┌─────────────────┐               │
+│  │ Generator Agent  │ Gemini 2.0 Flash — creates phishing/legit emails  │
+│  └────────┬────────┘               │
+│           │ email content           │
+│  ┌────────▼────────┐               │
+│  │ Detector Agent   │ Claude 3.5 Haiku — verdict + reasoning + score  │
+│  └────────┬────────┘               │
+│           │ results persisted       │
+└───────────▼─────────────────────────┘
+       PostgreSQL (emails, api_calls)
 ```
-
-### AI-Powered Orchestration
-
-The system uses **Semantic Kernel** for intelligent workflow management:
-- Orchestrator AI automatically plans the workflow
-- Function calling for agent coordination
-- Async/await pattern for efficient API calls
-- Safety limits to prevent infinite loops
-- Multi-round support with configurable batch sizes
 
 ### Competition Round Lifecycle
 
-1. **Initialize**: Configure rounds and emails per round
-2. **Generate**: Create synthetic phishing/legitimate emails (Generator Agent)
-3. **Detect**: Analyze each email for threat indicators (Detector Agent)
-4. **Track**: Record API costs, token usage, and processing time
-5. **Store**: Persist results in PostgreSQL (optional, configurable)
-6. **Analyze**: Display metrics and insights per round
-
-### Entity-Service Architecture
-
-**Entities** (State Holders):
-- API keys, credentials, model identifiers
-- API client instances (AsyncOpenAI, AsyncAnthropic, etc.)
-- Prompt access via centralized prompts.py
-- **Completely independent** - no service dependency
-
-**Services** (Operation Providers):
-- Core functionality (generate, detect, orchestrate)
-- API calls with error handling
-- Cost/performance tracking
-- **Dual-mode support**: Bound entity OR entity parameter
-- Direct Semantic Kernel registration
-
-### Technology Layers
-
-- **Current**: Semantic Kernel orchestration with multi-model AI
-- **Planned**: Flask API with Celery for async processing
-- **Planned**: PostgreSQL for persistence, Redis for caching
-- **Planned**: React dashboard (real-time updates via WebSocket)
-- **Future**: Docker containers for deployment
+1. **Create** — Admin creates a round (N emails target)
+2. **Run** — Backend spawns background thread; OpenAI Agents SDK orchestrates parallel Generate → Detect workflows
+3. **Persist** — Each email result (verdict, confidence, reasoning, cost, latency) is written to `emails` and `api_calls` tables
+4. **Monitor** — Dashboard polls round status and streams recent logs
+5. **Review** — Admin drills into a round to read each email body and detector reasoning in a detail dialog
+6. **Override** — Admin can manually correct any verdict; round accuracy is recalculated
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Current Implementation (LLMs — Semantic Kernel)
-- **Architecture**: Entity-Service pattern with optional binding
-- **Orchestration**: Semantic Kernel with AI function calling
-- **AI Models**:
-  - OpenAI GPT-4o-mini (generation & orchestration, 128k context)
-  - Anthropic Claude Sonnet 4.5 (detection & analysis)
-  - Google Gemini 2.5 Flash (judging, optional)
-- **Language**: Python 3.11+ with async/await
-- **APIs**: OpenAI, Anthropic, Google Generative AI
-- **Cost Tracking**: tokencost library for accurate pricing
-- **Utilities**: Centralized prompts, API tracking, DB integration
+### AI Pipeline
 
-### Current Implementation (openai-agentic — OpenAI Agents SDK)
-- **Architecture**: Entity-Service pattern with OpenAI Agents SDK
-- **Orchestration**: `agents.Runner` + `asyncio.gather` for parallel workflows
-- **Multi-Model Routing**: LiteLLM for provider-agnostic model access
-- **AI Models**:
-  - Google Gemini 2.0 Flash (generation via `gemini/gemini-2.0-flash`)
-  - Anthropic Claude 3.5 Haiku (detection via `anthropic/claude-3-5-haiku-20241022`)
-- **Language**: Python 3.11+ with async/await
-- **Database**: Shared Flask/SQLAlchemy backend (PostgreSQL)
-- **Packages**: `openai-agents>=0.10.0`, `openai-agents[litellm]`, `litellm`
+| Component | Technology |
+|---|---|
+| Generator model | Google Gemini 2.0 Flash (`gemini/gemini-2.0-flash`) |
+| Detector model | Anthropic Claude 3.5 Haiku (`anthropic/claude-3-5-haiku-20241022`) |
+| Orchestration | OpenAI Agents SDK + LiteLLM (multi-model routing) |
+| Parallel execution | `asyncio.gather` — N parallel workflows per round |
 
-### Backend (Planned - Flask Implementation)
-- **Framework**: Flask 3.1.2
-- **Task Queue**: Celery 5.6.2 with Redis
-- **Database**: PostgreSQL with SQLAlchemy 2.0.46
-- **Real-time**: Flask-SocketIO 5.6.0
-- **Migrations**: Alembic 1.18.3
+### Backend
 
-### Frontend (Planned)
-- **Framework**: React with Next.js or Vite
-- **Charts**: Chart.js for analytics
-- **WebSocket**: Socket.IO client
+| Component | Technology |
+|---|---|
+| Framework | Flask 3.x with blueprints |
+| Auth | Flask-JWT-Extended (access token only; expiry = session signout) |
+| ORM | SQLAlchemy 2.x + Flask-SQLAlchemy |
+| Migrations | Alembic |
+| Email | Flask-Mail (password reset) |
+| Rate limiting | Flask-Limiter + Redis |
+| Testing | pytest, pytest-flask, factory_boy (237+ tests) |
 
-### DevOps
-- **Containerization**: Docker & Docker Compose (planned)
-- **Version Control**: Git/GitHub
-- **Testing**: pytest 9.0.2, coverage 7.13.2
-- **Code Quality**: black, flake8, pylint, mypy
+### Frontend
+
+| Component | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Auth | NextAuth.js (credentials provider) |
+| Styling | Tailwind CSS, custom CSS variables |
+| Animation | Framer Motion |
+| Charts | Recharts (pie chart, responsive containers) |
+| Toast | Sonner |
+| Icons | Lucide React |
+
+### Infrastructure
+
+| Component | Technology |
+|---|---|
+| Database | PostgreSQL 16 (Docker) |
+| Cache / blocklist | Redis 7 (Docker) |
+| Containerisation | Docker Compose |
+| Startup | `start.sh` (bash, one command) |
 
 ---
 
 ## 🚀 Getting Started
 
-### Quick Start (Current LLMs Implementation)
+### Prerequisites
+
+- Docker & Docker Compose
+- Node.js 18+ and npm
+- Python 3.11+ with `venv`
+- API keys: **Google (Gemini)** and **Anthropic (Claude)** — required to run detection rounds
+
+### One-Command Startup
 
 ```bash
-# Repository root: dependencies and environment (LLMs/main.py loads ../.env)
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env — at minimum: OPENAI_API_KEY, ANTHROPIC_API_KEY (GOOGLE_API_KEY optional)
-
-cd LLMs
-python main.py
-
-# Interactive prompts:
-# Enter number of rounds: 3
-# Enter number of emails per round: 5
-```
-
-### Example Output
-
-```
-🚀 STARTING AI-POWERED MULTI-ROUND ORCHESTRATION
-   Rounds: 3
-   Emails per round: 5
-============================================================
-
-📝 ROUND 1/3
-============================================================
-   Generating email 1/5...
-   ✓ Email 1 generated and analyzed
-      Generator status: ✓
-      Detector status: ✓
-   ...
-
-✅ Round 1 complete: 5 emails generated
-   Generator successes: 5/5
-   Detector successes: 5/5
-   Processing time: 42s
-   Total cost: $0.0234500
-
-============================================================
-📊 AI ORCHESTRATION COMPLETE
-============================================================
-
-📊 Summary:
-   Total rounds: 3
-   Emails per round: 5
-   Total emails generated: 15
-```
-
-### Full Stack Setup (Future Flask/React Implementation)
-
-#### Prerequisites
-
-- Python 3.11+
-- PostgreSQL 14+
-- Redis 7+
-- API Keys: OpenAI, Anthropic, Google Gemini
-
-#### Installation
-
-```bash
-# Clone the repository
 git clone <repository-url>
 cd phishing_detection
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies (project root lists Flask, agents, DB drivers, etc.)
-pip install -r requirements.txt
-
-# Environment: copy root template and edit (backend/app/config.py loads ../../.env)
+# Copy and fill in environment variables
 cp .env.example .env
+# Edit .env — the required keys are:
+#   ANTHROPIC_API_KEY, GOOGLE_API_KEY (or GEMINI_API_KEY)
+#   SECRET_KEY, JWT_SECRET_KEY
+#   Optional: MAIL_SERVER/MAIL_USERNAME/MAIL_PASSWORD for password reset
 
-# Initialize database (from backend/, with FLASK_APP set — see Flask docs)
-cd backend
-export FLASK_APP=run.py
-flask db upgrade
+# Start everything (Docker services, migrations, Flask, Next.js)
+./start.sh
 
-# Optional: Redis for rate limiting / JWT blocklist (docker compose up -d)
-# redis-server
-
-# Run Flask + SocketIO
-python run.py
+# Skip DB seeding on subsequent runs
+./start.sh --no-seed
 ```
 
-#### Configuration
+`start.sh` automatically:
+1. Starts PostgreSQL and Redis via Docker Compose
+2. Creates and activates a Python virtual environment
+3. Installs Python dependencies
+4. Runs `flask db upgrade` (all migrations)
+5. Seeds the database (admin user + demo regular user) unless `--no-seed`
+6. Starts the Flask backend (port 5000)
+7. Installs frontend npm packages if needed and starts Next.js dev server (port 3000)
 
-Use a `.env` file at the **repository root** (see root `.env.example`). Key variables:
+Open **http://localhost:3000** — you will be redirected to the login page.
+
+### Default Seed Accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@sentra.ai` | `admin123` |
+| User | `user@sentra.ai` | `user123` |
+
+### Key Environment Variables
 
 ```env
-FLASK_ENV=development
-DEV_DATABASE_URL=postgresql://user:password@localhost:5432/phishing_db
-REDIS_URL=redis://localhost:6379/0
+# Flask
 SECRET_KEY=your_secret_key_here
 JWT_SECRET_KEY=your_jwt_secret_here
-OPENAI_API_KEY=your_openai_key_here
-ANTHROPIC_API_KEY=your_anthropic_key_here
-GOOGLE_API_KEY=your_google_key_here
-ORCHESTRATION_PARALLEL_WORKFLOWS=2
+FLASK_ENV=development
+
+# Database / Redis (defaults match Docker Compose)
+DEV_DATABASE_URL=postgresql://phishing_user:phishing_password@localhost:5432/phishing_db
+REDIS_URL=redis://localhost:6379/0
+
+# AI models (required for running rounds)
+ANTHROPIC_API_KEY=your_anthropic_key
+GOOGLE_API_KEY=your_google_key
+
+# Frontend URL (used in password-reset emails)
+FRONTEND_URL=http://localhost:3000
+
+# Email (optional — for password reset)
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=true
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_app_password
+MAIL_DEFAULT_SENDER=your_email@gmail.com
 ```
 
-`DATABASE_URL` is optional if `DEV_DATABASE_URL` / `PROD_DATABASE_URL` are set per environment.
+### Running Tests
+
+```bash
+cd backend
+source ../venv/bin/activate
+pytest ../tests/ -v
+```
 
 ---
 
-## 🧠 Multi-Agent System Details
+## 🧠 Multi-Agent Pipeline
 
-### Scoring System
+### OpenAI Agents SDK Implementation (`openai-agentic/`)
 
-**Generator Agent (0-100)**
-- **Technical Realism** [0-25]: Authenticity of technical details
-- **Psychological Impact** [0-25]: Effectiveness of emotional/cognitive manipulation
-- **Subtlety Factor** [0-25]: Ability to evade obvious detection patterns
-- **Social Engineering** [0-25]: Quality of trust-building and persuasion tactics
+This is the **active production implementation** used when an admin triggers a round.
 
-**Detector Agent (0-100)**
-- **Accuracy** [0-25]: Correct verdict with proper confidence level
-- **Analytical Depth** [0-25]: Thoroughness and insight quality
-- **Indicator Identification** [0-25]: Found key red flags vs missed indicators
-- **Reasoning Quality** [0-25]: Logic, evidence, and argumentation strength
+#### Generator Agent — Google Gemini 2.0 Flash
 
-### Heterogeneous Multi-Model Architecture
+- Randomly creates phishing (50%) or legitimate (50%) emails
+- Output: structured JSON with `subject`, `body`, `is_phishing`, and email metadata
+- Temperature: 0.8 (high creativity)
+- Prompt enforces strict JSON output to prevent parsing failures
 
-This system demonstrates a **heterogeneous multi-model approach** across two implementations:
+#### Detector Agent — Anthropic Claude 3.5 Haiku
 
-**Semantic Kernel (`LLMs/`)**:
-- **OpenAI GPT-4o-mini**: Orchestration and generation (128k context window, cost-effective)
-- **Claude Sonnet 4.5**: Advanced detection and analysis (200k context window)
-- **Google Gemini 2.5 Flash**: Fast evaluation and judging (optional)
+- Analyses each email across 11 phishing-indicator dimensions
+- Output: strict JSON `{ "verdict": "phishing"|"legitimate", "confidence": 0-1, "scam_score": 0-100, "reasoning": "..." }`
+- Temperature: 0.3 (consistent, analytical)
+- Prompt enforces JSON-only responses (no markdown, no extra text)
 
-**OpenAI Agents SDK (`openai-agentic/`)**:
-- **Google Gemini 2.0 Flash**: Email generation via LiteLLM (`gemini/gemini-2.0-flash`)
-- **Anthropic Claude 3.5 Haiku**: Phishing detection via LiteLLM (`anthropic/claude-3-5-haiku-20241022`)
-- **No orchestration LLM**: Pure Python async coordination (no LLM cost for orchestration)
+#### Orchestrator (`openai-agentic/main.py`)
 
-Each agent uses a different AI model optimized for its specific task.
+- Pure Python async — no LLM cost for coordination
+- Divides email workload across N parallel `asyncio` workflows
+- Persists every result to PostgreSQL via the Flask app context
+- Logs API cost and latency per call to the `api_calls` table
 
-### Configuration & Customization
+### Semantic Kernel Implementation (`LLMs/`)
 
-**Architecture Files:**
-- **entities/**: Configure API keys, models, and clients
-  - `generator_agent_entity.py`: OpenAI configuration
-  - `detector_agent_entity.py`: Anthropic configuration
-  - `orchestration_agent_entity.py`: Workflow state
-- **services/**: Modify business logic and operations
-  - `generator_agent_service.py`: Email generation logic
-  - `detector_agent_service.py`: Threat detection logic
-  - `orchestration_agent_service.py`: Workflow coordination
-- **agents/prompts.py**: Centralized prompt templates for all agents
-- **utils/**: API tracking, cost calculation, database integration
-- **main.py**: Entry point, configure rounds and batch size
+An earlier implementation using **Semantic Kernel** with GPT-4o (orchestration/generation) and Claude Sonnet (detection). It remains in the repository as a reference implementation. See the `LLMs/` directory for its README-style comments and `main.py` entry point.
 
 ---
 
-## 📊 Project Status
+## 📡 API Reference
 
-### Current Phase: **Phase 1 - Foundation** (Weeks 1-4)
+All endpoints require `Authorization: Bearer <access_token>` except `/api/auth/signup`, `/api/auth/login`, `/api/auth/forgot-password`, and `/api/auth/reset-password`.
 
-#### ✅ Completed
-- Multi-agent system implementation (LLMs directory — Semantic Kernel)
-- **OpenAI Agents SDK implementation** (`openai-agentic/` directory):
-  - Entity-Service pattern with `agents.Agent` + `LitellmModel`
-  - Generator (Gemini 2.0 Flash) and Detector (Claude 3.5 Haiku) agents
-  - Parallel workflow orchestration via `asyncio.gather`
-  - Automatic judging (no LLM needed — simple verdict comparison)
-  - Fixed LiteLLM model routing (`gemini/` and `anthropic/` prefixes)
-  - Fixed module imports, async event loop, and email content formatting
-  - Verified agents instantiate and connect to external APIs end-to-end
-- Generator, Detector, Orchestration agents running and saving results to PostgreSQL via Docker Compose
-- Database schema design (Email, Round, Log, API, Override models)
-- SQLAlchemy models with proper relationships and constraints
-- Flask backend with blueprints, error handlers, and CORS
-- Database migrations with Alembic
-- Requirements.txt with comprehensive dependencies
-- Project architecture documentation
+### Auth
 
-#### 🔄 In Progress
-- API key quota renewal (Gemini free tier daily limit + Anthropic key refresh) for full `openai-agentic` end-to-end runs
-- Redis caching integration and Dockerization
-- Unit testing for backend logic
-- Frontend (React) dashboard setup
-- Integration of LLMs/openai-agentic agents with Flask backend API
-- Celery task orchestration for competition rounds
-- Docker containerization
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/signup` | Register (public) |
+| POST | `/api/auth/admin/signup` | Register with invite code |
+| POST | `/api/auth/login` | Login → access token |
+| POST | `/api/auth/logout` | Blocklist token |
+| GET | `/api/auth/me` | Current user profile |
+| PUT | `/api/auth/me/password` | Change password |
+| POST | `/api/auth/forgot-password` | Send reset email |
+| POST | `/api/auth/reset-password` | Confirm token + set new password |
+| POST | `/api/auth/admin/invite` | Generate invite code (admin only) |
 
-#### ⏳ Upcoming (Phase 1)
-- Persistent storage of competition results in PostgreSQL
-- Basic React dashboard setup
-- Manual round triggering via API
-- End-to-end testing
-- Documentation and code comments
-| **Phase 2**: Dashboard | Weeks 5-8 | ⏳ Planned | Real-time monitoring, WebSocket integration |
-| **Phase 3**: User API | Weeks 9-12 | ⏳ Planned | Email scanning endpoint, caching, rate limiting |
-| **Phase 4**: Extension | Weeks 13-16 | ⏳ Planned | Chrome extension, Gmail integration |
-| **Phase 5+**: Enhancements | Future | 💡 Ideas | Federated learning, custom model fine-tuning |
+### Rounds
 
-### Project Structure
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/rounds` | List rounds (paginated, filterable) |
+| POST | `/api/rounds` | Create round (admin) |
+| GET | `/api/rounds/<id>` | Round detail + live accuracy |
+| POST | `/api/rounds/<id>/run` | Trigger AI orchestration (admin) |
+| GET | `/api/rounds/<id>/emails` | Emails in a round (paginated) |
+
+### Emails & Overrides
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/emails/<id>` | Full email + API calls + override |
+| POST | `/api/emails/<id>/override` | Manual verdict correction (admin) |
+
+### Stats & Agents
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/stats` | Aggregated dashboard stats |
+| GET | `/api/stats/costs` | Per-model API cost breakdown |
+| GET | `/api/agents` | Agent list with live usage stats |
+
+### User Scan
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/scan` | Submit email for phishing scan |
+| GET | `/api/scan/history` | User's scan history |
+
+### Extension
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/extension/register` | Register browser instance |
+| GET | `/api/extension/instances` | Current user's instances |
+| GET | `/api/extension/instances/all` | All instances (admin) |
+
+### Admin
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/users` | List all users (admin) |
+| GET | `/api/logs` | Recent system logs (paginated) |
+
+---
+
+## 📁 Project Structure
 
 ```
 phishing_detection/
-├── LLMs/                         # Semantic Kernel implementation
-│   ├── entities/                 # State holders (API keys, clients, config)
-│   │   ├── base_entity.py
-│   │   ├── generator_agent_entity.py    # OpenAI configuration
-│   │   ├── detector_agent_entity.py     # Anthropic configuration
-│   │   └── orchestration_agent_entity.py # Workflow state
-│   ├── services/                 # Operation providers (business logic)
-│   │   ├── base_service.py
-│   │   ├── generator_agent_service.py   # Email generation
-│   │   ├── detector_agent_service.py    # Threat detection
-│   │   └── orchestration_agent_service.py # Workflow coordination
-│   ├── utils/                    # Utilities
-│   │   ├── api_utils.py          # API tracking, cost calculation
-│   │   ├── db_utils.py           # Database integration
-│   │   └── prompts.py            # Centralized prompt templates
-│   └── main.py                   # Entry point (multi-round orchestration)
-├── openai-agentic/               # ✅ OpenAI Agents SDK implementation
-│   ├── agents_sdk/               # Direct SDK agent definitions (alt. approach)
-│   │   ├── generator.py          # Generator agent factory
-│   │   ├── detector.py           # Detector agent factory
-│   │   ├── orchestrator.py       # Orchestrator classes
-│   │   └── tools.py              # Database tools for agents
-│   ├── entities/                 # Agent entities (Agent + LitellmModel config)
-│   │   ├── base_entity.py        # Base entity with prompt access
-│   │   ├── generator_agent_entity.py  # Gemini 2.0 Flash config
-│   │   └── detector_agent_entity.py   # Claude 3.5 Haiku config
-│   ├── services/                 # Service wrappers (Runner.run)
-│   │   ├── base_service.py
+├── start.sh                          # ✅ One-command startup script
+├── .env.example                      # Environment variable template
+├── requirements.txt                  # Python dependencies
+├── docker-compose.yml                # PostgreSQL 16 + Redis 7
+│
+├── backend/
+│   ├── run.py                        # Flask entry point
+│   └── app/
+│       ├── __init__.py               # App factory (blueprints, extensions)
+│       ├── config.py                 # Dev / Test / Prod configs
+│       ├── errors.py                 # Global error handlers
+│       ├── commands.py               # flask seed CLI command
+│       ├── models/
+│       │   ├── user.py               # User + password reset fields
+│       │   ├── role.py               # Role model
+│       │   ├── invite_code.py        # Invite code model
+│       │   ├── round.py              # Competition round
+│       │   ├── email.py              # Generated email + detector output
+│       │   ├── api.py                # API call log (cost, latency, tokens)
+│       │   ├── log.py                # System log entries
+│       │   ├── override.py           # Manual verdict overrides
+│       │   ├── extension_instance.py # Browser extension registrations
+│       │   ├── user_scan.py          # User-submitted scans
+│       │   └── training_data_log.py  # Training pipeline ingestion log
+│       ├── routes/
+│       │   ├── auth.py               # Auth + invite + password reset
+│       │   ├── rounds.py             # Round management
+│       │   ├── emails.py             # Email detail + overrides
+│       │   ├── stats.py              # Stats + cost breakdown + agents
+│       │   ├── logs.py               # System logs
+│       │   ├── extension.py          # Extension instance management
+│       │   ├── users.py              # Admin user management
+│       │   └── scan.py               # User-facing scan endpoint
+│       ├── services/
+│       │   └── openai_orchestration_runner.py  # Round execution thread
+│       └── utils/
+│           └── helpers.py            # paginate(), require_role()
+│
+├── openai-agentic/                   # ✅ Active AI pipeline
+│   ├── entities/
+│   │   ├── generator_agent_entity.py # Gemini 2.0 Flash config
+│   │   └── detector_agent_entity.py  # Claude 3.5 Haiku config
+│   ├── services/
 │   │   ├── generator_agent_service.py
 │   │   └── detector_agent_service.py
-│   ├── utils/                    # Shared utilities
-│   │   ├── db_utils.py           # Database integration (Flask backend)
-│   │   └── prompts.py            # Centralized prompt templates
-│   └── main.py                   # CLI entry point (parallel workflows)
-├── backend/                      # ✅ Flask backend
-│   ├── app/
-│   │   ├── models/               # SQLAlchemy models (Email, Round, Log, API, Override)
-│   │   ├── routes/               # Flask API blueprints
-│   │   ├── services/             # Business logic
-│   │   ├── tasks/                # Celery tasks (planned)
-│   │   ├── utils/                # Error handling utilities
-│   │   └── config.py             # Dev/Test/Prod configuration
-│   └── migrations/               # Alembic database migrations
-├── tests/                        # Test suite
-├── Documents/                    # 📚 Project documentation
-│   ├── Project_Scope.md
-│   ├── Implementation_Plan.md
-│   ├── Questions.md
-│   └── *.excalidraw              # Architecture diagrams
-├── requirements.txt              # Python dependencies
-├── docker-compose.yml            # Docker services
-└── README.md                     # This file
+│   ├── utils/
+│   │   ├── prompts.py                # Strict JSON prompt templates
+│   │   └── db_utils.py               # Flask app context integration
+│   └── main.py                       # CLI + parallel workflow orchestrator
+│
+├── LLMs/                             # Reference: Semantic Kernel implementation
+│   ├── entities/
+│   ├── services/
+│   ├── utils/
+│   └── main.py
+│
+├── frontend/
+│   └── src/
+│       ├── app/
+│       │   ├── login/                # Login page (session-expiry banner)
+│       │   ├── signup/               # Signup (invite-code aware)
+│       │   ├── forgot-password/      # Forgot password form
+│       │   ├── reset-password/       # Reset password (token from email)
+│       │   ├── extension/            # Browser extension marketing page
+│       │   ├── auth/callback/        # OAuth callback handler
+│       │   └── dashboard/
+│       │       ├── layout.tsx        # Sidebar + Toaster + session wiring
+│       │       ├── admin/
+│       │       │   ├── page.tsx      # Admin overview (stats + rounds + logs)
+│       │       │   ├── rounds/       # Round list + [id] detail w/ email dialog
+│       │       │   ├── feed/         # Live extension feed (admin)
+│       │       │   ├── team/         # Users panel + invite-link button
+│       │       │   ├── training/     # Training pipeline viewer
+│       │       │   └── settings/     # Admin settings + extension instances
+│       │       └── user/
+│       │           ├── page.tsx      # User home (onboarding + stats)
+│       │           ├── scan/         # Email scan form + history table
+│       │           ├── settings/     # Profile settings + password change
+│       │           ├── feed/         # User live feed (read-only)
+│       │           └── training/     # Training viewer
+│       ├── components/
+│       │   ├── Sidebar.tsx
+│       │   ├── RoundDetail.tsx       # Round detail + email content dialog
+│       │   ├── ProfileSettings.tsx
+│       │   ├── ExtensionPopup.tsx    # Browser extension preview
+│       │   └── dashboard/
+│       │       ├── StatCard.tsx
+│       │       ├── RoundTable.tsx
+│       │       ├── CostPieChart.tsx  # Self-fetching pie chart (per-model costs)
+│       │       ├── AgentLogsTable.tsx # Agent cards with cost + relative time
+│       │       ├── RecentLogsSection.tsx
+│       │       └── LiveFeed.tsx
+│       └── lib/
+│           ├── admin-api.ts          # Admin API functions + getCostBreakdown
+│           ├── user-api.ts           # User API functions + scanEmail
+│           ├── api-fetch.ts          # Shared fetch wrapper (401/429 handling)
+│           └── config.ts             # API base URL + route constants
+│
+├── tests/                            # ✅ 237+ backend tests
+│   ├── conftest.py                   # pytest fixtures (app, client, tokens)
+│   ├── test_models.py
+│   ├── test_models_auth.py
+│   ├── test_models_extension.py
+│   ├── test_routes_auth.py
+│   ├── test_routes_rounds.py
+│   ├── test_routes_emails.py
+│   ├── test_routes_stats.py
+│   ├── test_routes_costs.py
+│   ├── test_routes_logs.py
+│   ├── test_routes_extension.py
+│   ├── test_routes_users.py
+│   ├── test_api_utils.py
+│   ├── test_db_utils.py
+│   └── test_openai_orchestrator_smoke.py
+│
+└── Documents/
+    ├── Project_Scope.md
+    ├── Implementation_Plan.md
+    └── Project_Architecture.excalidraw
 ```
 
 ---
 
-## 🎯 Use Cases
+## 📊 Development Phases
 
-- **Security Training**: Help teams recognize sophisticated scam patterns and social engineering tactics
-- **AI Research**: Study adversarial AI systems and multi-agent competition
-- **Educational**: Demonstrate Semantic Kernel orchestration with function calling
-- **Testing**: Evaluate email security systems and detection capabilities
-- **Multi-Model Integration**: Learn how to integrate different AI providers in a single system
-- **Real-time Protection**: Browser extension for individual users (future)
-- **Enterprise Security**: Dashboard for security operations teams (future)
-
----
-
-### Development Phases
-
-| **Phase** | **Timeline** | **Status** | **Key Deliverables** |
-|-------|----------|--------|------------------|
-| **Phase 1**: Foundation | Weeks 1-4 | 🔄 In Progress | ✅ Multi-agent system, 🔄 database setup |
-| **Phase 2**: Dashboard | Weeks 5-8 | ⏳ Planned | Real-time monitoring, WebSocket integration |
-| **Phase 3**: User API | Weeks 9-12 | ⏳ Planned | Email scanning endpoint, caching, rate limiting |
-| **Phase 4**: Extension | Weeks 13-16 | ⏳ Planned | Chrome extension, Gmail integration |
-| **Phase 5+**: Enhancements | Future | 💡 Ideas | Federated learning, custom model fine-tuning |
+| Phase | Focus | Status | Key Deliverables |
+|-------|-------|--------|-----------------|
+| **Phase 1**: Foundation | AI pipeline + backend | ✅ Complete | OpenAI Agents SDK pipeline, Flask API, PostgreSQL schema, Alembic migrations, 237+ tests |
+| **Phase 2**: Dashboard | Admin UI | ✅ Complete | Next.js dashboard, round management, live logs, API cost pie chart, agent stats |
+| **Phase 3**: User Features | Auth + scanning | ✅ Complete | JWT auth, password reset, invite codes, user scan endpoint + history, session expiry UX |
+| **Phase 4**: Extension Tracking | Browser extension infra | ✅ Complete | Extension instance registration, admin instance view, invite-link generation |
+| **Phase 5**: Fine-tuning | On-device model | 🔄 Planned | LoRA/QLoRA fine-tune on round data, browser extension inference |
+| **Phase 6**: Extension | Chrome/Firefox | ⏳ Future | Real-time Gmail/Outlook scanning, risk overlay |
 
 ---
 
 ## 👥 Team
 
-- **Hoang Nhat Duy Le** - Project Supervisor / Expert
-- **Hoang Bao Duy Le** - Developer / Engineer
-- **Thanh Dang Huynh** - Developer / Engineer
-- **Thien Quy Pham** - Cybersecurity Analyst / Developer
-
-**Team Structure**: First-time multi-person project with flexible timeline and collaborative learning focus.
+- **Hoang Nhat Duy Le** — Project Supervisor / Expert
+- **Hoang Bao Duy Le** — Developer / Engineer
+- **Thanh Dang Huynh** — Developer / Engineer
+- **Thien Quy Pham** — Cybersecurity Analyst / Developer
 
 ---
 
 ## 📚 Documentation
 
-- [Project Scope](Documents/Project_Scope.md) - Comprehensive specification and requirements
-- [Questions & Decisions](Documents/Questions.md) - Detailed scoping questionnaire with answers
-- [Architecture Diagram](Documents/Project_Architecture.excalidraw) - System architecture visualization
+- [Project Scope](Documents/Project_Scope.md) — Comprehensive specification and requirements
+- [Architecture Diagram](Documents/Project_Architecture.excalidraw) — System architecture (Excalidraw)
 
-### Key Documentation Highlights
+### Ethical Safeguards
 
-#### Threat Detection Scope (Priority Ordered)
-1. **Priority 1**: Phishing, malware attachments, social engineering
-2. **Priority 2**: Spear phishing, BEC, account takeover
-3. **Priority 3**: Spam
+- The Generator agent is **internal-only** (admin dashboard only; no public API)
+- All generated emails are watermarked as synthetic training data
+- Admin authentication required to trigger any round
+- Rate limiting on all auth endpoints (10 req/min login, 5 req/min forgot-password)
+- Full audit logging via the `api_calls` and `logs` tables
 
-#### Data Privacy Approach
-- GDPR-compliant principles (student project)
-- Encryption at rest (AES-256) and in transit (TLS 1.2+)
-- User consent flow for browser extension
-- 30-day data retention policy
-- Clear privacy policy and ToS
-
-#### Ethical Safeguards
-- Generator is internal-only (no public access)
-- Watermarking of all synthetic emails
-- Admin authentication required
-- Rate limiting (10 generations/hour)
-- Audit logging for accountability
-⚠️ Disclaimer
-
-This system is for **educational and research purposes only**. Do not use generated scam emails for malicious purposes. The Generator Agent is designed to improve detection capabilities and security awareness training only.
+> ⚠️ **Disclaimer**: This system is for educational and research purposes only. Generated phishing emails are synthetic training data and must not be used for malicious purposes.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **OpenPhish & PhishTank**: Public phishing datasets
-- **OpenAI**: GPT-4o-mini for generation and orchestration; OpenAI Agents SDK for agentic workflows
-- **Anthropic**: Claude Sonnet 4.5 & Claude 3.5 Haiku for advanced detection
-- **Google**: Gemini 2.0 Flash & 2.5 Flash for generation and evaluation
-- **Microsoft**: Semantic Kernel framework
-- **BerriAI**: LiteLLM for multi-model routing
-- **Flask Community**: Excellent web framework documentation
-
-### Data Protection
-- All sensitive data encrypted at rest and in transit
-- API keys stored in environment variables (never committed)
-- Database credentials secured via environment configuration
-- Session management with secure cookies
-
-### Responsible AI Usage
-- Generator model isolated (no external network access)
-- Research-only purpose documentation
-- Team accountability agreement
-- Regular ethical reviews
+- **Anthropic** — Claude 3.5 Haiku for phishing detection
+- **Google** — Gemini 2.0 Flash for email generation
+- **OpenAI** — OpenAI Agents SDK for agentic workflow orchestration
+- **BerriAI** — LiteLLM for multi-model routing
+- **Microsoft** — Semantic Kernel (reference implementation in `LLMs/`)
+- **Flask Community** — Flask, Flask-JWT-Extended, Flask-Mail, Flask-Limiter
+- **Vercel** — Next.js framework
 
 ---
 
-## 📈 Success Metrics & KPIs
-
-### Technical Metrics
-- Detection accuracy: Target >85% precision, >80% recall
-- False positive rate: <5%
-- Processing latency: <5 seconds per email
-- System uptime: 99%
-
-### User Metrics (Future)
-- User satisfaction score (survey-based)
-- Threats successfully blocked
-- Alert click-through rate
-- Reduction in successful attacks
-
----
-
-## 🤝 Contributing
-
-This is a student project with a closed team during active development. Post-completion, the repository will be open-sourced on GitHub with contribution guidelines.
-
----
-
-## 📄 License
-
-To be determined upon project completion.
-
----
-
-##  Contact
-
-For questions or collaboration inquiries:
-- **Email**: [Contact through repository issues]
-- **Project Start Date**: January 29, 2025
-- **Expected Completion**: April 2025 (MVP)
-
----
-
-**Status**: 🔄 Active Development | **Last Updated**: March 11, 2026
+**Status**: ✅ Full-Stack MVP Complete | **Last Updated**: March 28, 2026
