@@ -5,6 +5,7 @@ import {
   registerExtensionInstance,
   getUsers,
   updatePassword,
+  overrideEmailVerdict,
 } from '../admin-api'
 
 // ---------------------------------------------------------------------------
@@ -219,6 +220,90 @@ describe('updatePassword', () => {
     )
     await expect(updatePassword('token', 'OldPass1', 'NewPass9')).rejects.toThrow(
       'Failed to update password'
+    )
+  })
+})
+
+// ---------------------------------------------------------------------------
+// overrideEmailVerdict
+// ---------------------------------------------------------------------------
+
+describe('overrideEmailVerdict', () => {
+  it('returns the override data on success', async () => {
+    const fakeOverride = {
+      id: 1,
+      email_id: 42,
+      verdict: 'legitimate',
+      reason: 'False positive — internal newsletter',
+      overridden_by: 5,
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: fakeOverride }),
+      })
+    )
+
+    const result = await overrideEmailVerdict('admin-token', 42, 'legitimate', 'False positive — internal newsletter')
+    expect(result).toMatchObject({ verdict: 'legitimate', email_id: 42 })
+  })
+
+  it('POSTs to /api/emails/<id>/override with correct body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, data: { id: 1 } }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await overrideEmailVerdict('admin-token', 99, 'phishing', 'Confirmed phishing')
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/emails/99/override')
+    expect(init.method).toBe('POST')
+    const body = JSON.parse(init.body as string)
+    expect(body.verdict).toBe('phishing')
+    expect(body.reason).toBe('Confirmed phishing')
+  })
+
+  it('sends Authorization header with Bearer token', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, data: { id: 1 } }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await overrideEmailVerdict('my-admin-token', 10, 'legitimate')
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer my-admin-token')
+  })
+
+  it('works without an optional reason', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: { id: 1, verdict: 'legitimate' } }),
+      })
+    )
+
+    const result = await overrideEmailVerdict('token', 5, 'legitimate')
+    expect(result).toBeDefined()
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        json: async () => ({ error: 'Email already has an override' }),
+      })
+    )
+
+    await expect(overrideEmailVerdict('token', 7, 'legitimate')).rejects.toThrow(
+      'Email already has an override'
     )
   })
 })

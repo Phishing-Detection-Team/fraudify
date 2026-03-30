@@ -54,19 +54,76 @@ function Step({
 function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
   const hasInstance = instances.length > 0;
   const hasActive = instances.some((i) => i.is_active);
+  const allDone = hasInstance && hasActive;
 
-  if (hasActive) {
-    return (
-      <div className="glass-panel rounded-xl p-6 space-y-4 border border-accent-green/20">
-        <div className="flex items-center gap-2">
+  return (
+    <div
+      className={`glass-panel rounded-xl p-6 space-y-5 ${
+        allDone ? "border border-accent-green/20" : ""
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        {allDone ? (
           <ShieldCheckIcon size={20} className="text-accent-green" />
-          <h3 className="font-semibold text-accent-green">Your Emails are Protected</h3>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Sentra is actively monitoring your inbox. Your browser extension is connected and sending
-          heartbeats.
-        </p>
-        <ul className="space-y-3 pt-1">
+        ) : (
+          <Puzzle size={20} className="text-accent-cyan" />
+        )}
+        <h3 className={`font-semibold ${allDone ? "text-accent-green" : ""}`}>
+          {allDone ? "Your Emails are Protected" : "Get Started with Sentra"}
+        </h3>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        {allDone
+          ? "Sentra is actively monitoring your inbox. Your browser extension is connected and scanning emails in real-time."
+          : "Follow these steps to start protecting your inbox from phishing attacks."}
+      </p>
+
+      <div className="space-y-4">
+        {/* Step 1 — Install extension */}
+        <Step number={1} label="Install the Sentra browser extension" done={hasInstance}>
+          {!hasInstance && (
+            <p className="text-xs text-muted-foreground">
+              Load the extension in{" "}
+              <span className="font-medium text-foreground">Chrome</span> or{" "}
+              <span className="font-medium text-foreground">Edge</span> via Developer Mode.{" "}
+              <Link href="/extension" className="text-accent-cyan hover:underline">
+                See install guide →
+              </Link>
+            </p>
+          )}
+        </Step>
+
+        {/* Step 2 — Sign in to link */}
+        <Step number={2} label="Sign in — extension links automatically" done={hasInstance}>
+          {!hasInstance && (
+            <p className="text-xs text-muted-foreground">
+              Once the extension is installed, it detects your session on this page and registers
+              your device automatically. No token copy-pasting needed.
+            </p>
+          )}
+        </Step>
+
+        {/* Step 3 — Active scanning */}
+        <Step number={3} label="Extension connected and scanning" done={hasActive}>
+          {!hasActive && hasInstance && (
+            <p className="text-xs text-muted-foreground">
+              Your device is registered. The extension will show as{" "}
+              <span className="font-medium text-foreground">Active</span> once it sends its first
+              heartbeat (within 4 minutes of opening the browser).
+            </p>
+          )}
+          {!hasActive && !hasInstance && (
+            <p className="text-xs text-muted-foreground">
+              The extension sends a heartbeat every 4 minutes — this status will update
+              automatically.
+            </p>
+          )}
+        </Step>
+      </div>
+
+      {/* Connected instances list */}
+      {hasInstance && (
+        <ul className="space-y-2 pt-1">
           {instances.map((inst) => (
             <li
               key={inst.id}
@@ -95,59 +152,14 @@ function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
             </li>
           ))}
         </ul>
-        <Link
-          href="/dashboard/user/settings"
-          className="inline-flex items-center gap-1.5 text-xs text-accent-cyan hover:underline"
-        >
-          Manage extension instances <ArrowRight size={12} />
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="glass-panel rounded-xl p-6 space-y-5">
-      <div className="flex items-center gap-2">
-        <Puzzle size={20} className="text-accent-cyan" />
-        <h3 className="font-semibold">Get Started with Sentra</h3>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Follow these steps to start protecting your inbox from phishing attacks.
-      </p>
-      <div className="space-y-4">
-        <Step number={1} label="Install the Sentra browser extension" done={false}>
-          <p className="text-xs text-muted-foreground">
-            Chrome and Firefox support coming soon. The extension scans your incoming emails in
-            real-time.
-          </p>
-        </Step>
-        <Step number={2} label="Register your device" done={hasInstance}>
-          <p className="text-xs text-muted-foreground">
-            Go to{" "}
-            <Link href="/dashboard/user/settings" className="text-accent-cyan hover:underline">
-              Profile Settings
-            </Link>{" "}
-            → Browser Extension → click{" "}
-            <span className="font-medium text-foreground">Add Instance</span> to generate your
-            unique token.
-          </p>
-        </Step>
-        <Step number={3} label="Paste your token into the extension" done={false}>
-          <p className="text-xs text-muted-foreground">
-            Open the Sentra extension popup, enter your token, and you are protected. The extension
-            sends a heartbeat every 5 minutes — this page will show Active once it connects.
-          </p>
-        </Step>
-      </div>
-      {!hasInstance && (
-        <Link
-          href="/dashboard/user/settings"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-cyan/10 text-accent-cyan text-sm font-semibold hover:bg-accent-cyan/20 transition-colors"
-        >
-          <Puzzle size={14} />
-          Register Your First Instance
-        </Link>
       )}
+
+      <Link
+        href="/dashboard/user/settings"
+        className="inline-flex items-center gap-1.5 text-xs text-accent-cyan hover:underline"
+      >
+        Manage extension instances <ArrowRight size={12} />
+      </Link>
     </div>
   );
 }

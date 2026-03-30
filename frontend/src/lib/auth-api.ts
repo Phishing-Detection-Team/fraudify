@@ -123,6 +123,43 @@ export async function getAllUsers(accessToken: string) {
 }
 
 /**
+ * Request a password reset email
+ * @param email User email address
+ * @returns true if request was accepted (including when email doesn't exist — no enumeration)
+ */
+export async function requestPasswordReset(email: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${config.API.BASE_URL}${config.API.AUTH.FORGOT_PASSWORD}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Reset a user's password using a reset token
+ * @param token Reset token from the password reset email
+ * @param newPassword New password to set
+ * @returns true on success, false on failure (expired/invalid token)
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${config.API.BASE_URL}${config.API.AUTH.RESET_PASSWORD}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: newPassword }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Check if a user is admin
  * @param userId UUID of user to check
  * @returns Object with is_admin status, null if failed

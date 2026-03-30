@@ -13,10 +13,14 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from app import limiter
 from app.models import db, User
 from app.models.user_scan import UserScan
 
 scan_bp = Blueprint('scan', __name__)
+
+MAX_BODY_BYTES = 50 * 1024    # 50 KB
+MAX_SUBJECT_BYTES = 1024      # 1 KB
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -89,6 +93,7 @@ async def _run_detector(email_content: str) -> dict:
 
 @scan_bp.route('/scan', methods=['POST'])
 @jwt_required()
+@limiter.limit("20 per hour", key_func=get_jwt_identity)
 def scan_email():
     """
     Analyse an email for phishing.
@@ -111,6 +116,12 @@ def scan_email():
 
     if not body_text:
         return jsonify({'success': False, 'error': 'body is required'}), 400
+
+    if len(body_text.encode('utf-8')) > MAX_BODY_BYTES:
+        return jsonify({'success': False, 'error': 'Email body too large. Maximum size is 50KB.'}), 400
+
+    if len(subject.encode('utf-8')) > MAX_SUBJECT_BYTES:
+        return jsonify({'success': False, 'error': 'Email subject too large. Maximum size is 1KB.'}), 400
 
     email_content = f"Subject: {subject}\n\n{body_text}" if subject else body_text
 

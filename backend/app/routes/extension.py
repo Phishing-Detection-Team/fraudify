@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from app import limiter
 from app.models import db, User
 from app.models.extension_instance import ExtensionInstance
 from app.errors import ValidationError, NotFoundError
@@ -59,6 +60,7 @@ def register_instance():
 # ---------------------------------------------------------------------------
 
 @extension_bp.route('/extension/heartbeat', methods=['POST'])
+@limiter.limit('5 per minute')
 def heartbeat():
     """
     Update last_seen for an extension instance using its token.

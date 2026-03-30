@@ -139,6 +139,65 @@ class TestHeartbeat:
         resp = client.post('/api/extension/heartbeat', json={'instance_token': ''})
         assert resp.status_code == 400
 
+    def test_heartbeat_rate_limited_after_threshold(self, client, app, db, sample_user):
+        """POST /api/extension/heartbeat returns 429 once the per-minute limit is exceeded.
+
+        Flask-Limiter is disabled globally in the test config (RATELIMIT_ENABLED=False),
+        so we temporarily enable it for this single test and restore the setting afterwards.
+        The rate limit is expected to be '5 per minute' on this endpoint.
+        """
+        from app import limiter
+
+        inst = _create_instance(db, sample_user.id)
+        token = inst.instance_token
+
+        # Manually bootstrap the limiter internals without calling init_app
+        # (init_app can't be called after the app has handled its first request,
+        # and it skips storage init when RATELIMIT_ENABLED=False anyway).
+        from flask_limiter._extension import STRATEGIES
+        from limits.storage import storage_from_string
+
+        test_storage = storage_from_string('memory://')
+        test_limiter_backend = STRATEGIES['fixed-window'](test_storage)
+
+        import flask
+        old_enabled = limiter.enabled
+        old_initialized = limiter.initialized
+        old_storage = limiter._storage
+        old_backend = limiter._limiter
+        old_strategy = limiter._strategy
+        old_request_identifier = limiter._request_identifier
+
+        limiter.enabled = True
+        limiter.initialized = True
+        limiter._storage = test_storage
+        limiter._limiter = test_limiter_backend
+        limiter._strategy = 'fixed-window'
+        limiter._request_identifier = lambda: flask.request.endpoint or ''
+
+        try:
+            for _ in range(5):
+                resp = client.post(
+                    '/api/extension/heartbeat',
+                    json={'instance_token': token},
+                )
+                assert resp.status_code == 200, f'Expected 200 but got {resp.status_code}'
+
+            # The 6th request in the same minute must be rejected
+            resp = client.post(
+                '/api/extension/heartbeat',
+                json={'instance_token': token},
+            )
+            assert resp.status_code == 429
+        finally:
+            # Restore original state so subsequent tests are unaffected
+            limiter.enabled = old_enabled
+            limiter.initialized = old_initialized
+            limiter._storage = old_storage
+            limiter._limiter = old_backend
+            limiter._strategy = old_strategy
+            limiter._request_identifier = old_request_identifier
+
 
 # ---------------------------------------------------------------------------
 # GET /api/extension/instances  (own instances)

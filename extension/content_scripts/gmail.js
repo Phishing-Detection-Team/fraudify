@@ -1,0 +1,168 @@
+/**
+ * Sentra Extension — Gmail content script
+ * Injected into https://mail.google.com/*
+ *
+ * Responsibilities:
+ *   - Watch the Gmail DOM for email-open events (MutationObserver)
+ *   - Extract subject + body from the reading pane
+ *   - Send to service worker for scanning
+ *   - Inject a verdict overlay badge into the email header
+ */
+
+const OVERLAY_ID = 'sentra-phishing-overlay';
+
+// ---------------------------------------------------------------------------
+// DOM extraction
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract the subject and body of the currently open email from Gmail's DOM.
+ *
+ * Selectors used:
+ *   Subject : h2.hP          — the email subject heading
+ *   Body    : .a3s.aiL        — the sanitised email body container
+ *
+ * @returns {{ subject: string, body: string }}
+ */
+function extractEmailFromDOM() {
+  const subjectEl = document.querySelector('h2.hP');
+  const bodyEl = document.querySelector('.a3s.aiL');
+
+  return {
+    subject: (subjectEl?.textContent || '').trim(),
+    body:    (bodyEl?.innerText   || bodyEl?.textContent || '').trim(),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Overlay
+// ---------------------------------------------------------------------------
+
+/** Returns the stable DOM id used for the overlay element. */
+function getOverlayId() {
+  return OVERLAY_ID;
+}
+
+/**
+ * Build the HTML string for the verdict overlay banner.
+ *
+ * @param {{ verdict: string, confidence: number, reasoning?: string }} data
+ * @returns {string}
+ */
+function buildOverlayHTML({ verdict, confidence, reasoning }) {
+  const isPhishing   = verdict === 'phishing' || verdict === 'likely_phishing';
+  const isSuspicious = verdict === 'suspicious';
+
+  const bgColor   = isPhishing ? '#dc2626' : isSuspicious ? '#d97706' : '#16a34a';
+  const textColor = '#ffffff';
+  const pct       = Math.round((confidence || 0) * 100);
+
+  const label = isPhishing
+    ? '⚠ Sentra: Phishing Detected'
+    : isSuspicious
+      ? '⚠ Sentra: Suspicious Email'
+      : '✓ Sentra: Email Looks Safe';
+
+  const reasonHtml = reasoning
+    ? `<div style="font-size:12px;margin-top:6px;opacity:0.9;">${_escapeHtml(reasoning)}</div>`
+    : '';
+
+  return `
+    <div id="${OVERLAY_ID}" style="
+      background:${bgColor};
+      color:${textColor};
+      padding:8px 14px;
+      border-radius:6px;
+      font-family:sans-serif;
+      font-size:13px;
+      font-weight:600;
+      margin-bottom:8px;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.2);
+    ">
+      <span>${label} — ${pct}% confidence</span>
+      ${reasonHtml}
+    </div>
+  `.trim();
+}
+
+/** Inject overlay above the email body; removes any previous overlay first. */
+function injectOverlay(verdictData) {
+  const existing = document.getElementById(OVERLAY_ID);
+  if (existing) existing.remove();
+
+  const container = document.querySelector('.a3s') || document.querySelector('.gs');
+  if (!container) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = buildOverlayHTML(verdictData);
+  container.prepend(wrapper.firstChild);
+}
+
+/** Remove the Sentra overlay from the DOM if present. */
+function removeOverlay() {
+  const el = document.getElementById(OVERLAY_ID);
+  if (el) el.remove();
+}
+
+// ---------------------------------------------------------------------------
+// Email-open observer
+// ---------------------------------------------------------------------------
+
+/**
+ * Watch for Gmail email-open events using a MutationObserver.
+ * Calls `onEmailOpen()` whenever a new email is displayed.
+ *
+ * @param {() => void} onEmailOpen
+ * @returns {MutationObserver}
+ */
+function watchForEmailOpen(onEmailOpen) {
+  let lastSubject = '';
+
+  const observer = new MutationObserver(() => {
+    const subjectEl = document.querySelector('h2.hP');
+    if (!subjectEl) return;
+
+    const subject = subjectEl.textContent.trim();
+    if (subject && subject !== lastSubject) {
+      lastSubject = subject;
+      onEmailOpen();
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+  return observer;
+}
+
+// ---------------------------------------------------------------------------
+// Content-script entry point (runs in Gmail tab)
+// ---------------------------------------------------------------------------
+
+function _escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* istanbul ignore next */
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+  // We are running inside an actual extension — start the observer
+  watchForEmailOpen(() => {
+    const { subject, body } = extractEmailFromDOM();
+    if (!body) return;
+
+    chrome.runtime.sendMessage({ type: 'SCAN_EMAIL', subject, body }, (response) => {
+      if (chrome.runtime.lastError) return;
+      if (response) injectOverlay(response);
+    });
+  });
+}
+
+// CommonJS export for Jest
+if (typeof module !== 'undefined') {
+  module.exports = { extractEmailFromDOM, buildOverlayHTML, injectOverlay, removeOverlay, getOverlayId, watchForEmailOpen };
+}

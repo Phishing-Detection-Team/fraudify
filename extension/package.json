@@ -1,0 +1,36 @@
+{
+  "name": "sentra-extension",
+  "version": "1.0.0",
+  "description": "Sentra Phishing Detector — Chrome/Edge extension",
+  "private": true,
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFiles": [
+      "./tests/setup.js"
+    ],
+    "clearMocks": true,
+    "coverageThreshold": {
+      "global": {
+        "lines": 80,
+        "functions": 80,
+        "branches": 80
+      }
+    },
+    "collectCoverageFrom": [
+      "utils/**/*.js",
+      "background/**/*.js",
+      "content_scripts/**/*.js"
+    ]
+  }
+}

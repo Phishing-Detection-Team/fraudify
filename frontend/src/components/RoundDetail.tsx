@@ -2,7 +2,7 @@
 
 import { config } from "@/lib/config";
 import { MOCK_ROUNDS } from "@/lib/mock-data";
-import { getRound } from "@/lib/admin-api";
+import { getRound, overrideEmailVerdict } from "@/lib/admin-api";
 import {
   ShieldAlert,
   ShieldCheck,
@@ -55,9 +55,36 @@ export function RoundDetailView() {
   const [round, setRound] = useState<Round | null>(null);
   const [emails, setEmails] = useState<BackendEmail[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<DisplayEmail | null>(null);
+  const [overrideVerdict, setOverrideVerdict] = useState<"phishing" | "legitimate">("legitimate");
+  const [overrideReason, setOverrideReason] = useState("");
+  const [overrideSubmitting, setOverrideSubmitting] = useState(false);
+  const [overrideError, setOverrideError] = useState<string | null>(null);
+  const [overrideSuccess, setOverrideSuccess] = useState<string | null>(null);
 
   const isAdmin = session?.user?.role === "admin";
   const baseHref = isAdmin ? "/dashboard/admin" : "/dashboard/user";
+
+  async function handleOverrideSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedEmail || !session?.accessToken) return;
+    setOverrideSubmitting(true);
+    setOverrideError(null);
+    setOverrideSuccess(null);
+    try {
+      await overrideEmailVerdict(
+        session.accessToken,
+        Number(selectedEmail.id),
+        overrideVerdict,
+        overrideReason || undefined
+      );
+      setOverrideSuccess(`Verdict overridden to "${overrideVerdict}"`);
+      setOverrideReason("");
+    } catch (err) {
+      setOverrideError(err instanceof Error ? err.message : "Override failed");
+    } finally {
+      setOverrideSubmitting(false);
+    }
+  }
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
@@ -232,7 +259,13 @@ export function RoundDetailView() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: Math.min(idx * 0.05, 0.5) }}
-                        onClick={() => setSelectedEmail(email)}
+                        onClick={() => {
+                          setSelectedEmail(email);
+                          setOverrideVerdict("legitimate");
+                          setOverrideReason("");
+                          setOverrideError(null);
+                          setOverrideSuccess(null);
+                        }}
                         className={`group transition-colors cursor-pointer ${
                           email.verdict === "phishing"
                             ? "bg-accent-red/5 hover:bg-accent-red/10"
@@ -406,6 +439,67 @@ export function RoundDetailView() {
                       )}
                     </div>
                   </div>
+
+                  {/* Override Verdict — admin only, live data only */}
+                  {isAdmin && !isDemo && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle size={14} className="text-accent-yellow" />
+                        <span className="text-xs font-semibold text-accent-yellow uppercase tracking-wider">
+                          Override Verdict
+                        </span>
+                      </div>
+                      <form
+                        onSubmit={handleOverrideSubmit}
+                        className="bg-background/60 rounded-lg p-4 border border-border/40 space-y-3"
+                      >
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setOverrideVerdict("phishing")}
+                            className={`flex-1 py-1.5 rounded text-xs font-semibold transition-colors ${
+                              overrideVerdict === "phishing"
+                                ? "bg-accent-red/30 text-accent-red border border-accent-red/50"
+                                : "bg-background/50 text-muted-foreground border border-border/40 hover:border-accent-red/30"
+                            }`}
+                          >
+                            Phishing
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOverrideVerdict("legitimate")}
+                            className={`flex-1 py-1.5 rounded text-xs font-semibold transition-colors ${
+                              overrideVerdict === "legitimate"
+                                ? "bg-accent-green/30 text-accent-green border border-accent-green/50"
+                                : "bg-background/50 text-muted-foreground border border-border/40 hover:border-accent-green/30"
+                            }`}
+                          >
+                            Legitimate
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={overrideReason}
+                          onChange={(e) => setOverrideReason(e.target.value)}
+                          placeholder="Reason (optional)"
+                          className="w-full bg-background/50 border border-border/40 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-accent-cyan/50"
+                        />
+                        {overrideError && (
+                          <p className="text-xs text-accent-red">{overrideError}</p>
+                        )}
+                        {overrideSuccess && (
+                          <p className="text-xs text-accent-green">{overrideSuccess}</p>
+                        )}
+                        <button
+                          type="submit"
+                          disabled={overrideSubmitting}
+                          className="w-full py-1.5 bg-accent-cyan/20 hover:bg-accent-cyan/30 text-accent-cyan border border-accent-cyan/30 rounded text-xs font-semibold transition-colors disabled:opacity-50"
+                        >
+                          {overrideSubmitting ? "Submitting…" : "Submit Override"}
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>

@@ -10,3 +10,4 @@ LLM.log
 .idea
 frontend/node_modules/*
 frontend/.next/*
+extension/node_modules/*

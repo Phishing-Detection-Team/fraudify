@@ -29,7 +29,9 @@ export function LiveFeed({ isDemo }: { isDemo?: boolean }) {
       }, 4000);
       return () => clearInterval(interval);
     } else {
-      // TODO: Implement real-time data fetching via WebSockets or polling
+      // TODO: Replace polling with Flask-SocketIO push. Backend infrastructure
+      // ready (Flask-SocketIO installed, emit on heartbeat receipt in extension.py).
+      // See backend/app/tasks/README.md and the implementation plan for details.
     }
   }, [isDemo]);
 

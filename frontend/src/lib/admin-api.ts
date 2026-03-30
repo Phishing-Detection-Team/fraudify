@@ -303,6 +303,33 @@ export interface InviteCode {
   used: boolean;
 }
 
+export interface EmailOverride {
+  id: number;
+  email_id: number;
+  verdict: string;
+  reason?: string;
+  overridden_by: number;
+}
+
+export const overrideEmailVerdict = async (
+  token: string,
+  emailId: number,
+  verdict: string,
+  reason?: string
+): Promise<EmailOverride> => {
+  const res = await apiFetch(`${API_URL}/api/emails/${emailId}/override`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ verdict, ...(reason ? { reason } : {}) }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? "Failed to submit override");
+  }
+  const json = await res.json();
+  return json.data as EmailOverride;
+};
+
 export const createInviteCode = async (
   token: string,
   roleName = "user",
