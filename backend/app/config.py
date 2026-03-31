@@ -103,7 +103,7 @@ class TestingConfig(BaseConfig):
 
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
+        'TEST_DATABASE_URL',
         'sqlite:///:memory:'
     )
     SQLALCHEMY_ECHO = False

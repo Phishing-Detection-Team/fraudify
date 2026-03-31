@@ -6,10 +6,15 @@ from app.config import TestingConfig
 @pytest.fixture(scope='module', autouse=True)
 def patch_rate_limit_config():
     """Patch TestingConfig to ENABLE rate limits for this test module."""
+    from app import limiter
     original = getattr(TestingConfig, 'RATELIMIT_ENABLED', False)
+    original_enabled = limiter.enabled
+    
     TestingConfig.RATELIMIT_ENABLED = True
+    limiter.enabled = True
     yield
     TestingConfig.RATELIMIT_ENABLED = original
+    limiter.enabled = original_enabled
 
 @pytest.fixture
 def rl_app():
