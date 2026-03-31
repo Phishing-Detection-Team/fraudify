@@ -18,10 +18,22 @@ else
   info "Flask was not running."
 fi
 
-# ── 2. Kill Next.js (port 3000) ───────────────────────────────────────────────
+# ── 2. Kill Next.js (port 3000 + any orphaned next-server processes) ──────────
 step "Stopping Next.js frontend"
+_next_stopped=false
 if pids=$(lsof -ti tcp:3000 2>/dev/null); then
-  echo "$pids" | xargs kill -TERM 2>/dev/null && success "Next.js stopped." || true
+  echo "$pids" | xargs kill -TERM 2>/dev/null || true
+  _next_stopped=true
+fi
+# Also kill any orphaned next-server / next dev processes not bound to port 3000
+if pkill -TERM -f "next-server|next dev" 2>/dev/null; then
+  _next_stopped=true
+fi
+if [ "$_next_stopped" = true ]; then
+  sleep 1
+  # Force-kill anything still alive
+  pkill -9 -f "next-server|next dev" 2>/dev/null || true
+  success "Next.js stopped."
 else
   info "Next.js was not running."
 fi

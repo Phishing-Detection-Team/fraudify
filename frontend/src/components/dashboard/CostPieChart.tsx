@@ -6,7 +6,6 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
-  Legend,
 } from "recharts";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -67,11 +66,8 @@ export function CostPieChart({ demoCosts }: Props) {
   const [items, setItems] = useState<CostBreakdownItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isDemo, setIsDemo] = useState(false);
-
   useEffect(() => {
     const demo = localStorage.getItem(config.STORAGE_KEYS.IS_DEMO) === "true";
-    setIsDemo(demo);
 
     if (demo) {
       // Convert mock ModelCost[] into our CostBreakdownItem shape

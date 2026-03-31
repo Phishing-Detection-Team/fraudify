@@ -330,6 +330,82 @@ export const overrideEmailVerdict = async (
   return json.data as EmailOverride;
 };
 
+// ---------------------------------------------------------------------------
+// Invite Panel API (Sprint 5.6)
+// ---------------------------------------------------------------------------
+
+export interface InviteRecord {
+  code: string;
+  role: string;
+  expires_at: string;
+  uses_left: number;
+}
+
+export async function createInvite(
+  token: string,
+  role: 'user' | 'admin',
+  expiryHours: number
+): Promise<{ invite_link: string; code: string }> {
+  const expiresInDays = expiryHours / 24;
+  const res = await apiFetch(`${API_URL}/api/auth/admin/invite`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ role_name: role, expires_in_days: expiresInDays }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? 'Failed to create invite');
+  }
+  const json = await res.json();
+  const invite = json.invite as { code: string };
+  const frontendOrigin =
+    typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  return {
+    code: invite.code,
+    invite_link: `${frontendOrigin}/auth/signup?invite=${invite.code}`,
+  };
+}
+
+export async function listInvites(token: string): Promise<InviteRecord[]> {
+  const res = await apiFetch(`${API_URL}/api/auth/invites`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error('Failed to fetch invites');
+  const json = await res.json();
+  return (json.data ?? []) as InviteRecord[];
+}
+
+export async function revokeInvite(token: string, code: string): Promise<void> {
+  const res = await apiFetch(`${API_URL}/api/auth/invites/${encodeURIComponent(code)}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? 'Failed to revoke invite');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Threat Intelligence Panel (Sprint 5.5)
+// ---------------------------------------------------------------------------
+
+export interface IntelligenceStats {
+  confidence_distribution: { bucket: string; count: number }[];
+  accuracy_over_rounds: { round_id: number; accuracy: number; completed_at: string }[];
+  fp_fn_rates: { round_id: number; false_positive_rate: number; false_negative_rate: number }[];
+  top_phishing_words: { word: string; count: number }[];
+}
+
+export async function getIntelligenceStats(token: string): Promise<IntelligenceStats> {
+  const res = await apiFetch(`${API_URL}/api/stats/intelligence`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error('Failed to fetch intelligence stats');
+  const json = await res.json();
+  return json.data as IntelligenceStats;
+}
+
 export const createInviteCode = async (
   token: string,
   roleName = "user",

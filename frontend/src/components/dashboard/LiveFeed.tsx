@@ -3,11 +3,26 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, ShieldAlert, Clock } from "lucide-react";
+import { io } from "socket.io-client";
 import { MOCK_LIVE_FEED } from "@/lib/mock-data";
 import { EmailResult } from "@/types";
 
+interface HeartbeatEvent {
+  instance_id: string;
+  browser: string;
+  last_seen: string;
+}
+
+interface HeartbeatFeedItem {
+  id: string;
+  browser: string;
+  lastSeen: string;
+  type: "heartbeat";
+}
+
 export function LiveFeed({ isDemo }: { isDemo?: boolean }) {
   const [feed, setFeed] = useState<EmailResult[]>([]);
+  const [events, setEvents] = useState<HeartbeatFeedItem[]>([]);
 
   useEffect(() => {
     if (isDemo) {
@@ -28,12 +43,36 @@ export function LiveFeed({ isDemo }: { isDemo?: boolean }) {
         setFeed((prev) => [newEvent, ...prev].slice(0, 8));
       }, 4000);
       return () => clearInterval(interval);
-    } else {
-      // TODO: Replace polling with Flask-SocketIO push. Backend infrastructure
-      // ready (Flask-SocketIO installed, emit on heartbeat receipt in extension.py).
-      // See backend/app/tasks/README.md and the implementation plan for details.
     }
+
+    // Real socket.io subscription for live heartbeat events
+    const socket = io(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000");
+
+    socket.on("extension_heartbeat", (data: HeartbeatEvent) => {
+      setEvents((prev) =>
+        [
+          {
+            id: data.instance_id,
+            browser: data.browser,
+            lastSeen: data.last_seen,
+            type: "heartbeat" as const,
+          },
+          ...prev,
+        ].slice(0, 20)
+      );
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [isDemo]);
+
+  // In non-demo mode, combine heartbeat events with the static feed
+  const displayFeed: EmailResult[] = isDemo
+    ? feed
+    : feed.length > 0
+    ? feed
+    : [];
 
   return (
     <div className="glass-panel p-6 rounded-xl h-full flex flex-col">
@@ -50,11 +89,28 @@ export function LiveFeed({ isDemo }: { isDemo?: boolean }) {
         </span>
       </div>
 
+      {/* Heartbeat events (non-demo mode only) */}
+      {!isDemo && events.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {events.slice(0, 5).map((ev) => (
+            <div
+              key={`hb-${ev.id}-${ev.lastSeen}`}
+              className="px-3 py-2 rounded-lg bg-accent-cyan/5 border border-accent-cyan/20 text-xs flex items-center justify-between"
+            >
+              <span className="font-medium text-accent-cyan">{ev.browser}</span>
+              <span className="text-muted-foreground font-mono">
+                {new Date(ev.lastSeen).toLocaleTimeString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex-1 overflow-hidden relative">
         <div className="absolute top-0 w-full h-4 bg-gradient-to-b from-card to-transparent z-10 pointer-events-none" />
         <div className="space-y-3 overflow-y-auto h-full pr-2 pb-4 scrollbar-thin">
           <AnimatePresence initial={false}>
-            {feed.map((item) => (
+            {displayFeed.map((item) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, height: 0, scale: 0.9 }}
@@ -72,7 +128,7 @@ export function LiveFeed({ isDemo }: { isDemo?: boolean }) {
                     {item.verdict}
                   </div>
                 </div>
-                
+
                 <div className="text-xs text-muted-foreground flex items-center justify-between">
                   <span className="truncate max-w-[200px]">{item.detectorResponse}</span>
                   <span className="font-mono">{item.confidence}% Conf</span>

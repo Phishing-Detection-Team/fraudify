@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Search, Users as UsersIcon, ShieldCheck, User as UserIcon, Loader2, Link2, Check as CheckIcon } from "lucide-react";
 import { getUsers, createInviteCode, type BackendUser } from "@/lib/admin-api";
+import InvitePanel from "@/components/admin/InvitePanel";
 
 function Initials({ name }: { name: string }) {
   const chars = name.split(/\s+/).map((w) => w[0]?.toUpperCase() ?? "").slice(0, 2).join("");
@@ -194,6 +195,11 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* Invite Panel */}
+      {session?.accessToken && (
+        <InvitePanel token={session.accessToken} />
+      )}
     </div>
   );
 }

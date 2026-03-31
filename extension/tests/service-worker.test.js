@@ -19,6 +19,7 @@ let messageListener = null;
 // Helpers exposed by the module for direct testing
 let _detectBrowser;
 let _detectOS;
+let _cacheScanResult;
 
 beforeAll(() => {
   chrome.runtime.onInstalled.addListener.mockImplementation((fn) => { installedListener = fn; });
@@ -29,6 +30,7 @@ beforeAll(() => {
   const sw = require('../background/service-worker');
   _detectBrowser = sw._detectBrowser;
   _detectOS = sw._detectOS;
+  _cacheScanResult = sw._cacheScanResult;
 });
 
 // ---------------------------------------------------------------------------
@@ -335,5 +337,57 @@ describe('_detectOS', () => {
   it('returns Unknown for unrecognised OS', () => {
     setUA('SomeOtherOS/1.0');
     expect(_detectOS()).toBe('Unknown');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// _cacheScanResult
+// ---------------------------------------------------------------------------
+
+describe('_cacheScanResult', () => {
+  beforeEach(() => {
+    chrome.storage.local._reset();
+  });
+
+  it('stores a scan entry in sentra_scan_history', async () => {
+    await _cacheScanResult('Important email subject', 'phishing', 0.95);
+
+    const stored = await chrome.storage.local.get('sentra_scan_history');
+    expect(stored.sentra_scan_history).toHaveLength(1);
+  });
+
+  it('stored entry has subject, verdict, confidence and timestamp fields', async () => {
+    const before = Date.now();
+    await _cacheScanResult('Test subject', 'safe', 0.80);
+    const after = Date.now();
+
+    const stored = await chrome.storage.local.get('sentra_scan_history');
+    const entry = stored.sentra_scan_history[0];
+
+    expect(entry).toMatchObject({
+      subject: 'Test subject',
+      verdict: 'safe',
+      confidence: 0.80,
+    });
+    expect(entry.timestamp).toBeGreaterThanOrEqual(before);
+    expect(entry.timestamp).toBeLessThanOrEqual(after);
+  });
+
+  it('keeps only the last 5 entries when more than 5 are added', async () => {
+    for (let i = 0; i < 7; i++) {
+      await _cacheScanResult(`Email ${i}`, 'safe', 0.5);
+    }
+
+    const stored = await chrome.storage.local.get('sentra_scan_history');
+    expect(stored.sentra_scan_history).toHaveLength(5);
+  });
+
+  it('prepends new entries so the most recent appears first', async () => {
+    await _cacheScanResult('First email', 'safe', 0.7);
+    await _cacheScanResult('Second email', 'phishing', 0.9);
+
+    const stored = await chrome.storage.local.get('sentra_scan_history');
+    expect(stored.sentra_scan_history[0].subject).toBe('Second email');
+    expect(stored.sentra_scan_history[1].subject).toBe('First email');
   });
 });

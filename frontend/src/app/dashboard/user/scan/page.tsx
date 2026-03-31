@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   ScanText,
@@ -9,17 +9,14 @@ import {
   ShieldAlert,
   HelpCircle,
   Loader2,
-  Clock,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import {
   scanEmail,
-  getScanHistory,
   type ScanResult,
-  type ScanHistoryItem,
   type ScanVerdict,
 } from "@/lib/user-api";
+import VerdictDisplay from "@/components/scan/VerdictDisplay";
+import ScanHistoryPanel from "@/components/scan/ScanHistoryPanel";
 
 // ---------------------------------------------------------------------------
 // Verdict helpers
@@ -128,101 +125,6 @@ function ResultCard({ result }: { result: ScanResult }) {
 }
 
 // ---------------------------------------------------------------------------
-// History Table
-// ---------------------------------------------------------------------------
-
-function HistoryTable({
-  scans,
-  total,
-  page,
-  pages,
-  onPageChange,
-}: {
-  scans: ScanHistoryItem[];
-  total: number;
-  page: number;
-  pages: number;
-  onPageChange: (p: number) => void;
-}) {
-  if (scans.length === 0) {
-    return (
-      <div className="glass-panel rounded-xl p-10 text-center text-muted-foreground space-y-2">
-        <Clock size={28} className="mx-auto opacity-50" />
-        <p className="text-sm">No scans yet. Submit an email above to get started.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="glass-panel rounded-xl overflow-hidden">
-      <div className="p-4 border-b border-border/50 flex items-center justify-between">
-        <h3 className="font-semibold text-sm flex items-center gap-2">
-          <Clock size={14} className="text-accent-cyan" />
-          Scan History
-          <span className="text-muted-foreground font-normal">({total})</span>
-        </h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
-            <tr>
-              <th className="px-5 py-3 font-medium">Date</th>
-              <th className="px-5 py-3 font-medium">Subject</th>
-              <th className="px-5 py-3 font-medium">Verdict</th>
-              <th className="px-5 py-3 font-medium">Score</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/30">
-            {scans.map((s) => (
-              <tr key={s.id} className="hover:bg-muted/20 transition-colors">
-                <td className="px-5 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                  {new Date(s.scanned_at).toLocaleString()}
-                </td>
-                <td className="px-5 py-3 max-w-xs">
-                  <p className="truncate text-sm">{s.subject ?? <span className="text-muted-foreground italic">No subject</span>}</p>
-                  {s.body_snippet && (
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{s.body_snippet}</p>
-                  )}
-                </td>
-                <td className="px-5 py-3">
-                  <VerdictBadge verdict={s.verdict} />
-                </td>
-                <td className="px-5 py-3">
-                  <span className="text-sm font-mono">
-                    {s.scam_score !== null ? Math.round(s.scam_score) : "—"}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {pages > 1 && (
-        <div className="p-3 border-t border-border/50 flex items-center justify-end gap-2">
-          <button
-            onClick={() => onPageChange(page - 1)}
-            disabled={page <= 1}
-            className="p-1.5 rounded border border-border/50 hover:bg-muted/30 disabled:opacity-40 transition-colors"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <span className="text-xs text-muted-foreground">
-            Page {page} of {pages}
-          </span>
-          <button
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= pages}
-            className="p-1.5 rounded border border-border/50 hover:bg-muted/30 disabled:opacity-40 transition-colors"
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -236,32 +138,6 @@ export default function ScanEmailPage() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [history, setHistory] = useState<ScanHistoryItem[]>([]);
-  const [historyTotal, setHistoryTotal] = useState(0);
-  const [historyPages, setHistoryPages] = useState(1);
-  const [historyPage, setHistoryPage] = useState(1);
-  const [historyLoading, setHistoryLoading] = useState(true);
-
-  const loadHistory = async (page = 1) => {
-    if (!token) return;
-    setHistoryLoading(true);
-    try {
-      const data = await getScanHistory(token, page);
-      setHistory(data.scans);
-      setHistoryTotal(data.total);
-      setHistoryPages(data.pages);
-      setHistoryPage(page);
-    } catch {
-      // silently fail — history is non-critical
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadHistory(1);
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const handleScan = async () => {
     if (!token || !body.trim()) return;
     setScanning(true);
@@ -270,7 +146,6 @@ export default function ScanEmailPage() {
     try {
       const res = await scanEmail(token, subject.trim(), body.trim());
       setResult(res);
-      loadHistory(1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Scan failed. Please try again.");
     } finally {
@@ -350,7 +225,23 @@ export default function ScanEmailPage() {
         {/* Right: result */}
         <div className="space-y-4">
           {result ? (
-            <ResultCard result={result} />
+            <>
+              <VerdictDisplay
+                verdict={
+                  result.verdict === "phishing" || result.verdict === "likely_phishing"
+                    ? "phishing"
+                    : "safe"
+                }
+                confidence={result.confidence ?? 0}
+                reasoning={
+                  result.reasoning
+                    ? result.reasoning.split(/\n|\.(?=\s)/).map((s) => s.trim()).filter(Boolean)
+                    : []
+                }
+                subject={subject}
+              />
+              <ResultCard result={result} />
+            </>
           ) : (
             <div className="glass-panel rounded-xl p-10 text-center text-muted-foreground space-y-3 h-full flex flex-col items-center justify-center">
               <ShieldCheck size={40} className="opacity-30" />
@@ -365,19 +256,12 @@ export default function ScanEmailPage() {
       </div>
 
       {/* History */}
-      {historyLoading ? (
-        <div className="flex items-center justify-center py-10 gap-2 text-muted-foreground">
-          <Loader2 size={16} className="animate-spin" />
-          Loading history…
-        </div>
+      {token ? (
+        <ScanHistoryPanel token={token} />
       ) : (
-        <HistoryTable
-          scans={history}
-          total={historyTotal}
-          page={historyPage}
-          pages={historyPages}
-          onPageChange={(p) => loadHistory(p)}
-        />
+        <div className="glass-panel rounded-xl p-6 text-center text-sm text-muted-foreground">
+          Log in with a backend account to view scan history.
+        </div>
       )}
     </div>
   );

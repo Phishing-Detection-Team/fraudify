@@ -3,6 +3,7 @@
 import { config } from "@/lib/config";
 import { MOCK_ROUNDS } from "@/lib/mock-data";
 import { getRound, overrideEmailVerdict } from "@/lib/admin-api";
+import { io } from "socket.io-client";
 import {
   ShieldAlert,
   ShieldCheck,
@@ -60,6 +61,11 @@ export function RoundDetailView() {
   const [overrideSubmitting, setOverrideSubmitting] = useState(false);
   const [overrideError, setOverrideError] = useState<string | null>(null);
   const [overrideSuccess, setOverrideSuccess] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{
+    processed: number;
+    total: number;
+    accuracy: number;
+  } | null>(null);
 
   const isAdmin = session?.user?.role === "admin";
   const baseHref = isAdmin ? "/dashboard/admin" : "/dashboard/user";
@@ -86,6 +92,35 @@ export function RoundDetailView() {
     }
   }
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const roundId = id ? Number(id) : null;
+
+  // WebSocket subscription for real-time round progress
+  useEffect(() => {
+    const socket = io(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000");
+
+    socket.on(
+      "round_progress",
+      (data: {
+        round_id: number;
+        processed: number;
+        total: number;
+        verdict: string;
+        accuracy: number;
+      }) => {
+        if (data.round_id === roundId) {
+          setProgress({
+            processed: data.processed,
+            total: data.total,
+            accuracy: data.accuracy,
+          });
+        }
+      }
+    );
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [roundId]);
 
   useEffect(() => {
     const demoFlag = localStorage.getItem(config.STORAGE_KEYS.IS_DEMO) === "true";
@@ -229,6 +264,37 @@ export function RoundDetailView() {
             </div>
           </div>
         </div>
+
+        {/* Real-time progress bar (visible while round is running) */}
+        {progress !== null && (
+          <div
+            data-testid="round-progress-bar"
+            className="glass-panel p-4 rounded-xl"
+          >
+            <div className="flex items-center justify-between mb-2 text-xs text-muted-foreground">
+              <span>
+                Processing emails: {progress.processed} / {progress.total}
+              </span>
+              <span>
+                Accuracy so far: {(progress.accuracy * 100).toFixed(1)}%
+              </span>
+            </div>
+            <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden">
+              <motion.div
+                data-testid="round-progress-fill"
+                className="h-2 rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple"
+                style={{
+                  width: `${(progress.processed / progress.total) * 100}%`,
+                }}
+                initial={{ width: "0%" }}
+                animate={{
+                  width: `${(progress.processed / progress.total) * 100}%`,
+                }}
+                transition={{ duration: 0.4 }}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="glass-panel rounded-xl overflow-hidden">
           <div className="overflow-x-auto">

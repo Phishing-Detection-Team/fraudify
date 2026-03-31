@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1774836700958" clover="3.2.0">
-  <project timestamp="1774836700958" name="All files">
-    <metrics statements="155" coveredstatements="153" conditionals="142" coveredconditionals="125" methods="29" coveredmethods="28" elements="326" coveredelements="306" complexity="0" loc="155" ncloc="155" packages="3" files="5" classes="5"/>
+<coverage generated="1774910570404" clover="3.2.0">
+  <project timestamp="1774910570404" name="All files">
+    <metrics statements="161" coveredstatements="159" conditionals="151" coveredconditionals="131" methods="30" coveredmethods="29" elements="342" coveredelements="319" complexity="0" loc="161" ncloc="161" packages="3" files="5" classes="5"/>
     <package name="background">
-      <metrics statements="65" coveredstatements="64" conditionals="54" coveredconditionals="47" methods="9" coveredmethods="9"/>
+      <metrics statements="71" coveredstatements="70" conditionals="63" coveredconditionals="53" methods="10" coveredmethods="10"/>
       <file name="service-worker.js" path="/home/hoang/projects/phishing_detection/extension/background/service-worker.js">
-        <metrics statements="65" coveredstatements="64" conditionals="54" coveredconditionals="47" methods="9" coveredmethods="9"/>
+        <metrics statements="71" coveredstatements="70" conditionals="63" coveredconditionals="53" methods="10" coveredmethods="10"/>
         <line num="24" count="1" type="stmt"/>
         <line num="25" count="1" type="stmt"/>
         <line num="32" count="15" type="stmt"/>
@@ -55,22 +55,28 @@
         <line num="137" count="1" type="stmt"/>
         <line num="140" count="2" type="stmt"/>
         <line num="141" count="2" type="stmt"/>
-        <line num="147" count="1" type="stmt"/>
-        <line num="149" count="1" type="stmt"/>
-        <line num="158" count="10" type="cond" truecount="1" falsecount="1"/>
-        <line num="159" count="10" type="stmt"/>
-        <line num="160" count="10" type="cond" truecount="3" falsecount="1"/>
-        <line num="161" count="9" type="cond" truecount="3" falsecount="1"/>
-        <line num="162" count="8" type="stmt"/>
-        <line num="166" count="12" type="cond" truecount="1" falsecount="1"/>
-        <line num="167" count="12" type="stmt"/>
-        <line num="168" count="12" type="cond" truecount="2" falsecount="0"/>
-        <line num="169" count="11" type="cond" truecount="2" falsecount="0"/>
-        <line num="170" count="10" type="cond" truecount="2" falsecount="0"/>
-        <line num="171" count="9" type="cond" truecount="2" falsecount="0"/>
-        <line num="172" count="8" type="stmt"/>
-        <line num="176" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="177" count="1" type="stmt"/>
+        <line num="147" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="148" count="1" type="stmt"/>
+        <line num="150" count="1" type="stmt"/>
+        <line num="152" count="1" type="stmt"/>
+        <line num="161" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="162" count="10" type="stmt"/>
+        <line num="163" count="10" type="cond" truecount="3" falsecount="1"/>
+        <line num="164" count="9" type="cond" truecount="3" falsecount="1"/>
+        <line num="165" count="8" type="stmt"/>
+        <line num="169" count="12" type="cond" truecount="1" falsecount="1"/>
+        <line num="170" count="12" type="stmt"/>
+        <line num="171" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="172" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="173" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="174" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="175" count="8" type="stmt"/>
+        <line num="183" count="12" type="cond" truecount="1" falsecount="0"/>
+        <line num="184" count="12" type="stmt"/>
+        <line num="190" count="12" type="stmt"/>
+        <line num="191" count="12" type="stmt"/>
+        <line num="195" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="196" count="1" type="stmt"/>
       </file>
     </package>
     <package name="content_scripts">

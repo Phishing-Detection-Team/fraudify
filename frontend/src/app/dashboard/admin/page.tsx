@@ -5,6 +5,7 @@ import { RoundTable } from "@/components/dashboard/RoundTable";
 import { CostPieChart } from "@/components/dashboard/CostPieChart";
 import { AgentLogsTable } from "@/components/dashboard/AgentLogsTable";
 import { RecentLogsSection } from "@/components/dashboard/RecentLogsSection";
+import IntelligencePanel from "@/components/admin/IntelligencePanel";
 import { Mail, ShieldAlert, BadgeDollarSign, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -123,7 +124,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div 
+        <motion.div
           className="lg:col-span-2 flex flex-col gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,8 +133,8 @@ export default function AdminDashboard() {
           <RoundTable rounds={rounds} />
           {session?.user?.fromBackend && <RecentLogsSection />}
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="lg:col-span-1 flex flex-col gap-6 h-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -147,6 +148,10 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
       </div>
+
+      {session?.user?.fromBackend && session.accessToken && (
+        <IntelligencePanel token={session.accessToken} />
+      )}
     </div>
   );
 }

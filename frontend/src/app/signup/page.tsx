@@ -171,6 +171,19 @@ function SignupForm() {
               onSubmit={handleNextToConsent}
               className="space-y-4"
             >
+              {inviteCode && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-accent-cyan">Invite Code</label>
+                  <input
+                    data-testid="invite-code-input"
+                    type="text"
+                    readOnly
+                    value={inviteCode}
+                    className="w-full bg-accent-cyan/5 border border-accent-cyan/30 rounded-lg px-4 py-3 text-sm text-accent-cyan cursor-default"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-sm font-medium flex justify-between">
                   <span>Full Name</span>

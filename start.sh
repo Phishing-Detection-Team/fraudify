@@ -178,10 +178,16 @@ done
 
 # ── 5. Next.js frontend ───────────────────────────────────────────────────────
 step "Starting Next.js frontend (port 3000)"
-if [ -d "$FRONTEND_DIR/.next" ]; then
-  info "Clearing stale .next cache..."
-  rm -rf "$FRONTEND_DIR/.next"
-fi
+
+# Kill any orphaned next processes from previous runs
+pkill -TERM -f "next-server|next dev" 2>/dev/null || true
+sleep 1
+pkill -9 -f "next-server|next dev" 2>/dev/null || true
+
+info "Clearing Next.js build cache..."
+rm -rf "$FRONTEND_DIR/.next"
+rm -rf "$FRONTEND_DIR/node_modules/.cache"
+
 (
   cd "$FRONTEND_DIR"
   npm run dev 2>&1 | sed 's/^/  [next] /'
@@ -189,9 +195,10 @@ fi
 FRONTEND_PID=$!
 PIDS+=($FRONTEND_PID)
 
-info "Waiting for Next.js to be ready (cold compile can take ~60s)..."
-for i in $(seq 1 90); do
-  if curl -sfL http://localhost:3000 &>/dev/null; then
+info "Waiting for Next.js to be ready (cold compile takes ~90s without cache)..."
+for i in $(seq 1 150); do
+  # Check if the server responds — accept any HTTP status (200, 307, 404 all mean it's up)
+  if curl -s --max-time 2 http://localhost:3000 -o /dev/null 2>/dev/null; then
     success "Next.js frontend is ready at http://localhost:3000"
     break
   fi
@@ -200,7 +207,7 @@ for i in $(seq 1 90); do
     tail -20 "$LOG_DIR/frontend.log"
     exit 1
   fi
-  if [ "$i" -eq 90 ]; then
+  if [ "$i" -eq 150 ]; then
     warn "Next.js health check timed out — it may still be compiling. Check $LOG_DIR/frontend.log"
   fi
   sleep 1

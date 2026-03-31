@@ -218,10 +218,28 @@ class Orchestrator:
                 
                 results['total_cost'] += det_cost
                 results['emails_succeeded'] += 1
-                
+
                 if is_correct:
                     results['correct_detections'] += 1
-                
+
+                # Emit real-time progress event via SocketIO
+                try:
+                    from app import socketio as _socketio
+                    _n_processed = results['emails_processed'] + 1  # 1-based: not yet incremented in finally
+                    _accuracy = (
+                        results['correct_detections'] / _n_processed
+                        if _n_processed > 0 else 0.0
+                    )
+                    _socketio.emit('round_progress', {
+                        'round_id': self.round_id,
+                        'processed': _n_processed,
+                        'total': num_emails,
+                        'verdict': verdict,
+                        'accuracy': float(_accuracy),
+                    })
+                except Exception:
+                    pass  # Never block processing on a failed emit
+
                 print(f"[Workflow {workflow_id}] Email {i+1}: Complete! "
                       f"Verdict: {verdict} ({confidence:.2f}), "
                       f"{'✓ Correct' if is_correct else '✗ Incorrect'}")

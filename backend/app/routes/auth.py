@@ -178,6 +178,57 @@ def create_invite():
 
 
 # ---------------------------------------------------------------------------
+# GET /api/auth/invites  (admin/super_admin only)
+# ---------------------------------------------------------------------------
+
+@auth_bp.route('/auth/invites', methods=['GET'])
+@jwt_required()
+def list_invites():
+    """Return all active (non-expired, non-used) invite codes for the org."""
+    forbidden = _require_role('admin', 'super_admin')
+    if forbidden:
+        return forbidden
+
+    now = datetime.utcnow()
+    invites = InviteCode.query.filter(
+        InviteCode.used_by.is_(None),
+        InviteCode.expires_at > now,
+    ).all()
+
+    data = [
+        {
+            'code': inv.code,
+            'role': inv.role.name if inv.role else None,
+            'expires_at': inv.expires_at.isoformat() if inv.expires_at else None,
+            'uses_left': 1,
+        }
+        for inv in invites
+    ]
+    return jsonify({'success': True, 'data': data}), 200
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/auth/invites/<code>  (admin/super_admin only)
+# ---------------------------------------------------------------------------
+
+@auth_bp.route('/auth/invites/<string:code>', methods=['DELETE'])
+@jwt_required()
+def revoke_invite(code: str):
+    """Revoke (permanently delete) an invite code."""
+    forbidden = _require_role('admin', 'super_admin')
+    if forbidden:
+        return forbidden
+
+    invite = InviteCode.query.filter_by(code=code).first()
+    if not invite:
+        return jsonify({'success': False, 'error': 'Invite code not found'}), 404
+
+    db.session.delete(invite)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Invite code revoked'}), 200
+
+
+# ---------------------------------------------------------------------------
 # POST /api/auth/admin/signup  (invite-code registration)
 # ---------------------------------------------------------------------------
 

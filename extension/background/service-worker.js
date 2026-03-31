@@ -144,6 +144,9 @@ async function _handleScanRequest(message, sendResponse) {
       message.subject || '',
       message.body || ''
     );
+    if (result && result.verdict) {
+      await _cacheScanResult(message.subject, result.verdict, result.confidence);
+    }
     sendResponse(result);
   } catch (err) {
     sendResponse({ success: false, error: `Scan failed: ${err.message}` });
@@ -172,7 +175,23 @@ function _detectOS() {
   return 'Unknown';
 }
 
+// ---------------------------------------------------------------------------
+// Scan history cache helper
+// ---------------------------------------------------------------------------
+
+async function _cacheScanResult(subject, verdict, confidence) {
+  const { sentra_scan_history: existing = [] } = await chrome.storage.local.get('sentra_scan_history');
+  const entry = {
+    subject: (subject || '').slice(0, 60) || '(no subject)',
+    verdict,
+    confidence,
+    timestamp: Date.now(),
+  };
+  const updated = [entry, ...existing].slice(0, 5);
+  await chrome.storage.local.set({ sentra_scan_history: updated });
+}
+
 // CommonJS export for Jest
 if (typeof module !== 'undefined') {
-  module.exports = { _handleScanRequest, _handleSetAuthToken, _detectBrowser, _detectOS };
+  module.exports = { _handleScanRequest, _handleSetAuthToken, _detectBrowser, _detectOS, _cacheScanResult };
 }

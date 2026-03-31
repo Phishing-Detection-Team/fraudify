@@ -1,15 +1,20 @@
 """
 Stats and agent info API endpoints.
 
-GET /api/stats  - Aggregated dashboard statistics
-GET /api/agents - List of known agents with live usage stats
+GET /api/stats               - Aggregated dashboard statistics
+GET /api/stats/costs         - Cost breakdown by agent/model
+GET /api/stats/intelligence  - Threat intelligence panel data
+GET /api/agents              - List of known agents with live usage stats
 """
+
+from collections import Counter
 
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
-from sqlalchemy import func
+from sqlalchemy import func, case
 
 from app.models import db, Round, Email, API as APICall
+from app.utils import require_role
 
 stats_bp = Blueprint('stats', __name__)
 
@@ -143,3 +148,142 @@ def get_agents():
         agents.append({**agent, **live})
 
     return jsonify({'success': True, 'data': agents}), 200
+
+
+# ---------------------------------------------------------------------------
+# Threat Intelligence
+# ---------------------------------------------------------------------------
+
+_STOPWORDS = frozenset({
+    'the', 'a', 'an', 'is', 'in', 'to', 'of', 'and', 'or', 'for',
+    'on', 'at', 'by', 'be', 'it', 'as', 'are', 'was', 'were', 'not',
+    'this', 'that', 'with', 'from', 'your', 'you', 'we', 'our', 'has',
+    'have', 'had', 'will', 'can', 'all', 'its', 'but', 'do', 'if',
+    'no', 'so', 'up', 'out', 'into',
+})
+
+_CONFIDENCE_BUCKETS = [
+    ('0-20%',  0.0,  0.2),
+    ('20-40%', 0.2,  0.4),
+    ('40-60%', 0.4,  0.6),
+    ('60-80%', 0.6,  0.8),
+    ('80-100%', 0.8, 1.001),  # include exactly 1.0
+]
+
+
+@stats_bp.route('/stats/intelligence', methods=['GET'])
+@jwt_required()
+def get_intelligence():
+    """
+    Return threat intelligence data for the admin panel.
+
+    Requires admin or super_admin role.
+
+    Returns:
+        confidence_distribution: Email counts grouped into 5 confidence buckets
+        accuracy_over_rounds:    Per-round detector accuracy (correct / total)
+        fp_fn_rates:             Per-round false-positive and false-negative rates
+        top_phishing_words:      Top-20 words from phishing email subjects
+    """
+    forbidden = require_role('admin', 'super_admin')
+    if forbidden:
+        return forbidden
+
+    # -- 1. Confidence distribution ----------------------------------------
+    all_emails = (
+        db.session.query(Email.detector_confidence)
+        .filter(Email.detector_confidence.isnot(None))
+        .all()
+    )
+    bucket_counts: dict[str, int] = {label: 0 for label, _, _ in _CONFIDENCE_BUCKETS}
+    for (conf,) in all_emails:
+        for label, lo, hi in _CONFIDENCE_BUCKETS:
+            if lo <= conf < hi:
+                bucket_counts[label] += 1
+                break
+
+    confidence_distribution = [
+        {'bucket': label, 'count': bucket_counts[label]}
+        for label, _, _ in _CONFIDENCE_BUCKETS
+    ]
+
+    # -- 2. Accuracy over rounds -------------------------------------------
+    completed_rounds = (
+        db.session.query(Round)
+        .filter(Round.status == 'completed')
+        .order_by(Round.id)
+        .all()
+    )
+
+    accuracy_over_rounds = []
+    fp_fn_rates = []
+
+    for rnd in completed_rounds:
+        emails = rnd.emails.all()
+        total = len(emails)
+        if total == 0:
+            continue
+
+        # A prediction is "correct" when detector_verdict matches is_phishing ground truth
+        correct = sum(
+            1 for e in emails
+            if (e.is_phishing and e.detector_verdict == 'phishing') or
+               (not e.is_phishing and e.detector_verdict == 'legitimate')
+        )
+        accuracy = correct / total
+
+        accuracy_over_rounds.append({
+            'round_id': rnd.id,
+            'accuracy': round(accuracy, 4),
+            'completed_at': rnd.completed_at.isoformat() if rnd.completed_at else None,
+        })
+
+        # FP: predicted phishing but actually legitimate
+        actual_legitimate = [e for e in emails if not e.is_phishing]
+        fp_count = sum(1 for e in actual_legitimate if e.detector_verdict == 'phishing')
+        fp_rate = fp_count / len(actual_legitimate) if actual_legitimate else 0.0
+
+        # FN: predicted legitimate but actually phishing
+        actual_phishing = [e for e in emails if e.is_phishing]
+        fn_count = sum(1 for e in actual_phishing if e.detector_verdict == 'legitimate')
+        fn_rate = fn_count / len(actual_phishing) if actual_phishing else 0.0
+
+        fp_fn_rates.append({
+            'round_id': rnd.id,
+            'false_positive_rate': round(fp_rate, 4),
+            'false_negative_rate': round(fn_rate, 4),
+        })
+
+    # -- 3. Top phishing words ---------------------------------------------
+    phishing_subjects = (
+        db.session.query(Email.generated_subject)
+        .filter(
+            Email.detector_verdict == 'phishing',
+            Email.generated_subject.isnot(None),
+        )
+        .all()
+    )
+
+    word_counter: Counter[str] = Counter()
+    for (subject,) in phishing_subjects:
+        tokens = subject.lower().split()
+        for token in tokens:
+            # Strip punctuation at boundaries
+            clean = token.strip('.,!?;:\'"()[]{}')
+            if clean and clean not in _STOPWORDS and len(clean) > 1:
+                word_counter[clean] += 1
+
+    top_phishing_words = [
+        {'word': word, 'count': count}
+        for word, count in word_counter.most_common(20)
+    ]
+
+    return jsonify({
+        'success': True,
+        'data': {
+            'confidence_distribution': confidence_distribution,
+            'accuracy_over_rounds': accuracy_over_rounds,
+            'fp_fn_rates': fp_fn_rates,
+            'top_phishing_words': top_phishing_words,
+        },
+    }), 200

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app import limiter
+from app import limiter, socketio
 from app.models import db, User
 from app.models.extension_instance import ExtensionInstance
 from app.errors import ValidationError, NotFoundError
@@ -84,6 +84,12 @@ def heartbeat():
 
     instance.last_seen = datetime.now(timezone.utc)
     db.session.commit()
+
+    socketio.emit('extension_heartbeat', {
+        'instance_id': instance.id,
+        'browser': instance.browser,
+        'last_seen': instance.last_seen.isoformat(),
+    })
 
     return jsonify({'success': True, 'is_active': instance.is_active}), 200
 
