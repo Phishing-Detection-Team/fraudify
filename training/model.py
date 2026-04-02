@@ -1,22 +1,18 @@
 """
-Model setup — quantization config, model loading, and LoRA application.
+Model setup — quantization config, model loading, tokenizer, and LoRA application.
 
 Exports:
     build_quant_config()  -> BitsAndBytesConfig | None
-    load_model()          -> AutoModelForSequenceClassification
+    load_tokenizer()      -> AutoTokenizer
+    load_model()          -> AutoModelForCausalLM
     apply_lora()          -> PeftModel
 """
 
 import torch
-from torch import nn
-from transformers import AutoConfig, AutoModelForSequenceClassification, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
 
 import config
-
-ID2LABEL = {0: "legitimate", 1: "phishing"}
-LABEL2ID = {"legitimate": 0, "phishing": 1}
-NUM_LABELS = len(ID2LABEL)
 
 
 # ─── Quantization ─────────────────────────────────────────────────────────────
@@ -26,7 +22,7 @@ def build_quant_config() -> BitsAndBytesConfig | None:
     Build a BitsAndBytesConfig based on config flags.
 
     Returns None if both QUANT_4_BIT and QUANT_8_BIT are False
-    (i.e. full precision / float16 training).
+    (i.e. full precision / bfloat16 training).
     """
     if config.QUANT_4_BIT:
         print("Quantization: 4-bit NF4 (QLoRA)")
@@ -35,111 +31,89 @@ def build_quant_config() -> BitsAndBytesConfig | None:
             bnb_4bit_use_double_quant=True,
             bnb_4bit_compute_dtype=torch.bfloat16,
             bnb_4bit_quant_type="nf4",
-            llm_int8_skip_modules=["classifier", "pre_classifier"],
         )
     if config.QUANT_8_BIT:
         print("Quantization: 8-bit")
         return BitsAndBytesConfig(
             load_in_8bit=True,
             bnb_8bit_compute_dtype=torch.bfloat16,
-            llm_int8_skip_modules=["classifier", "pre_classifier"],
         )
     print("Quantization: none (full precision)")
     return None
+
+
+# ─── Tokenizer ────────────────────────────────────────────────────────────────
+
+def load_tokenizer() -> AutoTokenizer:
+    """
+    Load the Qwen2.5-Instruct tokenizer.
+
+    Sets pad_token to eos_token and padding_side to "right" — both required
+    for causal LM SFT training to avoid gradient issues on padded tokens.
+
+    Returns:
+        AutoTokenizer with chat_template ready for apply_chat_template().
+    """
+    print(f"\nLoading tokenizer: {config.BASE_MODEL}")
+    tokenizer = AutoTokenizer.from_pretrained(
+        config.BASE_MODEL,
+        trust_remote_code=True,
+    )
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
+    print(f"  Chat template present: {tokenizer.chat_template is not None}")
+    print(f"  Vocab size: {tokenizer.vocab_size:,}")
+    return tokenizer
 
 
 # ─── Model loading ────────────────────────────────────────────────────────────
 
 def load_model(
     quant_config: BitsAndBytesConfig | None,
-) -> AutoModelForSequenceClassification:
+) -> AutoModelForCausalLM:
     """
-    Load the base model with quantization and classification head.
+    Load Qwen2.5-1.5B-Instruct as a causal language model.
 
     Args:
-        quant_config: BitsAndBytesConfig or None for full precision.
+        quant_config: BitsAndBytesConfig or None for full bfloat16 precision.
 
     Returns:
-        AutoModelForSequenceClassification ready for LoRA wrapping.
+        AutoModelForCausalLM ready for LoRA wrapping.
     """
     print("\n" + "=" * 60)
     print("LOADING MODEL")
     print("=" * 60)
     print(f"Base model: {config.BASE_MODEL}")
 
-    model_config = AutoConfig.from_pretrained(
-        config.BASE_MODEL,
+    kwargs: dict = dict(
         trust_remote_code=True,
-        num_labels=NUM_LABELS,
-        id2label=ID2LABEL,
-        label2id=LABEL2ID,
-        problem_type="single_label_classification",
-    )
-
-    kwargs = dict(
-        config=model_config,
-        ignore_mismatched_sizes=True,  # allows loading pre-trained weights into new classification head
+        device_map="auto",
     )
 
     if quant_config is not None:
         kwargs["quantization_config"] = quant_config
-        kwargs["device_map"] = "auto"
     else:
-        kwargs["torch_dtype"] = torch.float16
-        kwargs["device_map"] = "auto"
+        kwargs["torch_dtype"] = torch.bfloat16
 
-    model = AutoModelForSequenceClassification.from_pretrained(
+    model = AutoModelForCausalLM.from_pretrained(
         config.BASE_MODEL,
         **kwargs,
     )
 
-    _ensure_binary_classification_head(model)
-
     footprint_gb = model.get_memory_footprint() / 1e9
     print(f"Memory footprint: {footprint_gb:.2f} GB")
-    print(f"Labels: {ID2LABEL}")
 
     return model
 
 
-def _ensure_binary_classification_head(model: AutoModelForSequenceClassification) -> None:
-    """
-    Ensure the loaded classifier head matches the binary label space.
-
-    Some checkpoints carry a stale config/classifier shape from a previous
-    fine-tune. Rebuilding the head avoids batch-size mismatches inside the loss.
-    """
-    classifier = getattr(model, "classifier", None)
-    out_features = getattr(classifier, "out_features", None)
-    weight = getattr(classifier, "weight", None)
-    current_rows = weight.shape[0] if weight is not None else out_features
-    in_features = getattr(classifier, "in_features", None)
-
-    if current_rows != NUM_LABELS:
-        if in_features is None:
-            raise ValueError("Unsupported classifier head: cannot determine input dimension.")
-
-        replacement = nn.Linear(in_features, NUM_LABELS)
-        if weight is not None:
-            replacement = replacement.to(device=weight.device, dtype=weight.dtype)
-        model.classifier = replacement
-        print(f"Reset classifier head from {current_rows} outputs to {NUM_LABELS}.")
-
-    model.num_labels = NUM_LABELS
-    model.config.num_labels = NUM_LABELS
-    model.config.id2label = ID2LABEL
-    model.config.label2id = LABEL2ID
-    model.config.problem_type = "single_label_classification"
-
-
 # ─── LoRA ─────────────────────────────────────────────────────────────────────
 
-def apply_lora(model: AutoModelForSequenceClassification):
+def apply_lora(model: AutoModelForCausalLM):
     """
-    Wrap the base model with LoRA adapters for sequence classification.
+    Wrap the base model with LoRA adapters for causal language modeling.
 
-    LoRA injects trainable low-rank matrices into the target attention
-    projection layers. All other weights are frozen.
+    LoRA injects trainable low-rank matrices into the target projection
+    layers. All other weights are frozen.
 
     Args:
         model: The loaded base model.
@@ -151,13 +125,13 @@ def apply_lora(model: AutoModelForSequenceClassification):
     print("APPLYING LoRA")
     print("=" * 60)
 
-    # Cast non-quantized layers (classifier head, LayerNorm) to float32
-    # so they can accept gradients when using 4-bit / 8-bit quantization.
+    # Cast non-quantized layers to float32 so they can accept gradients
+    # when using 4-bit / 8-bit quantization.
     if config.QUANT_4_BIT or config.QUANT_8_BIT:
         model = prepare_model_for_kbit_training(model)
 
     lora_config = LoraConfig(
-        task_type=TaskType.SEQ_CLS,
+        task_type=TaskType.CAUSAL_LM,
         r=config.LORA_R,
         lora_alpha=config.LORA_ALPHA,
         lora_dropout=config.LORA_DROPOUT,

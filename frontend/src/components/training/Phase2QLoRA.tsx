@@ -18,8 +18,8 @@ const NF4_LEVELS = [
 const INT4_LEVELS = Array.from({ length: 16 }, (_, i) => -1 + (2 / 15) * i);
 
 const FORMAT_ROWS = [
-  { fmt: "FP32",  bits: 32, bytes: 4,   range: "±3.4×10³⁸",    use: "Base model weights",     active: false },
-  { fmt: "BF16",  bits: 16, bytes: 2,   range: "±3.4×10³⁸",    use: "Compute dtype (Sentra)", active: true  },
+  { fmt: "FP32",  bits: 32, bytes: 4,   range: "±3.4×10³⁸",    use: "Legacy full-precision",  active: false },
+  { fmt: "BF16",  bits: 16, bytes: 2,   range: "±3.4×10³⁸",    use: "Qwen2.5 base weights",   active: true  },
   { fmt: "INT8",  bits: 8,  bytes: 1,   range: "[-128, 127]",   use: "LLM.int8() quant",       active: false },
   { fmt: "NF4",   bits: 4,  bytes: 0.5, range: "16 normal pts", use: "Weight storage (Sentra ✓)", active: true  },
 ];
@@ -151,7 +151,7 @@ export function Phase2QLoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) 
   const scanRef                     = useRef<ReturnType<typeof setInterval>>();
 
   const scanProgress = scanDone ? 1 : scanCol >= 0 ? scanCol / GRID_COLS : 0;
-  const memMB = Math.round(520 - scanProgress * 390);
+  const memMB = Math.round(3087 - scanProgress * 2315);
 
   const NF4_BITS  = [0, 1, 1, 0];
   const FP32_BITS = [0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0];
@@ -550,7 +550,7 @@ export function Phase2QLoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) 
                       >
                         ⚡ 4× COMPRESSION ACHIEVED
                       </motion.div>
-                      <div className="text-[10px] text-accent-green/70 font-mono mt-0.5">520 MB → 130 MB</div>
+                      <div className="text-[10px] text-accent-green/70 font-mono mt-0.5">3,087 MB → 772 MB</div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -591,8 +591,8 @@ export function Phase2QLoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) 
                     )}
                   </div>
                   <div className="flex justify-between text-[10px] mt-1 text-muted-foreground">
-                    <span className="text-accent-green font-semibold">NF4 ~130 MB</span>
-                    <span>FP32 ~520 MB</span>
+                    <span className="text-accent-green font-semibold">NF4 ~772 MB</span>
+                    <span>FP16 ~3,087 MB</span>
                   </div>
                 </div>
 

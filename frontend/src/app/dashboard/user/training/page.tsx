@@ -171,7 +171,7 @@ export default function TrainingPage() {
             <p className="text-muted-foreground text-sm max-w-lg leading-relaxed">
               Watch how we fine-tuned{" "}
               <code className="text-accent-cyan text-xs bg-accent-cyan/10 px-1.5 py-0.5 rounded">
-                DistilBERT (66M params)
+                Qwen2.5-1.5B-Instruct (1.54B params)
               </code>{" "}
               into a production-grade phishing detector using QLoRA — every
               hyperparameter, every phase, visualized live.
