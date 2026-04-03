@@ -81,7 +81,29 @@ def run_evaluation(trainer, test_dataset: Dataset) -> dict:
     print("EVALUATION — TEST SET (eval_loss)")
     print("=" * 60)
 
-    metrics = trainer.evaluate(eval_dataset=test_dataset)
+    # packing=True uses Unsloth's collator which expects pre-tokenized input_ids.
+    # SFTTrainer only tokenizes the datasets passed at __init__ time, so a dataset
+    # passed directly to evaluate() must be tokenized manually first.
+    tokenizer = trainer.processing_class
+
+    def _tokenize(examples):
+        out = tokenizer(
+            examples["text"],
+            truncation=True,
+            max_length=config.MAX_SEQ_LENGTH,
+            padding=False,
+        )
+        out["labels"] = out["input_ids"].copy()
+        return out
+
+    tokenized_test = test_dataset.map(
+        _tokenize,
+        batched=True,
+        remove_columns=test_dataset.column_names,
+        desc="Tokenizing test set",
+    )
+
+    metrics = trainer.evaluate(eval_dataset=tokenized_test)
 
     # Strip the "eval_" prefix added by Trainer for display
     display = {k.replace("eval_", ""): v for k, v in metrics.items()}
