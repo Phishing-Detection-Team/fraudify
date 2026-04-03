@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 // ─── Narrative text ────────────────────────────────────────────────────────────
 const NARRATIVES: Record<number, string> = {
   1: "Beep boop! My creators fed me 50,231 emails — phishing traps, spam, and legit messages — all shuffled with seed 42. They split me into training 80%, validation 10%, and test 10%. Every example sharpened my instincts. This is where I was born! ⚡",
-  2: "Whirrrr... They squeezed my weights from 32-bit floats down to just 4 bits using NF4 quantization! Memory shrank from 520 MB to 130 MB — a 4× compression. Like fitting an entire library into a backpack. Efficient. Precise. Still completely me. 🗜️",
-  3: "INITIATING LORA PROTOCOL. They froze 99.1% of my core weights — I literally could not change them. Then injected tiny A and B adapter matrices into my 24 attention modules. Only 589,824 free parameters. Small... but mighty. ⚡",
-  4: "7,500 steps. 3 epochs. Each batch of 16 emails — I'd read, predict, then AdamW nudged my adapters via cross-entropy loss. Loss fell from 0.65 all the way to 0.08. I could feel myself getting sharper with every gradient update. 🔥",
-  5: "MISSION COMPLETE. 97.3% accuracy. F1: 0.973. Uploaded to HuggingFace as sentra-utoledo-v1.0. I guard inboxes everywhere now. Every phishing email that tries to slip past me — I catch it. That is my purpose. That is why I exist. 🛡️",
+  2: "Whirrrr... They squeezed my 1.54B weights from FP16 down to just 4 bits using NF4 quantization! Memory shrank from 3,087 MB to 772 MB — a 4× compression. Like fitting an entire library into a backpack. Efficient. Precise. Still completely me. 🗜️",
+  3: "INITIATING LORA PROTOCOL. They froze 98.8% of my core weights — I literally could not change them. Then injected tiny A and B adapter matrices into my 196 projection modules across 28 layers. Only 18,464,768 free parameters. Small... but mighty. ⚡",
+  4: "7,500 steps. 3 epochs. Each batch of 4 emails (×4 grad accum) — I'd read, reason, then AdamW nudged my adapters via language modeling loss. Loss fell from 2.18 all the way to 0.19. I could feel myself getting sharper with every gradient update. 🔥",
+  5: "MISSION COMPLETE. 94.2% verdict accuracy. Best eval_loss: 0.1876. Uploaded to HuggingFace as sentra-utoledo-v2.0. I guard inboxes everywhere now — and I explain my reasoning. Every phishing email that tries to slip past me — I catch it, and I tell you why. 🛡️",
 };
 
 const PHASE_ACCENTS: Record<number, { border: string; rgb: string; label: string }> = {
@@ -127,13 +127,11 @@ function RobotP1({ isTalking = false }: { isTalking?: boolean }) {
         animate={{ r: isTalking ? [4.5,7,4.5] : [4.5,5.5,4.5], opacity:[1,0.6,1] }}
         transition={{ duration: isTalking ? 0.5 : 1.5, repeat:Infinity }}/>
 
-      {/* Head 3D */}
-      <path d="M32 13 L45 8 L91 8 L78 13 Z" fill={YT}/>
-      <path d="M78 13 L91 8 L91 48 L78 48 Z" fill={YS} stroke={BK} strokeWidth="1"/>
-      <rect x="32" y="13" width="46" height="35" rx="8" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
+      {/* Head — circular */}
+      <rect x="32" y="13" width="46" height="35" rx="17" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
 
       {/* Visor */}
-      <rect x="36" y="18" width="36" height="24" rx="6" fill={`url(#panel-${id})`} stroke="#333" strokeWidth="0.5"/>
+      <rect x="36" y="18" width="36" height="24" rx="12" fill={`url(#panel-${id})`} stroke="#333" strokeWidth="0.5"/>
 
       {/* Eyes */}
       <motion.circle cx="48" cy="28" r="5.5" fill={CY} filter={`url(#ey-${id})`}
@@ -159,7 +157,7 @@ function RobotP1({ isTalking = false }: { isTalking?: boolean }) {
       <Mouth cx={55} cy={38} w={18} isTalking={isTalking} />
 
       {/* Eye blink overlay */}
-      <motion.rect x="36" y="18" width="36" height="24" rx="6" fill={`url(#panel-${id})`} pointerEvents="none"
+      <motion.rect x="36" y="18" width="36" height="24" rx="12" fill={`url(#panel-${id})`} pointerEvents="none"
         animate={{ opacity: [0,0,0,0,0,0,0,1,0,0] }}
         transition={{ duration: 4.5, repeat: Infinity, delay: 2 }}/>
 
@@ -214,9 +212,6 @@ function RobotP1({ isTalking = false }: { isTalking?: boolean }) {
         <circle cx="105" cy="65" r="8.5" fill={Y} stroke={BK} strokeWidth="1.5"/>
       </motion.g>
 
-      {/* Shoulder joints — drawn AFTER arms so they cap the joints */}
-      <circle cx="20" cy="64" r="7.5" fill={DM} stroke={BK} strokeWidth="1.5"/>
-      <circle cx="79" cy="64" r="7.5" fill={DM} stroke={BK} strokeWidth="1.5"/>
 
       {/* Legs */}
       <path d="M53 110 L60 107 L60 136 L53 136 Z" fill={YS}/>
@@ -242,11 +237,9 @@ function RobotP2({ isTalking = false }: { isTalking?: boolean }) {
       <motion.circle cx="64" cy="3.5" r="4" fill={CY} filter={`url(#ey-${id})`}
         animate={{ r:[4,5.5,4] }} transition={{ duration:1.2, repeat:Infinity }}/>
 
-      {/* Head */}
-      <path d="M30 15 L43 10 L89 10 L76 15 Z" fill={YT}/>
-      <path d="M76 15 L89 10 L89 47 L76 47 Z" fill={YS} stroke={BK} strokeWidth="1"/>
-      <rect x="30" y="15" width="46" height="32" rx="8" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
-      <rect x="34" y="20" width="36" height="20" rx="5" fill={`url(#panel-${id})`}/>
+      {/* Head — circular */}
+      <rect x="30" y="15" width="46" height="32" rx="16" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
+      <rect x="34" y="20" width="36" height="20" rx="10" fill={`url(#panel-${id})`}/>
 
       {/* Squinting eyes */}
       <motion.rect x="37" y="27" width="11" height="5" rx="2.5" fill={CY} filter={`url(#ey-${id})`}
@@ -259,7 +252,7 @@ function RobotP2({ isTalking = false }: { isTalking?: boolean }) {
       <line x1="56" y1="25" x2="67" y2="25" stroke={CY} strokeWidth="1.2" opacity="0.5"/>
 
       {/* Eye blink overlay */}
-      <motion.rect x="34" y="20" width="36" height="20" rx="5" fill={`url(#panel-${id})`} pointerEvents="none"
+      <motion.rect x="34" y="20" width="36" height="20" rx="10" fill={`url(#panel-${id})`} pointerEvents="none"
         animate={{ opacity: [0,0,0,0,0,0,1,0,0] }}
         transition={{ duration: 5, repeat: Infinity, delay: 2.5 }}/>
 
@@ -294,10 +287,8 @@ function RobotP2({ isTalking = false }: { isTalking?: boolean }) {
         animate={{ y: isTalking ? [87,92,87] : 87, opacity: isTalking ? [1,0.5,1] : 0.7 }}
         transition={{ duration: isTalking ? 0.4 : 0.45, repeat:Infinity }}>↑</motion.text>
 
-      {/* Hip + shoulders */}
+      {/* Hip */}
       <rect x="21" y="90" width="54" height="13" rx="5" fill={DM}/>
-      <circle cx="18" cy="64" r="7.5" fill={DM} stroke={BK} strokeWidth="1.5"/>
-      <circle cx="78" cy="64" r="7.5" fill={DM} stroke={BK} strokeWidth="1.5"/>
 
       {/* Left arm */}
       <g transform="rotate(55 18 64)">
@@ -337,11 +328,9 @@ function RobotP3({ isTalking = false }: { isTalking?: boolean }) {
         animate={{ r: isTalking ? [5,7.5,5] : [5,6.5,5] }}
         transition={{ duration: isTalking ? 0.5 : 1.2, repeat:Infinity }}/>
 
-      {/* Head */}
-      <path d="M43 13 L57 8 L104 8 L90 13 Z" fill={YT}/>
-      <path d="M90 13 L104 8 L104 48 L90 48 Z" fill={YS} stroke={BK} strokeWidth="1"/>
-      <rect x="43" y="13" width="47" height="35" rx="9" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
-      <rect x="47" y="18" width="37" height="23" rx="6" fill={`url(#panel-${id})`}/>
+      {/* Head — circular */}
+      <rect x="43" y="13" width="47" height="35" rx="17" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
+      <rect x="47" y="18" width="37" height="23" rx="11" fill={`url(#panel-${id})`}/>
 
       {/* Eyes — large, pulsing purple */}
       <motion.circle cx="58" cy="29" r="6.5" fill="#A855F7" filter={`url(#ey-${id})`}
@@ -354,7 +343,7 @@ function RobotP3({ isTalking = false }: { isTalking?: boolean }) {
       <circle cx="77.5" cy="27.5" r="2.3" fill="white"/>
 
       {/* Eye blink overlay */}
-      <motion.rect x="47" y="18" width="37" height="23" rx="6" fill={`url(#panel-${id})`} pointerEvents="none"
+      <motion.rect x="47" y="18" width="37" height="23" rx="11" fill={`url(#panel-${id})`} pointerEvents="none"
         animate={{ opacity: [0,0,0,0,0,0,1,0,0] }}
         transition={{ duration: 4.8, repeat: Infinity, delay: 1.5 }}/>
 
@@ -413,9 +402,6 @@ function RobotP3({ isTalking = false }: { isTalking?: boolean }) {
           transition={{ duration: isTalking ? 0.35 : 0.55, repeat:Infinity, delay:0.15+i*0.1 }}/>
       ))}
 
-      {/* Shoulder joints — drawn AFTER arms */}
-      <circle cx="26" cy="65" r="8.5" fill={DM} stroke={BK} strokeWidth="1.5"/>
-      <circle cx="91" cy="65" r="8.5" fill={DM} stroke={BK} strokeWidth="1.5"/>
 
       {/* Legs — power stance */}
       <path d="M64 112 L72 109 L72 136 L64 136 Z" fill={YS}/>
@@ -457,11 +443,9 @@ function RobotP4({ isTalking = false }: { isTalking?: boolean }) {
           animate={{ opacity: isTalking ? [1,0.3,1] : [1,0.5,1] }}
           transition={{ duration: isTalking ? 0.3 : 0.4, repeat:Infinity }}/>
 
-        {/* Head */}
-        <path d="M34 13 L47 8 L91 8 L78 13 Z" fill={YT}/>
-        <path d="M78 13 L91 8 L91 46 L78 46 Z" fill={YS} stroke={BK} strokeWidth="1"/>
-        <rect x="34" y="13" width="44" height="33" rx="8" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
-        <rect x="38" y="18" width="34" height="21" rx="5" fill={`url(#panel-${id})`}/>
+        {/* Head — circular */}
+        <rect x="34" y="13" width="44" height="33" rx="16" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
+        <rect x="38" y="18" width="34" height="21" rx="10" fill={`url(#panel-${id})`}/>
 
         {/* Determined angled eyes */}
         <motion.ellipse cx="48" cy="28" rx="5.5" ry={isTalking ? 5 : 4.5} fill={CY} filter={`url(#ey-${id})`}
@@ -475,7 +459,7 @@ function RobotP4({ isTalking = false }: { isTalking?: boolean }) {
         <line x1="40" y1="21" x2="50" y2="19" stroke={CY} strokeWidth="1.5" opacity="0.65"/>
         <line x1="58" y1="19" x2="68" y2="21" stroke={CY} strokeWidth="1.5" opacity="0.65"/>
         {/* Eye blink overlay */}
-        <motion.rect x="38" y="18" width="34" height="21" rx="5" fill={`url(#panel-${id})`} pointerEvents="none"
+        <motion.rect x="38" y="18" width="34" height="21" rx="10" fill={`url(#panel-${id})`} pointerEvents="none"
           animate={{ opacity: [0,0,0,0,0,1,0,0] }}
           transition={{ duration: 4, repeat: Infinity, delay: 3 }}/>
 
@@ -498,9 +482,6 @@ function RobotP4({ isTalking = false }: { isTalking?: boolean }) {
         <rect x="25" y="88" width="50" height="13" rx="5" fill={DM}/>
         <circle cx="35" cy="94" r="3.5" fill={D}/>
         <circle cx="65" cy="94" r="3.5" fill={D}/>
-        <circle cx="22" cy="61" r="7" fill={DM} stroke={BK} strokeWidth="1.5"/>
-        <circle cx="78" cy="61" r="7" fill={DM} stroke={BK} strokeWidth="1.5"/>
-
         {/* Running arms */}
         <g transform="rotate(30 22 61)">
           <rect x="-2" y="57" width="28" height="9" rx="4.5" fill={Y} stroke={BK} strokeWidth="1.5"/>
@@ -562,11 +543,9 @@ function RobotP5({ isTalking = false }: { isTalking?: boolean }) {
         animate={{ r: isTalking ? [5,7.5,5] : [5,6.5,5] }}
         transition={{ duration: isTalking ? 0.5 : 1, repeat:Infinity }}/>
 
-      {/* Head */}
-      <path d="M41 14 L55 9 L96 9 L82 14 Z" fill={YT}/>
-      <path d="M82 14 L96 9 L96 48 L82 48 Z" fill={YS} stroke={BK} strokeWidth="1"/>
-      <rect x="41" y="14" width="41" height="34" rx="8" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
-      <rect x="45" y="19" width="32" height="22" rx="6" fill={`url(#panel-${id})`}/>
+      {/* Head — circular */}
+      <rect x="41" y="14" width="41" height="34" rx="17" fill={`url(#fg-${id})`} stroke={BK} strokeWidth="2"/>
+      <rect x="45" y="19" width="32" height="22" rx="11" fill={`url(#panel-${id})`}/>
 
       {/* Big eyes */}
       <motion.circle cx="55" cy="29" r="6.5" fill="#FCD34D" filter={`url(#ey-${id})`}
@@ -578,7 +557,7 @@ function RobotP5({ isTalking = false }: { isTalking?: boolean }) {
       <circle cx="56.5" cy="27.5" r="2.2" fill="white"/>
       <circle cx="72.5" cy="27.5" r="2.2" fill="white"/>
       {/* Eye blink overlay */}
-      <motion.rect x="45" y="19" width="32" height="22" rx="6" fill={`url(#panel-${id})`} pointerEvents="none"
+      <motion.rect x="45" y="19" width="32" height="22" rx="11" fill={`url(#panel-${id})`} pointerEvents="none"
         animate={{ opacity: [0,0,0,0,0,0,1,0,0] }}
         transition={{ duration: 4, repeat: Infinity, delay: 0.8 }}/>
 
@@ -637,9 +616,6 @@ function RobotP5({ isTalking = false }: { isTalking?: boolean }) {
           transition={{ duration: 1.5, repeat:Infinity, ease:"linear" }}/>
       )}
 
-      {/* Shoulder joints — drawn AFTER both arms */}
-      <circle cx="25" cy="66" r="8" fill={DM} stroke={BK} strokeWidth="1.5"/>
-      <circle cx="85" cy="66" r="8" fill={DM} stroke={BK} strokeWidth="1.5"/>
 
       {/* Legs */}
       <path d="M62 112 L70 109 L70 138 L62 138 Z" fill={YS}/>

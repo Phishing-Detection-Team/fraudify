@@ -16,7 +16,7 @@ load_dotenv()
 BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
 HF_USER = os.getenv("HF_USER", "")          # your HuggingFace username
 PROJECT_NAME = "sentra-utoledo"
-RUN_NAME = "v1.0"
+RUN_NAME = "v2.0"
 PROJECT_RUN_NAME = f"{PROJECT_NAME}-{RUN_NAME}"
 HUB_MODEL_NAME = f"{HF_USER}/{PROJECT_RUN_NAME}" if HF_USER else PROJECT_RUN_NAME
 

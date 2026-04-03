@@ -76,7 +76,7 @@ def build_trainer(
         hub_private_repo=True,
         dataloader_pin_memory=use_cuda,
         # SFT-specific
-        max_seq_length=config.MAX_SEQ_LENGTH,
+        max_length=config.MAX_SEQ_LENGTH,
         dataset_text_field="text",
         packing=False,
     )
@@ -86,7 +86,7 @@ def build_trainer(
         args=sft_config,
         train_dataset=formatted_datasets["train"],
         eval_dataset=formatted_datasets["validation"],
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
     )
 
     print(f"Training samples:   {len(formatted_datasets['train']):,}")

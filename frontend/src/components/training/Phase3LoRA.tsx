@@ -7,7 +7,8 @@ import { SentraMascot } from "./SentraMascot";
 
 interface PhaseProps { autoPlay: boolean; phaseProgress: number; wasCompleted?: boolean; onComplete?: () => void; }
 
-const LAYERS = 28;
+const LAYERS = 28;          // actual model depth (shown in header + ellipsis)
+const DISPLAY_LAYERS = 6;   // layers rendered in the animation (keeps timing manageable)
 const TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"];
 const TRAINABLE_TOTAL = 18464768;
 const ALL_PARAMS      = 1543714816;
@@ -89,8 +90,8 @@ export function Phase3LoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) {
     // Stage 2: "FREEZE PROTOCOL" — freeze wave begins
     timers.current.push(setTimeout(() => setStage(2), 1800));
 
-    // Freeze each layer one by one (800ms apart)
-    for (let i = 0; i < LAYERS; i++) {
+    // Freeze each displayed layer one by one (800ms apart)
+    for (let i = 0; i < DISPLAY_LAYERS; i++) {
       const t = 2200 + i * 800;
       timers.current.push(setTimeout(() => {
         setFrozen(prev => [...prev, i]);
@@ -107,7 +108,7 @@ export function Phase3LoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) {
 
     // Stage 4: LoRA injection begins (700ms stagger per layer)
     timers.current.push(setTimeout(() => setStage(4), 9000));
-    for (let i = 0; i < LAYERS; i++) {
+    for (let i = 0; i < DISPLAY_LAYERS; i++) {
       timers.current.push(
         setTimeout(() => setInjected(prev => [...prev, i]), 9400 + i * 700)
       );
@@ -379,7 +380,7 @@ export function Phase3LoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) {
               </div>
 
               <div className="space-y-2">
-                {Array.from({ length: LAYERS }, (_, layerIdx) => {
+                {Array.from({ length: DISPLAY_LAYERS }, (_, layerIdx) => {
                   const isFrozen   = frozenLayers.includes(layerIdx);
                   const isInjected = injectedLayers.includes(layerIdx);
                   const isBursting = burstLayer === layerIdx;
@@ -514,6 +515,37 @@ export function Phase3LoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) {
                     </motion.div>
                   );
                 })}
+
+                {/* Ellipsis — remaining 22 layers */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: stage >= 1 ? 1 : 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg border border-dashed border-border/30 bg-background/20"
+                >
+                  <div className="flex gap-1">
+                    {[0,1,2].map(i => (
+                      <motion.div
+                        key={i}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          stage >= 4 ? "bg-accent-purple" : stage >= 2 ? "bg-sky-400/70" : "bg-muted-foreground/40"
+                        }`}
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">
+                    <span className="font-semibold text-foreground/70">+{LAYERS - DISPLAY_LAYERS} more layers</span>
+                    {" "}({LAYERS} total) —{" "}
+                    {stage >= 4
+                      ? <span className="text-accent-purple">all frozen + LoRA-injected</span>
+                      : stage >= 2
+                      ? <span className="text-sky-300">all frozen</span>
+                      : "all transformer layers follow the same process"
+                    }
+                  </span>
+                </motion.div>
               </div>
             </motion.div>
           )}
