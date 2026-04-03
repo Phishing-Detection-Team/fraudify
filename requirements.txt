@@ -71,3 +71,4 @@ huggingface_hub
 transformers[torch]
 datasets[torch]
 peft[torch]
+unsloth
