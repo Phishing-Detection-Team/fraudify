@@ -68,13 +68,13 @@ def _ensure_agentic_on_path() -> None:
         sys.path.insert(0, oa_dir)
 
 
-def _run_detector_sync(email_content: str, inference_mode: str = "gguf") -> dict | None:
+def _run_detector_sync(email_content: str) -> dict | None:
     """Run DetectorAgentService synchronously and return parsed result dict."""
     _ensure_agentic_on_path()
     from services.detector_agent_service import DetectorAgentService  # noqa: PLC0415
 
     async def _detect() -> dict | None:
-        svc = DetectorAgentService(inference_mode=inference_mode)
+        svc = DetectorAgentService()
         result = await svc.analyze_email(email_content)
         return _parse_json_output(result.final_output)
 
@@ -86,7 +86,7 @@ def _run_detector_sync(email_content: str, inference_mode: str = "gguf") -> dict
 # ---------------------------------------------------------------------------
 
 @celery.task(bind=True, name='tasks.scan_email')
-def scan_email_task(self, user_id: int, subject: str, body: str, inference_mode: str = "gguf") -> dict:
+def scan_email_task(self, user_id: int, subject: str, body: str) -> dict:
     """
     Run phishing detection asynchronously.
 
@@ -100,7 +100,7 @@ def scan_email_task(self, user_id: int, subject: str, body: str, inference_mode:
     self.update_state(state='STARTED', meta={'status': 'analyzing'})
 
     email_content = f"Subject: {subject}\n\n{body}" if subject else body
-    parsed = _run_detector_sync(email_content, inference_mode=inference_mode)
+    parsed = _run_detector_sync(email_content)
 
     if not parsed:
         raise ValueError('Detector returned invalid or empty JSON')

@@ -108,7 +108,7 @@ def scan_email():
     # on the Celery worker being alive.
     email_content = f"Subject: {subject}\n\n{body_text}" if subject else body_text
     try:
-        parsed = _run_detector_sync(email_content, inference_mode='gguf')
+        parsed = _run_detector_sync(email_content)
     except Exception:
         current_app.logger.exception("Detection failed")
         return jsonify({'success': False, 'error': 'Detection service unavailable. Please try again.'}), 503
