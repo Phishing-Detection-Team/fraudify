@@ -26,7 +26,7 @@ DATASETS = [
     "SetFit/enron_spam",           # Enron email spam dataset (parquet, 0=ham, 1=spam)
     "ealvaradob/phishing-dataset",  # Phishing URL/email dataset
 ]
-MAX_SEQ_LENGTH = 2048
+MAX_SEQ_LENGTH = 1024
 MAX_NEW_TOKENS = 256   # max tokens to generate during evaluation
 
 # ─── Quantization ─────────────────────────────────────────────────────────────
@@ -47,8 +47,8 @@ TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj"
 # ─── Training ─────────────────────────────────────────────────────────────────
 
 EPOCHS = 3
-BATCH_SIZE = 8                      # Unsloth memory savings allow larger batch
-GRADIENT_ACCUMULATION_STEPS = 2    # effective batch = 8 * 2 = 16
+BATCH_SIZE = 2                      # reduced for 12 GB VRAM
+GRADIENT_ACCUMULATION_STEPS = 8    # effective batch = 2 * 8 = 16
 LEARNING_RATE = 2e-4
 LR_SCHEDULER_TYPE = "cosine"
 WARMUP_RATIO = 0.03
