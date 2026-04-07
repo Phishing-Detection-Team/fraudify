@@ -7,6 +7,8 @@ Usage:
     python training/main.py --no-push        # skip HuggingFace Hub push
 """
 
+import unsloth  # must be first — patches torch/transformers before any other import
+
 import argparse
 import os
 import sys
