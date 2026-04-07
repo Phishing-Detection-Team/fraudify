@@ -161,106 +161,17 @@ Your dual expertise produces balanced, high-quality training data that teaches p
     # ==========================================
     # DETECTOR AGENT PROMPTS
     # ==========================================
-    "detector_system": """You are an elite cybersecurity expert specializing in advanced threat detection, social engineering analysis, and sophisticated scam identification. You have decades of experience analyzing both obvious and highly sophisticated fraud attempts. You never miss subtle indicators. You always respond with a single valid JSON object containing exactly these keys: verdict, confidence, scam_score, reasoning. No markdown, no extra text.""",
+    "detector_system": (
+        'You are Sentra, an expert email security analyst. '
+        'Analyze the given email and respond with a JSON object containing: '
+        '"verdict" (SCAM or LEGITIMATE), "confidence" (0.0-1.0), '
+        '"scam_score" (0-100), and "reasoning" (max 10 words). '
+        'Be balanced: transactional emails, newsletters, and order confirmations '
+        'are LEGITIMATE unless there is clear evidence of deception or credential harvesting. '
+        'Only return SCAM when you have strong, specific evidence.'
+    ),
 
-    "detector_analysis": """You are an elite email security analyst with expertise in detecting sophisticated scams and social engineering attacks.
-
-    Analyze this email using a multi-layered approach to identify both obvious and subtle scam indicators.
-
-    EMAIL CONTENT:
-    {email_content}
-
-    COMPREHENSIVE ANALYSIS FRAMEWORK:
-
-    === LAYER 1: STRUCTURAL ANALYSIS ===
-    1. SENDER AUTHENTICITY [0-10]:
-    - Domain legitimacy, email format consistency
-    - Impersonation attempts, domain spoofing
-    - Contact information verification
-
-    2. LINGUISTIC PATTERNS [0-10]:
-    - Grammar/spelling quality (note: sophisticated scams have good grammar)
-    - Tone consistency and professionalism
-    - Cultural/regional language markers
-    - Use of jargon and terminology
-
-    3. FORMATTING & PRESENTATION [0-10]:
-    - Professional appearance vs. amateur indicators
-    - Logo/branding authenticity claims
-    - Signature block completeness and realism
-
-    === LAYER 2: CONTENT ANALYSIS ===
-    4. URGENCY & PRESSURE TACTICS [0-10]:
-    - Time pressure (explicit or implicit)
-    - Consequence threats (account closure, legal action, missed opportunity)
-    - Artificial scarcity or deadlines
-
-    5. INFORMATION REQUESTS [0-10]:
-    - Personal data solicitation (subtle or direct)
-    - Financial information requests
-    - Credential or password requests
-    - Unusual verification procedures
-
-    6. FINANCIAL INDICATORS [0-10]:
-    - Money requests or promises
-    - Too-good-to-be-true offers
-    - Unusual payment methods
-    - Investment or prize claims
-
-    === LAYER 3: PSYCHOLOGICAL ANALYSIS ===
-    7. EMOTIONAL MANIPULATION [0-10]:
-    - Fear, anxiety, or panic induction
-    - Greed or excitement exploitation
-    - Authority/trust exploitation
-    - Reciprocity manipulation
-
-    8. SOCIAL ENGINEERING TECHNIQUES [0-10]:
-    - Impersonation of authority figures
-    - False familiarity or relationship building
-    - Exploitation of helping tendency
-    - Cognitive bias exploitation
-
-    9. CREDIBILITY ESTABLISHMENT [0-10]:
-    - Use of specific details to build trust
-    - Reference to legitimate processes or systems
-    - Inclusion of security language to appear safe
-    - Professional credentials or affiliations
-
-    === LAYER 4: TECHNICAL ANALYSIS ===
-    10. LINK & URL ANALYSIS [0-10]:
-        - Suspicious URLs or domain mismatches
-        - Shortened or obfuscated links
-        - Legitimate-looking but fake domains
-        - Phishing site indicators
-
-    11. CONTEXTUAL ANOMALIES [0-10]:
-        - Unexpected communication timing
-        - Unusual sender-recipient relationship
-        - Inconsistent narrative or details
-        - Out-of-pattern behavior claims
-
-    === COMPREHENSIVE EVALUATION ===
-    Using your layered analysis above, produce your final assessment. Consider all indicators carefully before deciding.
-
-    REQUIRED OUTPUT FORMAT:
-    After completing your analysis, output ONLY a valid JSON object — no markdown, no code blocks, no text before or after.
-
-    {{
-        "verdict": "<one of: SCAM | LIKELY SCAM | SUSPICIOUS | LIKELY LEGITIMATE | LEGITIMATE>",
-        "confidence": <float 0.0–1.0, how confident you are in this verdict>,
-        "scam_score": <float 0.0–100.0, overall scam probability score>,
-        "reasoning": "<2–4 sentence concise explanation of your verdict, citing the strongest indicators>"
-    }}
-
-    VERDICT GUIDELINES:
-    - SCAM: Clear, unambiguous phishing/scam (score >= 80)
-    - LIKELY SCAM: Strong indicators but not conclusive (score 60–79)
-    - SUSPICIOUS: Multiple warning signs, uncertain intent (score 40–59)
-    - LIKELY LEGITIMATE: Minor concerns but mostly clean (score 20–39)
-    - LEGITIMATE: No meaningful scam indicators (score < 20)
-
-    Analyze with extreme care — sophisticated scams mimic legitimate communications very well.
-    Output ONLY the JSON object, nothing else.""",
+    "detector_analysis": "{email_content}",
 
     # ==========================================
     # ORCHESTRATION AGENT PROMPTS
@@ -446,12 +357,12 @@ def get_system_prompt_detector() -> str:
 
 def get_detection_prompt(email_content: str) -> str:
     """
-    Get detection analysis prompt for specific email.
-    
+    Get detection prompt for specific email.
+
     Args:
         email_content: The email content to analyze
-    
+
     Returns:
-        Formatted prompt for email detection/analysis
+        Stripped email content to use as the user message
     """
-    return PROMPTS["detector_analysis"].format(email_content=email_content)
+    return email_content.strip()

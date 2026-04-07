@@ -60,21 +60,37 @@ class Orchestrator:
         self.round_id = round_id
         self.num_parallel = num_parallel_workflows
         
+        # Check GPU availability and warn if missing
+        import torch as _torch
+        cuda_ok = _torch.cuda.is_available()
+        if not cuda_ok:
+            print(
+                "[Orchestrator] WARNING: No CUDA GPU detected. The detector model will run "
+                "on CPU which is significantly slower. Install a CUDA-capable GPU for "
+                "faster inference."
+            )
+            save_log(
+                level='warning',
+                message='No CUDA GPU detected — detector will run on CPU (slow)',
+                round_id=round_id,
+                context={'cuda_available': False}
+            )
+
         # Initialize services (uses your entity-service pattern)
         self.generator_service = GeneratorAgentService()
         self.detector_service = DetectorAgentService()
-        
+
         # Log initialization
         save_log(
             level='info',
             message=f'Orchestrator initialized for round {round_id}',
             round_id=round_id,
-            context={'workflows': num_parallel_workflows}
+            context={'workflows': num_parallel_workflows, 'cuda_available': cuda_ok}
         )
-        
+
         print(f"[Orchestrator] Round {round_id}: {num_parallel_workflows} parallel workflows")
         print(f"[Orchestrator] Generator: Gemini 2.0 Flash")
-        print(f"[Orchestrator] Detector: Claude 3.5 Haiku")
+        print(f"[Orchestrator] Detector: sentra-utoledo-v2.0 ({'GPU' if cuda_ok else 'CPU — consider GPU for speed'})")
 
     async def run_single_workflow(
         self,

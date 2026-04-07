@@ -8,6 +8,7 @@ POST /api/rounds/<id>/run - Trigger AI orchestration for a round
 """
 
 import os
+import torch
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required
@@ -195,6 +196,16 @@ def run_round(round_id):
 
     run_round_task.delay(round_id, round_obj.total_emails, workflows)
 
+    cuda_available = torch.cuda.is_available()
+    gpu_warning = (
+        None if cuda_available
+        else (
+            'No CUDA GPU detected on this server. The detector model will run on CPU, '
+            'which is significantly slower. Consider running on a GPU-enabled machine '
+            'for production use.'
+        )
+    )
+
     return jsonify({
         'success': True,
         'message': (
@@ -202,4 +213,5 @@ def run_round(round_id):
             f'({round_obj.total_emails} emails, {workflows} parallel workflows)'
         ),
         'data': round_obj.to_dict(),
+        'gpu_warning': gpu_warning,
     }), 202

@@ -78,6 +78,10 @@ def scan_email():
     if len(subject.encode('utf-8')) > MAX_SUBJECT_BYTES:
         return jsonify({'success': False, 'error': 'Email subject too large. Maximum size is 1KB.'}), 400
 
+    inference_mode = request.headers.get('X-Inference-Mode', 'gguf').lower().strip()
+    if inference_mode not in ('standard', 'gguf', 'accelerated'):
+        inference_mode = 'gguf'
+
     # Cache lookup — return immediately if we've seen this exact content before
     cached = get_scan_cache(subject, body_text)
     if cached:
@@ -92,7 +96,7 @@ def scan_email():
     # on the Celery worker being alive.
     email_content = f"Subject: {subject}\n\n{body_text}" if subject else body_text
     try:
-        parsed = _run_detector_sync(email_content)
+        parsed = _run_detector_sync(email_content, inference_mode=inference_mode)
     except Exception:
         current_app.logger.exception("Detection failed")
         return jsonify({'success': False, 'error': 'Detection service unavailable. Please try again.'}), 503
@@ -109,9 +113,34 @@ def scan_email():
     if confidence > 1:
         confidence = confidence / 100.0
 
+    # Confidence calibration — the fine-tuned 1.5B model has a SCAM bias from
+    # imbalanced training data. Override the raw verdict using scam_score +
+    # confidence thresholds so borderline predictions don't all surface as phishing.
+    #
+    #   scam_score >= 75 AND confidence >= 0.80  →  phishing        (strong signal)
+    #   scam_score >= 55 AND confidence >= 0.65  →  suspicious      (medium signal)
+    #   otherwise                                →  likely_legitimate
+    #
+    # Tune these values based on observed false-positive rates:
+    #   - Raise SCAM_SCORE_PHISHING / CONFIDENCE_PHISHING to reduce false positives
+    #   - Lower them to catch more scams at the cost of more false positives
+    SCAM_SCORE_PHISHING    = 75.0
+    CONFIDENCE_PHISHING    = 0.80
+    SCAM_SCORE_SUSPICIOUS  = 55.0
+    CONFIDENCE_SUSPICIOUS  = 0.65
+
+    normalized = _normalize_verdict(verdict_raw)
+    if normalized in ('phishing', 'likely_phishing', 'suspicious'):
+        if scam_score >= SCAM_SCORE_PHISHING and confidence >= CONFIDENCE_PHISHING:
+            normalized = 'phishing'
+        elif scam_score >= SCAM_SCORE_SUSPICIOUS and confidence >= CONFIDENCE_SUSPICIOUS:
+            normalized = 'suspicious'
+        else:
+            normalized = 'likely_legitimate'
+
     result = {
         'status': 'complete',
-        'verdict': _normalize_verdict(verdict_raw),
+        'verdict': normalized,
         'confidence': confidence,
         'scam_score': scam_score,
         'reasoning': reasoning,
