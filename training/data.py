@@ -1,14 +1,16 @@
 """
-Data pipeline — load, preprocess, merge, split, and format datasets for SFT.
+Data pipeline — load, preprocess, merge, balance, split, and format datasets for SFT.
 
 Exports:
     load_datasets()             -> tuple[Dataset, Dataset | None]
     preprocess_and_merge()      -> Dataset
+    balance_dataset()           -> Dataset
     split_dataset()             -> DatasetDict
     format_for_sft()            -> tuple[DatasetDict, AutoTokenizer]
 """
 
 import json
+import random
 from datasets import Dataset, DatasetDict, concatenate_datasets, load_dataset
 from transformers import AutoTokenizer
 
@@ -19,6 +21,40 @@ import config
 
 LABEL_LEGITIMATE = 0
 LABEL_PHISHING = 1
+
+# ─── Varied reasoning templates ───────────────────────────────────────────────
+# 12 templates per class so training examples have diverse explanations rather
+# than identical boilerplate — reduces the model's tendency to repeat one phrase.
+
+_PHISHING_REASONS = [
+    "Urgent language and suspicious requests suggest this is a phishing attempt designed to steal credentials.",
+    "Contains hallmarks of phishing: spoofed sender, urgency cues, and requests for sensitive information.",
+    "Deceptive framing and pressure tactics are classic phishing indicators; avoid clicking any links.",
+    "Suspicious domain references and credential requests indicate this email is not legitimate.",
+    "Grammatical irregularities, generic greetings, and suspicious links suggest a phishing campaign.",
+    "Impersonates a trusted entity while requesting sensitive data — a common social engineering tactic.",
+    "Request to verify account or confirm details through an external link is a common phishing pattern.",
+    "Threatening account suspension or prize claims to manipulate recipients is typical phishing bait.",
+    "Mismatched sender domain and urgent call-to-action are strong indicators of a phishing email.",
+    "Unsolicited request for login credentials or personal data; sender identity appears spoofed.",
+    "Fake urgency combined with a suspicious link is a textbook credential-harvesting technique.",
+    "Claims of unauthorised access or account suspension are frequently used to provoke panic-clicks.",
+]
+
+_LEGITIMATE_REASONS = [
+    "Normal business communication with no suspicious urgency, credential requests, or deceptive elements.",
+    "Routine correspondence from a known sender; no phishing indicators detected.",
+    "Standard email format without unusual links, spoofed domains, or manipulative language.",
+    "Professional tone with no requests for sensitive information or suspicious call-to-action.",
+    "Legitimate transactional or informational email; context and sender appear credible.",
+    "No red flags: consistent sender identity, relevant content, and no credential harvesting attempt.",
+    "Email structure and content align with normal communication patterns; no threat indicators.",
+    "Clear, expected communication without coercive tactics, fake urgency, or suspicious attachments.",
+    "Content and tone are consistent with legitimate business correspondence; nothing suspicious found.",
+    "Sender domain matches expected pattern; email contains no deceptive links or requests.",
+    "Message is informational and does not ask for credentials, payments, or personal details.",
+    "Appears to be a regular newsletter or notification with no social engineering tactics.",
+]
 
 # ─── System prompt ────────────────────────────────────────────────────────────
 
@@ -116,11 +152,61 @@ def preprocess_and_merge(
     counts: dict[int, int] = {}
     for val in merged["label"]:
         counts[val] = counts.get(val, 0) + 1
-    print(f"\nMerged dataset: {len(merged):,} rows")
+    print(f"\nMerged dataset (before balancing): {len(merged):,} rows")
     print(f"  Label distribution: {counts}")
     print(f"  Phishing ratio: {counts.get(1, 0) / len(merged):.1%}")
 
+    # Balance classes so the model is not biased toward either verdict
+    merged = balance_dataset(merged, seed=42)
+
     return merged
+
+
+def balance_dataset(dataset: Dataset, seed: int = 42) -> Dataset:
+    """
+    Balance dataset to equal class counts via random undersampling of the majority class.
+
+    SMOTE and ADASYN require feature vectors and cannot be applied to raw text.
+    Undersampling avoids introducing synthetic noise while eliminating the class
+    imbalance that causes verdict bias during fine-tuning.
+
+    Args:
+        dataset: Dataset with a "label" column (int).
+        seed:    Random seed for reproducibility.
+
+    Returns:
+        Balanced Dataset with equal phishing and legitimate examples.
+    """
+    print("\n" + "=" * 60)
+    print("BALANCING DATASET")
+    print("=" * 60)
+
+    random.seed(seed)
+
+    phishing_indices = [i for i, lbl in enumerate(dataset["label"]) if lbl == LABEL_PHISHING]
+    legit_indices    = [i for i, lbl in enumerate(dataset["label"]) if lbl == LABEL_LEGITIMATE]
+
+    print(f"  Before balancing: phishing={len(phishing_indices):,}, legitimate={len(legit_indices):,}")
+
+    min_count = min(len(phishing_indices), len(legit_indices))
+
+    if len(phishing_indices) > min_count:
+        phishing_indices = random.sample(phishing_indices, min_count)
+        print(f"  Undersampled phishing class   -> {min_count:,}")
+    elif len(legit_indices) > min_count:
+        legit_indices = random.sample(legit_indices, min_count)
+        print(f"  Undersampled legitimate class -> {min_count:,}")
+    else:
+        print("  Classes already balanced — no undersampling needed.")
+
+    balanced_indices = sorted(phishing_indices + legit_indices)
+    balanced = dataset.select(balanced_indices)
+    balanced = balanced.shuffle(seed=seed)
+
+    print(f"  After balancing:  phishing={min_count:,}, legitimate={min_count:,}")
+    print(f"  Total rows: {len(balanced):,}  (50.0% / 50.0%)")
+
+    return balanced
 
 
 def _normalize_enron_spam(dataset: Dataset) -> Dataset:
@@ -227,44 +313,42 @@ def split_dataset(merged: Dataset) -> DatasetDict:
 # ─── SFT formatting ───────────────────────────────────────────────────────────
 
 def _label_to_reasoning(label: int) -> str:
-    """Generate template-based synthetic reasoning from binary label."""
+    """Pick a random reasoning template from the appropriate class pool."""
     if label == LABEL_PHISHING:
-        return (
-            "This email exhibits characteristics consistent with phishing: "
-            "urgent language, suspicious requests, or deceptive framing designed "
-            "to manipulate the recipient into revealing credentials or clicking malicious links."
-        )
-    return (
-        "This email appears to be legitimate: normal business communication "
-        "without suspicious urgency, unusual credential requests, or deceptive elements."
-    )
+        return random.choice(_PHISHING_REASONS)
+    return random.choice(_LEGITIMATE_REASONS)
 
 
 def _format_instruction_response(example: dict) -> dict:
     """
-    Transform {text, label} → {prompt, response, label} SFT format.
+    Transform {text, label} -> {prompt, response, label} SFT format.
 
-    The 'prompt' field holds the raw email text.
-    The 'response' field holds the JSON string the model must learn to generate.
-    The 'label' field is preserved for evaluation (not used by SFTTrainer).
+    Confidence and scam_score have slight random variation so the model does not
+    memorise a single fixed value for every example of the same class.
     """
-    label = int(example["label"])
+    label   = int(example["label"])
     verdict = "SCAM" if label == LABEL_PHISHING else "LEGITIMATE"
-    confidence = 0.95 if label == LABEL_PHISHING else 0.92
-    scam_score = 88.0 if label == LABEL_PHISHING else 8.0
+
+    if label == LABEL_PHISHING:
+        confidence = round(random.uniform(0.88, 0.97), 2)
+        scam_score = round(random.uniform(78.0, 95.0), 1)
+    else:
+        confidence = round(random.uniform(0.88, 0.97), 2)
+        scam_score = round(random.uniform(3.0, 18.0), 1)
+
     reasoning = _label_to_reasoning(label)
 
     response_json = json.dumps({
-        "verdict": verdict,
+        "verdict":    verdict,
         "confidence": confidence,
         "scam_score": scam_score,
-        "reasoning": reasoning,
+        "reasoning":  reasoning,
     })
 
     return {
-        "prompt": example["text"],
+        "prompt":   example["text"],
         "response": response_json,
-        "label": label,
+        "label":    label,
     }
 
 
