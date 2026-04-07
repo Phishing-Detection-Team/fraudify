@@ -1,8 +1,6 @@
 """API route blueprints."""
 
-import torch
 from flask import Blueprint, jsonify, current_app
-from flask_jwt_extended import jwt_required
 from sqlalchemy import text
 
 from app.models import db
@@ -59,20 +57,3 @@ def health_check():
         'message': 'Phishing Detection API is running',
         'checks': checks,
     }), status_code
-
-
-@main_bp.route('/api/system/info', methods=['GET'])
-@jwt_required()
-def system_info():
-    """
-    Return system capability information.
-
-    Used by the extension to determine whether Accelerated inference mode
-    is available on this machine.
-    """
-    cuda_available = torch.cuda.is_available()
-    gpu_name = torch.cuda.get_device_name(0) if cuda_available else None
-    return jsonify({
-        'cuda_available': cuda_available,
-        'gpu_name': gpu_name,
-    }), 200

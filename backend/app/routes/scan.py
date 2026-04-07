@@ -78,10 +78,6 @@ def scan_email():
     if len(subject.encode('utf-8')) > MAX_SUBJECT_BYTES:
         return jsonify({'success': False, 'error': 'Email subject too large. Maximum size is 1KB.'}), 400
 
-    inference_mode = request.headers.get('X-Inference-Mode', 'gguf').lower().strip()
-    if inference_mode not in ('standard', 'gguf', 'accelerated'):
-        inference_mode = 'gguf'
-
     # Cache lookup — return immediately if we've seen this exact content before
     cached = get_scan_cache(subject, body_text)
     if cached:
@@ -112,7 +108,7 @@ def scan_email():
     # on the Celery worker being alive.
     email_content = f"Subject: {subject}\n\n{body_text}" if subject else body_text
     try:
-        parsed = _run_detector_sync(email_content, inference_mode=inference_mode)
+        parsed = _run_detector_sync(email_content, inference_mode='gguf')
     except Exception:
         current_app.logger.exception("Detection failed")
         return jsonify({'success': False, 'error': 'Detection service unavailable. Please try again.'}), 503

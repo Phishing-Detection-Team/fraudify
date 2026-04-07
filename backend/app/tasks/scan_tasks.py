@@ -68,7 +68,7 @@ def _ensure_agentic_on_path() -> None:
         sys.path.insert(0, oa_dir)
 
 
-def _run_detector_sync(email_content: str, inference_mode: str = "standard") -> dict | None:
+def _run_detector_sync(email_content: str, inference_mode: str = "gguf") -> dict | None:
     """Run DetectorAgentService synchronously and return parsed result dict."""
     _ensure_agentic_on_path()
     from services.detector_agent_service import DetectorAgentService  # noqa: PLC0415
@@ -86,7 +86,7 @@ def _run_detector_sync(email_content: str, inference_mode: str = "standard") -> 
 # ---------------------------------------------------------------------------
 
 @celery.task(bind=True, name='tasks.scan_email')
-def scan_email_task(self, user_id: int, subject: str, body: str, inference_mode: str = "standard") -> dict:
+def scan_email_task(self, user_id: int, subject: str, body: str, inference_mode: str = "gguf") -> dict:
     """
     Run phishing detection asynchronously.
 
