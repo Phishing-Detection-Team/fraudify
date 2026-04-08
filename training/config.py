@@ -23,8 +23,10 @@ HUB_MODEL_NAME = f"{HF_USER}/{PROJECT_RUN_NAME}" if HF_USER else PROJECT_RUN_NAM
 # ─── Data ─────────────────────────────────────────────────────────────────────
 
 DATASETS = [
-    "SetFit/enron_spam",           # Enron email spam dataset (parquet, 0=ham, 1=spam)
-    "ealvaradob/phishing-dataset",  # Phishing URL/email dataset
+    # Real Enron corporate emails — contains real company domains (legit) and spam URLs
+    "SetFit/enron_spam",
+    # 18.6k phishing/safe emails in parquet format — includes fake brand URLs (PayPal, Amazon, etc.)
+    "zefang-liu/phishing-email-dataset"
 ]
 MAX_SEQ_LENGTH = 1024
 MAX_NEW_TOKENS = 256   # max tokens to generate during evaluation
