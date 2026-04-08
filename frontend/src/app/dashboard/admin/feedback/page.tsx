@@ -16,10 +16,10 @@ export default function AdminFeedbackPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchFeedbackData = async (pageNum = page) => {
-    if (!session?.user?.accessToken) return;
+    if (!session?.accessToken) return;
     try {
       setIsLoading(true);
-      const data = await getFeedback(session.user.accessToken, pageNum);
+      const data = await getFeedback(session.accessToken, pageNum);
       setFeedback(data.items);
       setTotalPages(data.pages);
       setPage(data.page);
@@ -34,11 +34,11 @@ export default function AdminFeedbackPage() {
   useEffect(() => {
     fetchFeedbackData(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.accessToken, page]);
+  }, [session?.accessToken, page]);
 
   const handleStatusChange = async (id: number, newStatus: string) => {
     try {
-      await updateFeedbackStatus(session?.user?.accessToken as string, id, newStatus);
+      await updateFeedbackStatus(session?.accessToken as string, id, newStatus);
       toast.success("Status updated!");
       setFeedback((prev) =>
         prev.map((f) => (f.id === id ? { ...f, status: newStatus } : f))

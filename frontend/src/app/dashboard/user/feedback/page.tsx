@@ -22,7 +22,7 @@ export default function FeedbackPage() {
 
     try {
       setIsLoading(true);
-      await submitFeedback(session?.user?.accessToken as string, { subject, description });
+      await submitFeedback(session?.accessToken as string, { subject, description });
       toast.success("Feedback submitted successfully!");
       setSubject("");
       setDescription("");
