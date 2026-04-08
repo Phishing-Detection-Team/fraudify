@@ -63,7 +63,11 @@ def list_feedback():
     query = Feedback.query
 
     if status_filter:
-        query = query.filter(Feedback.status == status_filter)
+        statuses = status_filter.split(',')
+        if len(statuses) > 1:
+            query = query.filter(Feedback.status.in_(statuses))
+        else:
+            query = query.filter(Feedback.status == status_filter)
 
     pagination = query.order_by(Feedback.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
 

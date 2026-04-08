@@ -14,12 +14,13 @@ export default function AdminFeedbackPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("pending,reviewed");
 
-  const fetchFeedbackData = async (pageNum = page) => {
+  const fetchFeedbackData = async (pageNum = page, filter = statusFilter) => {
     if (!session?.accessToken) return;
     try {
       setIsLoading(true);
-      const data = await getFeedback(session.accessToken, pageNum);
+      const data = await getFeedback(session.accessToken, pageNum, 20, filter === "all" ? undefined : filter);
       setFeedback(data.items);
       setTotalPages(data.pages);
       setPage(data.page);
@@ -32,9 +33,14 @@ export default function AdminFeedbackPage() {
   };
 
   useEffect(() => {
-    fetchFeedbackData(page);
+    fetchFeedbackData(1, statusFilter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.accessToken, page]);
+  }, [session?.accessToken, statusFilter]);
+
+  useEffect(() => {
+    if (page !== 1) fetchFeedbackData(page, statusFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const handleStatusChange = async (id: number, newStatus: string) => {
     try {
@@ -56,13 +62,29 @@ export default function AdminFeedbackPage() {
           <h1 className="text-3xl font-bold tracking-tight">User Feedback</h1>
           <p className="text-muted-foreground mt-1">Review and manage feedback submitted by users.</p>
         </div>
-        <button
-          onClick={() => fetchFeedbackData(1)}
-          className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 rounded-lg transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent-cyan outline-none"
+          >
+            <option value="pending,reviewed">Needs Action</option>
+            <option value="pending">Pending</option>
+            <option value="reviewed">Under Review</option>
+            <option value="resolved">Resolved</option>
+            <option value="all">All Statuses</option>
+          </select>
+          <button
+            onClick={() => fetchFeedbackData(1)}
+            className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 rounded-lg transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
