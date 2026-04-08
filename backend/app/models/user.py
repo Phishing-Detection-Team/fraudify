@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 import bcrypt
 import sqlalchemy as sa
@@ -18,8 +18,8 @@ class User(db.Model):
     email_verified = db.Column(db.Boolean, default=False, server_default=sa.false(), nullable=False)
     password_reset_token = db.Column(db.String(128), unique=True, nullable=True, index=True)
     password_reset_expires = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     # Explicit primaryjoin/secondaryjoin because user_roles has two FK columns to users

@@ -76,7 +76,7 @@ def get_stats():
         'success': True,
         'data': {
             'total_api_cost': round(float(total_api_cost), 6),
-            'active_agents': 2,
+            'active_agents': len(_AGENTS),
             'total_emails_scanned': int(round_emails_scanned) + int(user_scans_total),
             'threats_detected': int(round_threats_detected) + int(user_threats_detected),
         },

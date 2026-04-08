@@ -3,7 +3,6 @@
 import hashlib
 import secrets
 import re
-import random
 from datetime import datetime, timezone, timedelta
 
 import redis as redis_lib
@@ -36,11 +35,11 @@ _invite_schema = InviteCodeSchema()
 def _blacklist_token(jti: str, expires_delta: timedelta) -> None:
     """Store jti in Redis with TTL equal to the token's remaining lifetime."""
     try:
-        redis_url = current_app.config.get('REDIS_URL', 'redis://localhost:6379/0')
+        redis_url: str = current_app.config.get('REDIS_URL', 'redis://localhost:6379/0')
         r = redis_lib.from_url(redis_url)
         r.setex(f'jwt_blacklist:{jti}', int(expires_delta.total_seconds()), '1')
-    except Exception:
-        pass  # Non-fatal; token will expire naturally
+    except Exception as exc:
+        current_app.logger.warning('JWT blacklist write failed: %s', exc)
 
 
 def _require_role(*role_names):
@@ -52,7 +51,7 @@ def _require_role(*role_names):
     return None
 
 
-def _generate_username(email: str) -> str:
+def _generate_username(email: str) -> str:  # noqa: D401
     """
     Auto-generate a username from the email local-part.
     Strips non-alphanumeric/underscore chars, truncates to 25 chars,
@@ -61,22 +60,25 @@ def _generate_username(email: str) -> str:
     local = email.split('@')[0]
     base = re.sub(r'[^A-Za-z0-9_]', '', local)[:25] or 'user'
     for _ in range(5):
-        candidate = f'{base}{random.randint(1000, 9999)}'
+        candidate = f'{base}{secrets.randbelow(9000) + 1000}'
         if not User.query.filter_by(username=candidate).first():
             return candidate
     # Fallback: keep trying with wider range
-    return f'{base}{random.randint(10000, 99999)}'
+    return f'{base}{secrets.randbelow(90000) + 10000}'
 
 
-def _send_verification(user: User) -> None:
-    """Create an EmailVerification record and dispatch the Resend email."""
+def _send_verification(user: User) -> bool:
+    """Create an EmailVerification record and dispatch the Resend email.
+
+    Returns True if the email was dispatched successfully, False otherwise.
+    """
     from app.services.email_verification_service import send_verification_email
 
     ev = EmailVerification.generate(user.id)
     db.session.add(ev)
     db.session.flush()  # get ev.token/code before commit
 
-    send_verification_email(
+    sent = send_verification_email(
         to_email=user.email,
         token=ev.token,
         code=ev.code,
@@ -84,6 +86,9 @@ def _send_verification(user: User) -> None:
         from_email=current_app.config.get('RESEND_FROM_EMAIL', 'noreply@example.com'),
         api_key=current_app.config.get('RESEND_API_KEY', ''),
     )
+    if not sent:
+        current_app.logger.warning('Verification email failed to send for user %s', user.id)
+    return sent
 
 
 # ---------------------------------------------------------------------------
@@ -152,6 +157,16 @@ def send_verification():
     if user.email_verified:
         return jsonify({'success': False, 'error': 'Email already verified'}), 400
 
+    # Prevent email bombing: reject if an unexpired code already exists
+    existing = (
+        EmailVerification.query
+        .filter_by(user_id=user.id, is_used=False)
+        .filter(EmailVerification.expires_at > datetime.now(timezone.utc))
+        .first()
+    )
+    if existing:
+        return jsonify({'success': False, 'error': 'A verification code was recently sent. Please wait before requesting another.'}), 429
+
     _send_verification(user)
     db.session.commit()
 
@@ -198,7 +213,7 @@ def verify_email():
         return jsonify({'success': False, 'error': 'User not found'}), 404
 
     ev.is_used = True
-    ev.used_at = datetime.utcnow()
+    ev.used_at = datetime.now(timezone.utc)
     user.email_verified = True
     db.session.commit()
 
@@ -329,7 +344,7 @@ def list_invites():
     if forbidden:
         return forbidden
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     invites = InviteCode.query.filter(
         InviteCode.used_by.is_(None),
         InviteCode.expires_at > now,
@@ -409,7 +424,7 @@ def admin_signup():
 
     db.session.flush()
     invite.used_by = user.id
-    invite.used_at = datetime.utcnow()
+    invite.used_at = datetime.now(timezone.utc)
 
     db.session.commit()
 
@@ -496,7 +511,7 @@ def forgot_password():
         expiry_hours = current_app.config.get('PASSWORD_RESET_EXPIRY_HOURS', 1)
 
         user.password_reset_token = token_hash
-        user.password_reset_expires = datetime.utcnow() + timedelta(hours=expiry_hours)
+        user.password_reset_expires = datetime.now(timezone.utc) + timedelta(hours=expiry_hours)
         db.session.commit()
 
         frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:3000')
@@ -552,7 +567,7 @@ def reset_password():
         return jsonify({'success': False, 'error': 'token and password are required'}), 400
 
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     user = User.query.filter_by(password_reset_token=token_hash).first()
     if not user or not user.password_reset_expires or user.password_reset_expires < now:

@@ -39,9 +39,9 @@ describe('getUserStats', () => {
     const stats = await getUserStats('test-token')
     expect(stats.totalEmailsScanned).toBe(42)
     expect(stats.phishingDetected).toBe(7)
-    // Static defaults
     expect(stats.markedSafe).toBe(0)
-    expect(stats.creditsRemaining).toBe(1000)
+    // M-8: creditsRemaining now maps from backend (not hardcoded 1000)
+    expect(stats.creditsRemaining).toBe(0)
   })
 
   it('falls back to zeros when fields are missing', async () => {

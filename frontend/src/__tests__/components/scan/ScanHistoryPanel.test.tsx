@@ -77,6 +77,7 @@ function makeEntry(overrides: Partial<ScanHistoryItem> = {}): ScanHistoryItem {
     user_id: 42,
     subject: 'Test subject',
     body_snippet: 'Email body snippet',
+    full_body: null,
     verdict: 'legitimate',
     confidence: 0.95,
     scam_score: 5,
@@ -458,6 +459,22 @@ describe('ScanHistoryPanel', () => {
       })
 
       expect(screen.getByTestId('no-scans-message')).toBeTruthy()
+    })
+
+    it('H-9: shows a visible error banner when fetch fails', async () => {
+      // H-9: silently swallowing fetch errors makes failures invisible to users.
+      // A network failure on load must render a user-visible error message.
+      vi.mocked(getScanHistory).mockRejectedValue(new Error('Network error'))
+
+      await act(async () => {
+        render(<ScanHistoryPanel token="test-token" />)
+      })
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('scan-history-loading')).toBeNull()
+      })
+
+      expect(screen.getByTestId('scan-history-error')).toBeTruthy()
     })
   })
 })

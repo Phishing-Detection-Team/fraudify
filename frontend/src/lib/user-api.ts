@@ -25,7 +25,7 @@ export const getUserStats = async (token: string): Promise<UserStats> => {
     totalEmailsScanned: d.total_emails_scanned ?? 0,
     phishingDetected:   d.threats_detected     ?? 0,
     markedSafe:         d.marked_safe          ?? 0,
-    creditsRemaining:   1000,
+    creditsRemaining:   d.credits_remaining    ?? 0,
   };
 };
 

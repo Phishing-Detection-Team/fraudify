@@ -19,6 +19,7 @@ the primary code path for new scans.
 from celery.result import AsyncResult
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.orm import joinedload
 
 from app import limiter
 from app.cache import get_scan_cache, set_scan_cache
@@ -27,7 +28,6 @@ from app.models.user_scan import UserScan
 from app.utils import require_role
 from app.tasks.scan_tasks import (
     _run_detector_sync,
-    _parse_json_output,
     _normalize_verdict,
 )
 
@@ -96,6 +96,7 @@ def scan_email():
             db.session.add(scan_record)
             db.session.commit()
         except Exception:
+            current_app.logger.exception('Failed to persist UserScan for user %s', user.id)
             db.session.rollback()
         return jsonify({
             'success': True,
@@ -151,6 +152,7 @@ def scan_email():
         db.session.add(scan_record)
         db.session.commit()
     except Exception:
+        current_app.logger.exception('Failed to persist UserScan for user %s', user.id)
         db.session.rollback()
         # DB write failure must not fail the scan response
 
@@ -185,15 +187,17 @@ def get_scan_status(job_id: str):
             return jsonify({'success': True, 'data': result.result}), 200
 
         # FAILURE or other terminal state
+        current_app.logger.error('Scan task %s failed: %s', job_id, result.info)
         return jsonify({
             'success': True,
             'data': {
                 'status': 'failed',
-                'error': str(result.info),
+                'error': 'Scan task failed. Please try again.',
             },
         }), 200
     except Exception as exc:
-        return jsonify({'success': True, 'data': {'status': 'pending', 'error': str(exc)}}), 200
+        current_app.logger.error('Error fetching scan status for %s: %s', job_id, exc)
+        return jsonify({'success': True, 'data': {'status': 'pending'}}), 200
 
 
 # ---------------------------------------------------------------------------
@@ -226,11 +230,7 @@ def scan_history():
         .paginate(page=page, per_page=per_page, error_out=False)
     )
 
-    scans = []
-    for s in pagination.items:
-        d = s.to_dict()
-        d['full_body'] = s.full_body
-        scans.append(d)
+    scans = [s.to_dict(include_full_body=True) for s in pagination.items]
 
     return jsonify({
         'success': True,
@@ -272,6 +272,7 @@ def admin_recent_scans():
 
     pagination = (
         UserScan.query
+        .options(joinedload(UserScan.user))
         .order_by(UserScan.scanned_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )

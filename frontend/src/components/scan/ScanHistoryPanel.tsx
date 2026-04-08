@@ -266,6 +266,7 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
   const [pages, setPages] = useState(1);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedScan, setSelectedScan] = useState<ScanHistoryItem | null>(null);
 
   const loadPage = useCallback(
@@ -277,8 +278,9 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
         setTotal(data.total);
         setPages(data.pages);
         setPage(p);
+        setFetchError(null);
       } catch {
-        // On error, show empty state
+        setFetchError("Failed to load scan history. Please try again.");
         if (p === 1) setScans([]);
       } finally {
         setLoading(false);
@@ -330,6 +332,16 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
           Scan History
         </h2>
       </div>
+
+      {/* Error banner */}
+      {fetchError && (
+        <div
+          data-testid="scan-history-error"
+          className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+        >
+          {fetchError}
+        </div>
+      )}
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">

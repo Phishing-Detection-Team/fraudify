@@ -84,7 +84,7 @@ def send_verification_email(to_email: str, token: str, code: str, frontend_url: 
         params = {
             'from': from_email,
             'to': [to_email],
-            'subject': f'Your Sentra verification code: {code}',
+            'subject': 'Your Sentra verification code',
             'html': html_body,
         }
 

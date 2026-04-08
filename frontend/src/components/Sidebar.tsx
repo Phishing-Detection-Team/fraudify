@@ -115,7 +115,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="p-4 border-t border-border/50 mt-auto">
         <div className="flex items-center gap-3 px-3 py-3 rounded-lg mb-2 bg-background/50 border border-border/30">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center text-white font-bold text-xs">
-            {userName[0]}
+            {userName.charAt(0) || "?"}
           </div>
           <div className="flex flex-col flex-1 overflow-hidden">
             <span className="text-sm font-medium truncate">{userName}</span>

@@ -80,9 +80,13 @@ function LoginForm() {
 
   const handleResendVerification = async () => {
     setResendStatus("sending");
-    await sendVerificationEmail(email);
-    setResendStatus("sent");
-    setTimeout(() => setResendStatus("idle"), 5000);
+    const result = await sendVerificationEmail(email);
+    if (result.success) {
+      setResendStatus("sent");
+      setTimeout(() => setResendStatus("idle"), 5000);
+    } else {
+      setResendStatus("idle");
+    }
   };
 
   return (
@@ -227,7 +231,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense>
+    <Suspense fallback={null}>
       <LoginForm />
     </Suspense>
   );

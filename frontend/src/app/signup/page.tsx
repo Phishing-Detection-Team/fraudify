@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import {
-  signupWithBackend,
   sendVerificationEmail,
   verifyEmailWithCode,
 } from "@/lib/auth-api";
@@ -89,21 +88,25 @@ function SignupForm(): JSX.Element {
         ? config.API.AUTH.ADMIN_SIGNUP
         : config.API.AUTH.SIGNUP;
 
-      const signupBody: Record<string, string | null> = {
+      const signupBody: Record<string, string | boolean | null> = {
         email,
         password,
         username: name || email.split("@")[0],
+        allow_training: allowTraining,
       };
       if (inviteCode) {
         signupBody.invite_code = inviteCode;
       }
 
-      const signupResponse = await fetch(`${config.API.BASE_URL}${signupEndpoint}`, {
+      const _res = await fetch(`${config.API.BASE_URL}${signupEndpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(signupBody),
       });
-      const signupResult = await signupWithBackend(email, password, name);
+      const _data = await _res.json();
+      const signupResult = _res.ok
+        ? { success: true as const }
+        : { success: false as const, error: _data.error || "Failed to create account", message: _data.message };
       if (!signupResult.success) {
         // 409 means account exists but not verified — try to resend
         if (signupResult.message?.includes("not yet verified")) {
@@ -121,8 +124,7 @@ function SignupForm(): JSX.Element {
 
       setStep("verify");
       setLoading(false);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -159,9 +161,13 @@ function SignupForm(): JSX.Element {
 
   const handleResend = async () => {
     setResendStatus("sending");
-    await sendVerificationEmail(email);
-    setResendStatus("sent");
-    setTimeout(() => setResendStatus("idle"), 4000);
+    const result = await sendVerificationEmail(email);
+    if (result.success) {
+      setResendStatus("sent");
+      setTimeout(() => setResendStatus("idle"), 4000);
+    } else {
+      setResendStatus("idle");
+    }
   };
 
   // ---------------------------------------------------------------------------
@@ -503,6 +509,7 @@ function SignupForm(): JSX.Element {
                     inputMode="numeric"
                     maxLength={1}
                     value={digit}
+                    aria-label={`Digit ${i + 1} of 6`}
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                     className={`w-11 h-14 text-center text-xl font-bold bg-background/50 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
@@ -563,7 +570,7 @@ function SignupForm(): JSX.Element {
 
 export default function SignupPage() {
   return (
-    <Suspense>
+    <Suspense fallback={null}>
       <SignupForm />
     </Suspense>
   );
