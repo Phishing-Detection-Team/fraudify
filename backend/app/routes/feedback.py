@@ -18,7 +18,12 @@ def submit_feedback():
     Rate limit: 5 per hour per user.
     """
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    try:
+        user_id = int(user_id)
+    except (TypeError, ValueError):
+        return jsonify({"error": "User not found"}), 404
+
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
