@@ -177,6 +177,7 @@ def run_round(round_id):
         )
 
     anthropic = os.environ.get('ANTHROPIC_API_KEY')
+    google = os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY')
     if not google or not anthropic:
         raise ValidationError(
             'GOOGLE_API_KEY (or GEMINI_API_KEY) and ANTHROPIC_API_KEY must be set '
