@@ -196,6 +196,18 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
 }
 
 /* istanbul ignore next */
+async function _cacheScanResult(subject, verdict, confidence) {
+  const { sentra_scan_history: existing = [] } = await chrome.storage.local.get('sentra_scan_history');
+  const entry = {
+    subject: (subject || '').slice(0, 60) || '(no subject)',
+    verdict,
+    confidence,
+    timestamp: Date.now(),
+  };
+  await chrome.storage.local.set({ sentra_scan_history: [entry, ...existing].slice(0, 5) });
+}
+
+/* istanbul ignore next */
 async function _scanAndShow(subject, body) {
   try {
     const stored = await chrome.storage.local.get(['sentra_api_url', 'sentra_auth_token', 'sentra_inference_mode']);
@@ -217,6 +229,7 @@ async function _scanAndShow(subject, body) {
 
     removeOverlay();
     if (verdictData && verdictData.verdict) {
+      await _cacheScanResult(subject, verdictData.verdict, verdictData.confidence);
       injectOverlay(verdictData);
     } else {
       // Scan ran but returned no verdict — show neutral state

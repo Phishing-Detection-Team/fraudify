@@ -104,6 +104,12 @@ async function init() {
 
   $('btnLogout').addEventListener('click', logout);
   $('btnOpenDashboard2').addEventListener('click', openDashboard);
+  $('btnRefreshHistory').addEventListener('click', renderScanHistory);
+
+  // Auto-refresh the list whenever the content script writes a new scan result
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.sentra_scan_history) renderScanHistory();
+  });
 
   await renderScanHistory();
 }

@@ -11,7 +11,7 @@ import {
   Legend,
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
-import { History, Loader2, Mail, Brain, X } from "lucide-react";
+import { History, Loader2, Mail, Brain, X, RefreshCw } from "lucide-react";
 import { getScanHistory, type ScanHistoryItem, type ScanVerdict } from "@/lib/user-api";
 import { parseUTC } from "@/lib/utils";
 
@@ -293,6 +293,14 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
     loadPage(1);
   }, [loadPage]);
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') loadPage(1);
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [loadPage]);
+
   // ---- Derived stats ----
   const phishingCount = scans.filter((s) => isPhishing(s.verdict)).length;
   const safeCount = scans.filter((s) => isSafe(s.verdict)).length;
@@ -326,11 +334,21 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
     </AnimatePresence>
     <div className="glass-panel rounded-xl p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <History size={18} className="text-accent-cyan" />
-        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-          Scan History
-        </h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <History size={18} className="text-accent-cyan" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+            Scan History
+          </h2>
+        </div>
+        <button
+          onClick={() => loadPage(1)}
+          disabled={loading}
+          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Refresh scan history"
+        >
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+        </button>
       </div>
 
       {/* Error banner */}

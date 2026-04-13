@@ -11,7 +11,7 @@ on:
       - main
 
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
 
     services:
@@ -25,7 +25,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      # PostgreSQL service container
       postgres:
         image: postgres:15-alpine
         env:
@@ -60,7 +59,7 @@ jobs:
         PGPASSWORD: phishing_password
       run: psql -h localhost -U phishing_user phishing_test_db -c "CREATE DATABASE phishing_test_db_migrations;"
 
-    - name: Run tests
+    - name: Run backend tests
       env:
         DATABASE_URL: postgresql://phishing_user:phishing_password@localhost:5432/phishing_test_db
         MIGRATION_DATABASE_URL: postgresql://phishing_user:phishing_password@localhost:5432/phishing_test_db_migrations
@@ -69,6 +68,12 @@ jobs:
         JWT_SECRET_KEY: test-jwt-secret-for-ci
       run: |
         python -m pytest tests/ -v --tb=short
+
+  test-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -85,8 +90,13 @@ jobs:
       working-directory: frontend
       run: npm test
 
+  notify:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    if: failure()
+
+    steps:
     - name: Send failure notification
-      if: failure()
       continue-on-error: true
       uses: dawidd6/action-send-mail@v3
       with:

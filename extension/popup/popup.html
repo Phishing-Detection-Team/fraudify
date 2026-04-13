@@ -34,7 +34,10 @@
     <div class="divider"></div>
     <p class="hint">Sentra automatically scans emails when you open them in Gmail or Outlook.</p>
     <div id="scan-history-section" class="section">
-      <div class="section-title">Recent Scans</div>
+      <div class="section-header">
+        <span class="section-title">Recent Scans</span>
+        <button id="btnRefreshHistory" class="btn-icon" title="Refresh">&#x21BB;</button>
+      </div>
       <ul id="scan-history-list" class="scan-history-list"></ul>
       <div id="scan-history-empty" class="empty-state" style="display:none">No scans yet</div>
       <a href="#" id="view-all-link" class="view-all-link">View all in dashboard &rarr;</a>
