@@ -14,9 +14,16 @@ import {
   ChevronRight,
   Loader2,
   User,
+  RefreshCw,
 } from "lucide-react";
 import { getAdminRecentScans, type AdminScanItem, type AdminScansPage } from "@/lib/admin-api";
 import { parseUTC } from "@/lib/utils";
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const PER_PAGE = 10;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -202,9 +209,8 @@ export default function RecentScansTable({ initialData }: Props) {
   const [page, setPage] = useState(initialData.page);
   const [pages, setPages] = useState(initialData.pages);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [selected, setSelected] = useState<AdminScanItem | null>(null);
-
-  const PER_PAGE = 10;
 
   const fetchPage = useCallback(
     async (p: number) => {
@@ -216,8 +222,9 @@ export default function RecentScansTable({ initialData }: Props) {
         setTotal(data.total);
         setPage(data.page);
         setPages(data.pages);
+        setFetchError(null);
       } catch {
-        setScans([]);
+        setFetchError("Failed to load scans. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -246,7 +253,22 @@ export default function RecentScansTable({ initialData }: Props) {
               </p>
             )}
           </div>
+          <button
+            onClick={() => fetchPage(1)}
+            disabled={loading}
+            className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground disabled:opacity-40"
+            title="Refresh scans"
+          >
+            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+          </button>
         </div>
+
+        {/* Error banner */}
+        {fetchError && (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {fetchError}
+          </div>
+        )}
 
         {/* Table */}
         {loading ? (

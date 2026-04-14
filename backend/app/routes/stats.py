@@ -17,6 +17,7 @@ from sqlalchemy import func, case
 from app.models import db, Round, Email, API as APICall
 from app.models.user_scan import UserScan
 from app.utils import require_role
+from app import limiter
 
 stats_bp = Blueprint('stats', __name__)
 
@@ -40,6 +41,7 @@ _AGENTS = [
 
 @stats_bp.route('/stats', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def get_stats():
     """
     Return aggregated statistics for the admin dashboard.
@@ -74,7 +76,7 @@ def get_stats():
         'success': True,
         'data': {
             'total_api_cost': round(float(total_api_cost), 6),
-            'active_agents': 2,
+            'active_agents': len(_AGENTS),
             'total_emails_scanned': int(round_emails_scanned) + int(user_scans_total),
             'threats_detected': int(round_threats_detected) + int(user_threats_detected),
         },
@@ -83,6 +85,7 @@ def get_stats():
 
 @stats_bp.route('/stats/me', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def get_my_stats():
     """
     Return scan statistics scoped to the currently authenticated user.
@@ -120,6 +123,7 @@ def get_my_stats():
 
 @stats_bp.route('/stats/costs', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def get_cost_breakdown():
     """
     Return API cost breakdown grouped by agent type and model.
@@ -156,6 +160,7 @@ def get_cost_breakdown():
 
 @stats_bp.route('/agents', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def get_agents():
     """
     Return the two known agents enriched with live API-call stats.
@@ -220,6 +225,7 @@ _CONFIDENCE_BUCKETS = [
 
 @stats_bp.route('/stats/intelligence', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def get_intelligence():
     """
     Return threat intelligence data for the admin panel.
@@ -359,6 +365,7 @@ def get_intelligence():
 
 @stats_bp.route('/stats/cache', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def cache_stats():
     """
     Return scan result cache statistics.

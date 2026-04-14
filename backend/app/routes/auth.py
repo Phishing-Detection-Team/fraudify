@@ -2,6 +2,7 @@
 
 import hashlib
 import secrets
+import re
 from datetime import datetime, timezone, timedelta
 
 import redis as redis_lib
@@ -17,7 +18,7 @@ from flask_mail import Message
 from marshmallow import ValidationError
 
 from app import mail, limiter
-from app.models import db, User, Role, InviteCode
+from app.models import db, User, Role, InviteCode, EmailVerification
 from app.schemas.auth import SignupSchema, LoginSchema, InviteCodeSchema
 
 auth_bp = Blueprint('auth', __name__)
@@ -34,11 +35,11 @@ _invite_schema = InviteCodeSchema()
 def _blacklist_token(jti: str, expires_delta: timedelta) -> None:
     """Store jti in Redis with TTL equal to the token's remaining lifetime."""
     try:
-        redis_url = current_app.config.get('REDIS_URL', 'redis://localhost:6379/0')
+        redis_url: str = current_app.config.get('REDIS_URL', 'redis://localhost:6379/0')
         r = redis_lib.from_url(redis_url)
         r.setex(f'jwt_blacklist:{jti}', int(expires_delta.total_seconds()), '1')
-    except Exception:
-        pass  # Non-fatal; token will expire naturally
+    except Exception as exc:
+        current_app.logger.warning('JWT blacklist write failed: %s', exc)
 
 
 def _require_role(*role_names):
@@ -50,35 +51,181 @@ def _require_role(*role_names):
     return None
 
 
+def _generate_username(email: str) -> str:  # noqa: D401
+    """
+    Auto-generate a username from the email local-part.
+    Strips non-alphanumeric/underscore chars, truncates to 25 chars,
+    appends a 4-digit random suffix. Retries up to 5 times on collision.
+    """
+    local = email.split('@')[0]
+    base = re.sub(r'[^A-Za-z0-9_]', '', local)[:25] or 'user'
+    for _ in range(5):
+        candidate = f'{base}{secrets.randbelow(9000) + 1000}'
+        if not User.query.filter_by(username=candidate).first():
+            return candidate
+    # Fallback: keep trying with wider range
+    return f'{base}{secrets.randbelow(90000) + 10000}'
+
+
+def _send_verification(user: User) -> bool:
+    """Create an EmailVerification record and dispatch the Resend email.
+
+    Returns True if the email was dispatched successfully, False otherwise.
+    """
+    from app.services.email_verification_service import send_verification_email
+
+    ev = EmailVerification.generate(user.id)
+    db.session.add(ev)
+    db.session.flush()  # get ev.token/code before commit
+
+    sent = send_verification_email(
+        to_email=user.email,
+        token=ev.token,
+        code=ev.code,
+        frontend_url=current_app.config.get('FRONTEND_URL', 'http://localhost:3000'),
+        from_email=current_app.config.get('RESEND_FROM_EMAIL', 'noreply@example.com'),
+        api_key=current_app.config.get('RESEND_API_KEY', ''),
+    )
+    if not sent:
+        current_app.logger.warning('Verification email failed to send for user %s', user.id)
+    return sent
+
+
 # ---------------------------------------------------------------------------
 # POST /api/auth/signup
 # ---------------------------------------------------------------------------
 
 @auth_bp.route('/auth/signup', methods=['POST'])
-@limiter.limit("10 per minute")
+@limiter.limit("5 per minute")
 def signup():
-    """Self-registration. Assigns 'user' role automatically."""
+    """Self-registration. Creates user with email_verified=False and sends verification email."""
     try:
         data = _signup_schema.load(request.get_json(silent=True) or {})
     except ValidationError as e:
         return jsonify({'success': False, 'error': 'Validation failed', 'details': e.messages}), 400
 
-    if User.query.filter_by(email=data['email']).first():
+    existing = User.query.filter_by(email=data['email']).first()
+    if existing:
+        if not existing.email_verified:
+            return jsonify({
+                'success': False,
+                'error': 'Email already registered',
+                'message': 'An account with this email exists but is not yet verified. Please check your inbox.',
+            }), 409
         return jsonify({'success': False, 'error': 'Email already registered'}), 409
-    if User.query.filter_by(username=data['username']).first():
-        return jsonify({'success': False, 'error': 'Username already taken'}), 409
+
+    explicit_username = data.get('username')
+    username = explicit_username or _generate_username(data['email'])
+    if User.query.filter_by(username=username).first():
+        if explicit_username:
+            return jsonify({'success': False, 'error': 'Username already taken'}), 409
+        username = _generate_username(data['email'])
 
     user_role = Role.query.filter_by(name='user').first()
     if not user_role:
         return jsonify({'success': False, 'error': 'Server misconfiguration: roles not seeded'}), 500
 
-    user = User(email=data['email'], username=data['username'])
+    user = User(email=data['email'], username=username)
     user.set_password(data['password'])
     user.roles.append(user_role)
     db.session.add(user)
+    db.session.flush()
+
+    _send_verification(user)
     db.session.commit()
 
-    return jsonify({'success': True, 'user': user.to_dict()}), 201
+    return jsonify({'success': True, 'user_id': user.id, 'email': user.email}), 201
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/send-verification
+# ---------------------------------------------------------------------------
+
+@auth_bp.route('/auth/send-verification', methods=['POST'])
+def send_verification():
+    """(Re)send a verification email to an unverified user."""
+    body = request.get_json(silent=True) or {}
+    email = (body.get('email') or '').strip()
+    if not email:
+        return jsonify({'success': False, 'error': 'email is required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        # Don't reveal whether the email exists
+        return jsonify({'success': True}), 200
+
+    if user.email_verified:
+        return jsonify({'success': False, 'error': 'Email already verified'}), 400
+
+    # Prevent email bombing: reject if an unexpired code already exists
+    existing = (
+        EmailVerification.query
+        .filter_by(user_id=user.id, is_used=False)
+        .filter(EmailVerification.expires_at > datetime.now(timezone.utc))
+        .first()
+    )
+    if existing:
+        return jsonify({'success': False, 'error': 'A verification code was recently sent. Please wait before requesting another.'}), 429
+
+    _send_verification(user)
+    db.session.commit()
+
+    return jsonify({'success': True}), 200
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/verify-email
+# ---------------------------------------------------------------------------
+
+@auth_bp.route('/auth/verify-email', methods=['POST'])
+def verify_email():
+    """
+    Verify an email address.
+    Accepts either:
+      - {email, code}  — 6-digit code from email
+      - {token}        — URL token from the link in the email
+    On success, returns JWT access + refresh tokens.
+    """
+    body = request.get_json(silent=True) or {}
+    token = (body.get('token') or '').strip()
+    code = (body.get('code') or '').strip()
+    email = (body.get('email') or '').strip()
+
+    ev = None
+
+    if token:
+        ev = EmailVerification.query.filter_by(token=token).first()
+    elif code and email:
+        user = User.query.filter_by(email=email).first()
+        if user:
+            ev = (
+                EmailVerification.query
+                .filter_by(user_id=user.id, code=code)
+                .order_by(EmailVerification.created_at.desc())
+                .first()
+            )
+
+    if not ev or not ev.is_valid():
+        return jsonify({'success': False, 'error': 'Invalid or expired code'}), 400
+
+    user = db.session.get(User, ev.user_id)
+    if not user:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+
+    ev.is_used = True
+    ev.used_at = datetime.now(timezone.utc)
+    user.email_verified = True
+    db.session.commit()
+
+    access_token = create_access_token(identity=str(user.id))
+    refresh_token = create_refresh_token(identity=str(user.id))
+
+    return jsonify({
+        'success': True,
+        'access_token': access_token,
+        'refresh_token': refresh_token,
+        'user': user.to_dict(),
+    }), 200
 
 
 # ---------------------------------------------------------------------------
@@ -86,7 +233,8 @@ def signup():
 # ---------------------------------------------------------------------------
 
 @auth_bp.route('/auth/login', methods=['POST'])
-@limiter.limit("10 per minute")
+@limiter.limit("5 per minute")
+@limiter.limit("5 per minute", key_func=lambda: request.get_json(silent=True).get('email', 'unknown') if request.get_json(silent=True) else 'unknown')
 def login():
     """Return JWT access + refresh token pair on valid credentials."""
     try:
@@ -100,6 +248,13 @@ def login():
 
     if not user.is_active:
         return jsonify({'success': False, 'error': 'Account is deactivated'}), 403
+
+    if not user.email_verified:
+        return jsonify({
+            'success': False,
+            'error': 'Email not verified',
+            'message': 'Please verify your email address before logging in.',
+        }), 403
 
     access_token = create_access_token(identity=str(user.id))
     refresh_token = create_refresh_token(identity=str(user.id))
@@ -189,7 +344,7 @@ def list_invites():
     if forbidden:
         return forbidden
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     invites = InviteCode.query.filter(
         InviteCode.used_by.is_(None),
         InviteCode.expires_at > now,
@@ -233,7 +388,7 @@ def revoke_invite(code: str):
 # ---------------------------------------------------------------------------
 
 @auth_bp.route('/auth/admin/signup', methods=['POST'])
-@limiter.limit("10 per minute")
+@limiter.limit("5 per minute")
 def admin_signup():
     """Register a new user using an invite code. Assigns the role from the invite."""
     body = request.get_json(silent=True) or {}
@@ -255,19 +410,21 @@ def admin_signup():
 
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'success': False, 'error': 'Email already registered'}), 409
-    if User.query.filter_by(username=data['username']).first():
-        return jsonify({'success': False, 'error': 'Username already taken'}), 409
 
-    user = User(email=data['email'], username=data['username'])
+    username = data.get('username') or _generate_username(data['email'])
+    if User.query.filter_by(username=username).first():
+        username = _generate_username(data['email'])
+
+    user = User(email=data['email'], username=username)
     user.set_password(data['password'])
     user.roles.append(invite.role)
+    # Admin-invited users are considered verified
+    user.email_verified = True
     db.session.add(user)
 
-    # Mark invite as used
-    invite.used_by = user.id if user.id else None  # will be set after flush
     db.session.flush()
     invite.used_by = user.id
-    invite.used_at = datetime.utcnow()
+    invite.used_at = datetime.now(timezone.utc)
 
     db.session.commit()
 
@@ -354,7 +511,7 @@ def forgot_password():
         expiry_hours = current_app.config.get('PASSWORD_RESET_EXPIRY_HOURS', 1)
 
         user.password_reset_token = token_hash
-        user.password_reset_expires = datetime.utcnow() + timedelta(hours=expiry_hours)
+        user.password_reset_expires = datetime.now(timezone.utc) + timedelta(hours=expiry_hours)
         db.session.commit()
 
         frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:3000')
@@ -410,7 +567,7 @@ def reset_password():
         return jsonify({'success': False, 'error': 'token and password are required'}), 400
 
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     user = User.query.filter_by(password_reset_token=token_hash).first()
     if not user or not user.password_reset_expires or user.password_reset_expires < now:

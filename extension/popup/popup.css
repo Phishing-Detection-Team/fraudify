@@ -83,7 +83,10 @@ body {
 }
 
 .section { margin-bottom: 4px; }
-.section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 6px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; }
+.btn-icon { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; }
+.btn-icon:hover { color: #22d3ee; }
 
 .scan-history-list { list-style: none; padding: 0; margin: 0 0 8px 0; }
 .scan-history-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
@@ -94,3 +97,4 @@ body {
 .view-all-link { font-size: 11px; color: var(--accent-cyan); text-decoration: none; display: block; text-align: right; }
 .view-all-link:hover { text-decoration: underline; }
 .empty-state { font-size: 11px; color: var(--muted); text-align: center; padding: 8px 0; }
+

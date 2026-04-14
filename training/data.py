@@ -25,7 +25,6 @@ LABEL_LEGITIMATE = 0
 LABEL_PHISHING = 1
 
 
-
 # ─── System prompt ────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = (
@@ -33,6 +32,8 @@ SYSTEM_PROMPT = (
     "Analyze the given email and respond with a JSON object containing: "
     '"verdict" (SCAM or LEGITIMATE), "confidence" (0.0-1.0), '
     '"scam_score" (0-100), and "reasoning" (brief explanation).'
+    'Be balanced: only flag clear phishing indicators. Legitimate business'
+    'emails must not be flagged without strong, concrete evidence.'
 )
 
 

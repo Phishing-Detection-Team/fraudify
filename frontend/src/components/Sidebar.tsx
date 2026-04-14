@@ -11,11 +11,11 @@ import {
   LayoutDashboard,
   ShieldAlert,
   Activity,
-  CreditCard,
   Settings,
   LogOut,
   Users,
   BrainCircuit,
+  MessageSquare,
   ScanText,
   X,
 } from "lucide-react";
@@ -43,7 +43,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const handleSignOut = async () => {
     localStorage.removeItem("sentra-role");
-    localStorage.removeItem(config.STORAGE_KEYS.IS_DEMO);
+    
     await signOut({ redirect: false });
     router.push(config.ROUTES.LOGIN);
   };
@@ -55,13 +55,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { name: "Live Feed", href: `${basePath}/feed`, icon: Activity },
         { name: "Users", href: `${basePath}/team`, icon: Users },
         { name: "Training", href: `${basePath}/training`, icon: BrainCircuit },
+        { name: "Feedback", href: `${basePath}/feedback`, icon: MessageSquare },
         { name: "Settings", href: `${basePath}/settings`, icon: Settings },
       ]
     : [
         { name: "Dashboard", href: basePath, icon: LayoutDashboard },
         { name: "Scan Email", href: `${basePath}/scan`, icon: ScanText },
         { name: "Training", href: `${basePath}/training`, icon: BrainCircuit },
-        { name: "Credits", href: `${basePath}/credits`, icon: CreditCard },
+        { name: "Feedback", href: `${basePath}/feedback`, icon: MessageSquare },
         { name: "Settings", href: `${basePath}/settings`, icon: Settings },
       ];
 
@@ -91,7 +92,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         
         <div className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
           {navLinks.map((link) => {
-          const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== basePath);
+          const isActive = pathname === link.href || (pathname.startsWith(link.href + '/') && link.href !== basePath);
           const Icon = link.icon;
           
           return (
@@ -117,7 +118,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="p-4 border-t border-border/50 mt-auto">
         <div className="flex items-center gap-3 px-3 py-3 rounded-lg mb-2 bg-background/50 border border-border/30">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center text-white font-bold text-xs">
-            {userName[0]}
+            {userName.charAt(0) || "?"}
           </div>
           <div className="flex flex-col flex-1 overflow-hidden">
             <span className="text-sm font-medium truncate">{userName}</span>

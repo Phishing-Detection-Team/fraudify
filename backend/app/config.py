@@ -96,6 +96,10 @@ class BaseConfig:
     # Password reset token expiry
     PASSWORD_RESET_EXPIRY_HOURS = int(os.environ.get('PASSWORD_RESET_EXPIRY_HOURS', 1))
 
+    # Resend (transactional email)
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+    RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'noreply@example.com')
+
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration."""
@@ -115,7 +119,7 @@ class TestingConfig(BaseConfig):
 
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
+        'TEST_DATABASE_URL',
         'sqlite:///:memory:'
     )
     SQLALCHEMY_ECHO = False
@@ -176,5 +180,10 @@ def get_config(env=None):
     if selected == ProductionConfig:
         if not os.environ.get('SECRET_KEY') or os.environ.get('SECRET_KEY') == 'dev-secret-key-change-in-production':
             raise ValueError('SECRET_KEY must be set in .env for production')
+        if not os.environ.get('JWT_SECRET_KEY'):
+            raise ValueError(
+                'JWT_SECRET_KEY must be set independently in production. '
+                'Do not share it with SECRET_KEY.'
+            )
 
     return selected

@@ -8,8 +8,7 @@ export const config = {
       FORGOT_PASSWORD: '/api/auth/forgot-password',
       RESET_PASSWORD: '/api/auth/reset-password',
       VERIFY_EMAIL: '/api/auth/verify-email',
-      AUTH_URL: '/api/auth/url',
-      GRANT_EMAIL_ACCESS: '/api/auth/grant-email-access',
+      SEND_VERIFICATION: '/api/auth/send-verification',
     }
   },
   ROUTES: {
@@ -23,16 +22,6 @@ export const config = {
   },
   STORAGE_KEYS: {
     PENDING_SIGNUP: 'sentra-pending-signup',
-    IS_DEMO: 'is-demo',
+    
   },
-  DEMO_ACCOUNTS: {
-    ADMIN: {
-      email: process.env.DEMO_ADMIN_EMAIL ?? '',
-      password: process.env.DEMO_ADMIN_PASSWORD ?? '',
-    },
-    USER: {
-      email: process.env.DEMO_USER_EMAIL ?? '',
-      password: process.env.DEMO_USER_PASSWORD ?? '',
-    },
-  }
 };

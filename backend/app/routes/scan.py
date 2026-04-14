@@ -19,15 +19,16 @@ the primary code path for new scans.
 from celery.result import AsyncResult
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.orm import joinedload
 
 from app import limiter
 from app.cache import get_scan_cache, set_scan_cache
 from app.models import db, User
 from app.models.user_scan import UserScan
 from app.utils import require_role
+from app.utils.prompts import build_safe_email_prompt
 from app.tasks.scan_tasks import (
     _run_detector_sync,
-    _parse_json_output,
     _normalize_verdict,
 )
 
@@ -81,6 +82,23 @@ def scan_email():
     # Cache lookup — return immediately if we've seen this exact content before
     cached = get_scan_cache(subject, body_text)
     if cached:
+        # Still persist to UserScan so the hit appears in history and threat intelligence
+        try:
+            scan_record = UserScan(
+                user_id=user.id,
+                subject=subject or None,
+                body_snippet=(body_text[:200] if body_text else None),
+                full_body=body_text,
+                verdict=cached.get('verdict', 'suspicious'),
+                confidence=cached.get('confidence'),
+                scam_score=cached.get('scam_score'),
+                reasoning=cached.get('reasoning'),
+            )
+            db.session.add(scan_record)
+            db.session.commit()
+        except Exception:
+            current_app.logger.exception('Failed to persist UserScan for user %s', user.id)
+            db.session.rollback()
         return jsonify({
             'success': True,
             'data': {**cached, 'cached': True, 'status': 'complete'},
@@ -90,16 +108,18 @@ def scan_email():
     # This guarantees the extension always receives `status: 'complete'` in a
     # single response, removing the need for status polling and any dependency
     # on the Celery worker being alive.
-    email_content = f"Subject: {subject}\n\n{body_text}" if subject else body_text
+    
+    email_content = build_safe_email_prompt(subject, body_text)
+
     try:
         parsed = _run_detector_sync(email_content)
     except Exception:
+        current_app.logger.exception("Detection failed")
         return jsonify({'success': False, 'error': 'Detection service unavailable. Please try again.'}), 503
 
     if not parsed:
         return jsonify({'success': False, 'error': 'Detector returned invalid response'}), 500
 
-    verdict_raw = parsed.get('verdict', 'suspicious')
     confidence = float(parsed.get('confidence', 0.0))
     scam_score = float(parsed.get('scam_score', 0.0)) if parsed.get('scam_score') is not None else 0.0
     reasoning = str(parsed.get('reasoning', ''))
@@ -110,7 +130,7 @@ def scan_email():
 
     result = {
         'status': 'complete',
-        'verdict': _normalize_verdict(verdict_raw),
+        'verdict': _normalize_verdict(parsed.get('verdict', 'suspicious')),
         'confidence': confidence,
         'scam_score': scam_score,
         'reasoning': reasoning,
@@ -135,6 +155,7 @@ def scan_email():
         db.session.add(scan_record)
         db.session.commit()
     except Exception:
+        current_app.logger.exception('Failed to persist UserScan for user %s', user.id)
         db.session.rollback()
         # DB write failure must not fail the scan response
 
@@ -169,15 +190,17 @@ def get_scan_status(job_id: str):
             return jsonify({'success': True, 'data': result.result}), 200
 
         # FAILURE or other terminal state
+        current_app.logger.error('Scan task %s failed: %s', job_id, result.info)
         return jsonify({
             'success': True,
             'data': {
                 'status': 'failed',
-                'error': str(result.info),
+                'error': 'Scan task failed. Please try again.',
             },
         }), 200
     except Exception as exc:
-        return jsonify({'success': True, 'data': {'status': 'pending', 'error': str(exc)}}), 200
+        current_app.logger.error('Error fetching scan status for %s: %s', job_id, exc)
+        return jsonify({'success': True, 'data': {'status': 'pending'}}), 200
 
 
 # ---------------------------------------------------------------------------
@@ -186,6 +209,7 @@ def get_scan_status(job_id: str):
 
 @scan_bp.route('/scan/history', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def scan_history():
     """
     Retrieve the current user's scan history (paginated).
@@ -209,9 +233,11 @@ def scan_history():
         .paginate(page=page, per_page=per_page, error_out=False)
     )
 
+    scans = [s.to_dict(include_full_body=True) for s in pagination.items]
+
     return jsonify({
         'success': True,
-        'scans': [s.to_dict() for s in pagination.items],
+        'scans': scans,
         'total': pagination.total,
         'page': page,
         'per_page': per_page,
@@ -225,6 +251,7 @@ def scan_history():
 
 @scan_bp.route('/scan/admin/recent', methods=['GET'])
 @jwt_required()
+@limiter.exempt
 def admin_recent_scans():
     """
     Return a paginated list of all user-submitted scans for admins.
@@ -248,6 +275,7 @@ def admin_recent_scans():
 
     pagination = (
         UserScan.query
+        .options(joinedload(UserScan.user))
         .order_by(UserScan.scanned_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )

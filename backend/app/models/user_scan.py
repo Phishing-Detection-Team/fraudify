@@ -1,6 +1,6 @@
 """UserScan model — stores individual email scans performed by users."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from . import db
 
 
@@ -27,12 +27,12 @@ class UserScan(db.Model):
     confidence = db.Column(db.Float, nullable=True)
     scam_score = db.Column(db.Float, nullable=True)
     reasoning = db.Column(db.Text, nullable=True)
-    scanned_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    scanned_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     user = db.relationship('User', backref=db.backref('scans', lazy='dynamic'))
 
-    def to_dict(self) -> dict:
-        return {
+    def to_dict(self, include_full_body: bool = False) -> dict:
+        result = {
             'id': self.id,
             'user_id': self.user_id,
             'subject': self.subject,
@@ -43,6 +43,9 @@ class UserScan(db.Model):
             'reasoning': self.reasoning,
             'scanned_at': self.scanned_at.isoformat() if self.scanned_at else None,
         }
+        if include_full_body:
+            result['full_body'] = self.full_body
+        return result
 
     def __repr__(self):
         return f'<UserScan {self.id} user={self.user_id} verdict={self.verdict}>'

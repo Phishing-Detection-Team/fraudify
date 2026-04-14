@@ -1,7 +1,12 @@
 """Flask application factory and initialization."""
 
+import logging
 from celery import Celery
 from flask import Flask
+
+# Forward INFO logs from the openai-agentic module to Flask's logger
+logging.getLogger("entities.detector_agent_entity").setLevel(logging.INFO)
+logging.getLogger("services.detector_agent_service").setLevel(logging.INFO)
 from flask_cors import CORS
 from flask_mail import Mail
 from flask_migrate import Migrate
@@ -103,8 +108,11 @@ def create_app(config_name=None):
         from .models.invite_code import InviteCode  # noqa: F401
         from .models.training_data_log import TrainingDataLog  # noqa: F401
         from .models.extension_instance import ExtensionInstance  # noqa: F401
+        from .models.email_verification import EmailVerification  # noqa: F401
         from .models.user_scan import UserScan  # noqa: F401
+        from .models.feedback import Feedback  # noqa: F401
 
+    _register_socket_events(app)
     _register_blueprints(app)
 
     # Register CLI commands
@@ -127,10 +135,38 @@ def _register_jwt_callbacks(app):
             redis_url = app.config.get('REDIS_URL', 'redis://localhost:6379/0')
             r = redis_lib.from_url(redis_url)
             return r.exists(f'jwt_blacklist:{jti}') == 1
-        except Exception:
-            # If Redis is unavailable, don't block the request
+        except Exception as e:
+            app.logger.critical('JWT blacklist check failed: %s', e)
+            # Fail closed: block access if we cannot verify the blacklist status.
+            return True
+
+
+def _register_socket_events(app):
+    """Authenticate WebSocket connections and join user-specific rooms."""
+    from flask import request
+    from flask_socketio import join_room, disconnect
+    from flask_jwt_extended import decode_token
+
+    @socketio.on('connect')
+    def handle_connect(auth):
+        token = auth.get('token') if auth else None
+        if not token:
+            # Check query string if not in auth payload
+            token = request.args.get('token')
+            
+        if not token:
+            disconnect()
             return False
 
+        try:
+            # Decode the token
+            decoded = decode_token(token)
+            user_id = str(decoded['sub'])
+            # Join a private room with the user's ID
+            join_room(user_id)
+        except Exception:
+            disconnect()
+            return False
 
 def _register_blueprints(app):
     """Register all API blueprints."""
@@ -144,6 +180,7 @@ def _register_blueprints(app):
     from .routes.extension import extension_bp
     from .routes.users import users_bp
     from .routes.scan import scan_bp
+    from .routes.feedback import feedback_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(rounds_bp, url_prefix='/api')
@@ -155,3 +192,4 @@ def _register_blueprints(app):
     app.register_blueprint(extension_bp, url_prefix='/api')
     app.register_blueprint(users_bp, url_prefix='/api')
     app.register_blueprint(scan_bp, url_prefix='/api')
+    app.register_blueprint(feedback_bp, url_prefix='/api')

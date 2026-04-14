@@ -25,8 +25,20 @@ export const getUserStats = async (token: string): Promise<UserStats> => {
     totalEmailsScanned: d.total_emails_scanned ?? 0,
     phishingDetected:   d.threats_detected     ?? 0,
     markedSafe:         d.marked_safe          ?? 0,
-    creditsRemaining:   1000,
+    creditsRemaining:   d.credits_remaining    ?? 0,
   };
+};
+
+export const submitFeedback = async (token: string, data: { subject?: string; description: string }): Promise<void> => {
+  const res = await apiFetch(`${API_URL}/api/feedback`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const json = await res.json();
+    throw new Error(json?.message || json?.error || "Failed to submit feedback");
+  }
 };
 
 export const getUserRounds = async (token: string) => {
@@ -86,6 +98,7 @@ export interface ScanHistoryItem {
   user_id: number;
   subject: string | null;
   body_snippet: string | null;
+  full_body: string | null;
   verdict: ScanVerdict;
   confidence: number | null;
   scam_score: number | null;
