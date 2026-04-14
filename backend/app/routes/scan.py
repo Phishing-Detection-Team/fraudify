@@ -130,7 +130,7 @@ def scan_email():
 
     result = {
         'status': 'complete',
-        'verdict': _normalize_verdict(parsed.get('verdict', 'suspicious')),
+        'verdict': _normalize_verdict(parsed.get('verdict', '')),
         'confidence': confidence,
         'scam_score': scam_score,
         'reasoning': reasoning,

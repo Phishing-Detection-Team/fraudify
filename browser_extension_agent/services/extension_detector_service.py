@@ -180,7 +180,7 @@ class ExtensionDetectorService(BaseService):
                 {"role": "user",   "content": wrap_email_content(email_content.strip())},
             ],
             max_tokens=-1,   # unlimited — generate until stop token, bounded by num_ctx
-            temperature=0.7,
+            temperature=0.3,
         )
         logger.info(
             "[Sentra/Extension] GGUF inference done in %.1fs", time.perf_counter() - t0
