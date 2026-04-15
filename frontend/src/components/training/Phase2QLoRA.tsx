@@ -651,7 +651,7 @@ export function Phase2QLoRA({ autoPlay, wasCompleted, onComplete }: PhaseProps) 
               <br />
               model, tokenizer = <span className="text-accent-purple">FastLanguageModel</span>.from_pretrained(<br />
               &nbsp;&nbsp;model_name=<span className="text-accent-cyan">&quot;Qwen/Qwen2.5-1.5B-Instruct&quot;</span>,<br />
-              &nbsp;&nbsp;max_seq_length=<span className="text-accent-green">1024</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-muted-foreground/50"># SFT context window</span><br />
+              &nbsp;&nbsp;max_seq_length=<span className="text-accent-green">2048</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-muted-foreground/50"># SFT context window</span><br />
               &nbsp;&nbsp;load_in_4bit=<span className="text-accent-green">True</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-muted-foreground/50"># NF4 QLoRA</span><br />
               &nbsp;&nbsp;dtype=<span className="text-accent-cyan">None</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-muted-foreground/50"># auto → bfloat16</span><br />
               )<br />
