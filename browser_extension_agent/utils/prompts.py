@@ -29,9 +29,8 @@ EXTENSION_DETECTOR_SYSTEM = (
     'Analyze the given email and output ONLY a valid JSON object with these exact fields: '
     '"verdict" (one of: SCAM, LIKELY SCAM, SUSPICIOUS, LIKELY LEGITIMATE, or LEGITIMATE), '
     '"confidence" (0.0-1.0), '
-    '"scam_score" (0-100), and "reasoning" (a thorough explanation of your verdict: '
-    'cite specific phrases or elements from the email, describe any red flags or trust signals found, '
-    'and explain why the email is or is not a threat). '
+    '"scam_score" (0-100), and "reasoning" (1-2 sentences only, under 60 words: '
+    'state why the email is or is not a threat and cite one specific signal from the email). '
     'Verdict guide: '
     'SCAM = explicit credential harvesting, fake login redirects, or impersonated alerts demanding immediate sensitive action. '
     'LIKELY SCAM = strong phishing indicators but missing one definitive element. '
@@ -43,7 +42,7 @@ EXTENSION_DETECTOR_SYSTEM = (
     'Use the full range — not every email scores 8 or 88. '
     'Promotional sales, newsletters, order confirmations, account statements, '
     'and marketing emails are LEGITIMATE. '
-    'Your reasoning MUST quote or reference specific phrases from the email.'
+    'Be balanced: only flag clear phishing indicators.'
 )
 
 
