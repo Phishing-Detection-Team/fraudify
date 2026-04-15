@@ -23,7 +23,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload
 
 from app import limiter
-from app.cache import get_scan_cache, set_scan_cache
+from app.cache import get_scan_cache, set_scan_cache, get_vt_quota
 from app.models import db, User
 from app.models.user_scan import UserScan
 from app.utils import require_role
@@ -461,3 +461,19 @@ def scan_manual_url():
         db.session.rollback()
 
     return jsonify({'success': True, 'data': result}), 200
+
+@scan_bp.route('/scan/quota', methods=['GET'])
+@jwt_required()
+def get_user_quota():
+    """
+    Get the VT detection quota for the current user and the global system.
+    """
+    user_id = get_jwt_identity()
+
+    # Dynamic calculation for VT quota limits based on active user count
+    total_users = max(1, User.query.filter_by(is_active=True).count())
+    vt_max_scans = max(1, 500 // total_users)
+
+    quota = get_vt_quota(user_id, vt_max_scans)
+    
+    return jsonify({'success': True, 'data': quota}), 200
