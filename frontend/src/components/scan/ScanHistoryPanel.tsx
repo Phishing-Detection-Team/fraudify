@@ -9,6 +9,7 @@ import {
   YAxis,
   Tooltip,
   Legend,
+  CartesianGrid,
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { History, Loader2, Mail, Brain, X, RefreshCw } from "lucide-react";
@@ -372,24 +373,51 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
       {chartData.length > 0 && (
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
-              <Tooltip />
-              <Legend />
+            <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.4)" vertical={false} />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} 
+                axisLine={false} 
+                tickLine={false} 
+                dy={10}
+              />
+              <YAxis 
+                allowDecimals={false} 
+                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} 
+                axisLine={false} 
+                tickLine={false} 
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  borderColor: "hsl(var(--border))",
+                  borderRadius: "8px",
+                  color: "hsl(var(--foreground))",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
+                }}
+                itemStyle={{ color: "hsl(var(--foreground))" }}
+                cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
+              />
+              <Legend 
+                wrapperStyle={{ fontSize: 11, paddingTop: '10px' }} 
+                iconType="circle"
+              />
               <Line
                 type="monotone"
                 dataKey="phishing"
                 stroke="#f87171"
                 dot={false}
-                strokeWidth={2}
+                strokeWidth={2.5}
+                activeDot={{ r: 5, strokeWidth: 0, fill: "#f87171" }}
               />
               <Line
                 type="monotone"
                 dataKey="safe"
-                stroke="#4ade80"
+                stroke="#34d399"
                 dot={false}
-                strokeWidth={2}
+                strokeWidth={2.5}
+                activeDot={{ r: 5, strokeWidth: 0, fill: "#34d399" }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -412,7 +440,7 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
               <div
                 data-testid={`scan-row-${scan.id}`}
                 onClick={() => openModal(scan)}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 cursor-pointer transition-colors"
+                className="flex items-center gap-3 px-4 py-3 bg-muted/5 hover:bg-accent-cyan/10 hover:border-l-accent-cyan cursor-pointer transition-all border-l-2 border-l-transparent duration-200"
               >
                 {/* Subject */}
                 <span
