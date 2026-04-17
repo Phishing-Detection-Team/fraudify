@@ -27,6 +27,7 @@ const teamMembers: TeamMember[] = [
   {
     name: "Hoang Nhat Duy Le",
     role: "Co-Founder",
+    photo: "/hoang.png",
     affiliation: "Student at University",
     bio: "Innovative problem solver with a strong background in backend systems and real-time processing architectures.",
     contributions: [
@@ -36,9 +37,9 @@ const teamMembers: TeamMember[] = [
     ],
     skills: ["FastAPI", "Redis", "Docker", "PostgreSQL", "Cloud Config"],
     links: {
-      portfolio: "#",
-      linkedin: "https://linkedin.com",
-      github: "https://github.com"
+      portfolio: "https://hoangnhatduyle.github.io/portfolio/",
+      linkedin: "https://www.linkedin.com/in/hoangnhatduyle/",
+      github: "https://github.com/hoangnhatduyle"
     }
   },
   {

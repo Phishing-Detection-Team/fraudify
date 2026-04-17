@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import Image from "next/image";
 import { Link2, Github, Linkedin, X, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 export interface TeamMember {
   name: string;
   role: string;
+  photo?: string;
   affiliation?: string;
   bio?: string;
   contributions?: (string | React.ReactNode)[];
@@ -16,21 +18,39 @@ export interface TeamMember {
   };
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 300, damping: 24 }
-  }
+    transition: { type: "spring", stiffness: 300, damping: 24 },
+  },
 };
+
+function Avatar({ photo, name, className }: { photo?: string; name: string; className: string }) {
+  if (photo) {
+    return (
+      <Image
+        src={photo}
+        alt={name}
+        fill
+        className={`object-cover ${className}`}
+      />
+    );
+  }
+  return (
+    <span className="text-4xl font-bold tracking-wide neon-text">
+      {name.charAt(0)}
+    </span>
+  );
+}
 
 export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
-      <motion.div 
+      <motion.div
         variants={itemVariants}
         whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
         className="glass-panel p-6 rounded-xl flex flex-col justify-between items-center text-center space-y-4 relative group overflow-hidden cursor-pointer min-h-[320px] shadow-lg hover:shadow-cyan-500/20"
@@ -40,13 +60,11 @@ export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
 
         <div className="flex flex-col items-center space-y-4 mt-2">
           <div className="relative w-28 h-28 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-500 p-[2px] flex-shrink-0 cursor-pointer shadow-md group-hover:shadow-[0_0_25px_rgba(0,255,255,0.4)] transition-all duration-300 group-hover:scale-105">
-            <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-              <span className="text-4xl font-bold tracking-wide neon-text">
-                {member.name.charAt(0)}
-              </span>
+            <div className="relative w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+              <Avatar photo={member.photo} name={member.name} className="rounded-full" />
             </div>
           </div>
-          
+
           <div className="z-10">
             <h3 className="text-xl font-bold text-foreground group-hover:text-cyan-400 transition-colors duration-300">{member.name}</h3>
             <p className="text-sm font-medium text-cyan-500/80 tracking-wide mt-1">{member.role}</p>
@@ -85,15 +103,15 @@ export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
               className="absolute inset-0 bg-background/90 backdrop-blur-md cursor-pointer"
             />
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -102,8 +120,8 @@ export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
             >
               {/* Modal Header Cover */}
               <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-r from-cyan-500/20 to-purple-500/20" />
-              
-              <button 
+
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 p-2 bg-background/50 hover:bg-background rounded-full transition-colors z-20 backdrop-blur-md"
               >
@@ -113,13 +131,11 @@ export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
               <div className="pt-20 px-8 pb-8 relative z-10">
                 <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end">
                   <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-gradient-to-tr from-cyan-500 to-purple-500 p-[2px] shadow-lg flex-shrink-0">
-                    <div className="w-full h-full rounded-[14px] bg-background flex items-center justify-center overflow-hidden">
-                      <span className="text-4xl md:text-5xl font-bold tracking-wide neon-text">
-                        {member.name.charAt(0)}
-                      </span>
+                    <div className="relative w-full h-full rounded-[14px] bg-background flex items-center justify-center overflow-hidden">
+                      <Avatar photo={member.photo} name={member.name} className="rounded-[14px]" />
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 pb-2">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">
                       {member.name}
@@ -152,7 +168,6 @@ export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
                 </div>
 
                 <div className="mt-8 space-y-6 text-left">
-                  {/* Bio Section */}
                   {member.bio && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">About</h4>
@@ -162,7 +177,6 @@ export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
                     </div>
                   )}
 
-                  {/* Contributions Section */}
                   {member.contributions && member.contributions.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">Sentra Contributions</h4>
@@ -177,7 +191,6 @@ export const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
                     </div>
                   )}
 
-                  {/* Tech Stack / Skills */}
                   {member.skills && member.skills.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">Core Tech Stack</h4>
