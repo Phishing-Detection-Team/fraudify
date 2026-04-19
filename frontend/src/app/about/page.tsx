@@ -9,6 +9,7 @@ const teamMembers: TeamMember[] = [
   {
     name: "Thien Quy Pham",
     role: "Founder",
+    photo:"/quy.png",
     affiliation: "Computer Science Student at University of Toledo",
     bio: "Cybersecurity and AI engineer securing LLMs and stopping zero-day phishing in real time.",
     contributions: [
