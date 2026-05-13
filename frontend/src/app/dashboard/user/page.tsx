@@ -7,7 +7,7 @@ import {
   Mail, ShieldAlert, ShieldCheck,
   Puzzle, CheckCircle2, Wifi, WifiOff,
   ShieldCheck as ShieldCheckIcon,
-  ArrowRight, Search, MessageSquare, Bot
+  ArrowRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -150,36 +150,21 @@ function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
         Manage extension instances <ArrowRight size={12} />
       </Link>
 
-      {/* Quick Actions (merged inside Onboarding Panel) */}
+      {/* Compact secondary action */}
       <div className="pt-4 border-t border-border/50">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <Bot size={16} className="text-accent-cyan" />
-          Quick Actions
+          <ShieldCheckIcon size={16} className="text-accent-cyan" />
+          Security Center
         </h4>
-        <div className="space-y-3">
+        <div className="rounded-xl border border-border/50 bg-background/20 px-4 py-3 space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Run a manual scan and view scanned emails here.
+          </p>
           <Link
             href="/dashboard/user/scan"
-            className="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/10 px-3 py-2 hover:bg-muted/20 transition-colors group"
+            className="inline-flex items-center gap-1.5 text-xs text-accent-cyan hover:underline"
           >
-            <div className="text-accent-cyan bg-accent-cyan/10 p-1.5 rounded-full group-hover:scale-110 transition-transform">
-              <Search size={14} />
-            </div>
-            <div>
-              <p className="text-sm font-medium">Scan an Email</p>
-              <p className="text-[11px] text-muted-foreground">Manually analyze suspicious content</p>
-            </div>
-          </Link>
-          <Link
-            href="/dashboard/user/feedback"
-            className="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/10 px-3 py-2 hover:bg-muted/20 transition-colors group"
-          >
-            <div className="text-accent-cyan bg-accent-cyan/10 p-1.5 rounded-full group-hover:scale-110 transition-transform">
-              <MessageSquare size={14} />
-            </div>
-            <div>
-              <p className="text-sm font-medium">Report Phishing</p>
-              <p className="text-[11px] text-muted-foreground">Help improve Sentra AI training</p>
-            </div>
+            Open security tools <ArrowRight size={12} />
           </Link>
         </div>
       </div>
@@ -262,7 +247,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Bottom panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-[500px] lg:h-[600px] pb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-[560px] lg:h-[680px] pb-6">
         {/* Left (Bigger): Live Feed */}
         <motion.div
            className="lg:col-span-2 h-full min-h-0"
