@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { TeamCard, TeamMember } from "@/components/about/TeamCard";
 import { ContactForm } from "@/components/about/ContactForm";
 
@@ -82,6 +84,21 @@ const teamMembers: TeamMember[] = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen py-20 px-4 md:px-8 relative overflow-hidden bg-background">
+      {/* Back arrow */}
+      <motion.div
+        initial={{ opacity: 0, x: -8 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4 }}
+        className="fixed top-5 left-5 z-50"
+      >
+        <Link
+          href="/"
+          aria-label="Back to home"
+          className="flex items-center justify-center w-9 h-9 rounded-full glass-panel border border-border/50 text-foreground/50 hover:text-foreground hover:border-cyan-500/50 hover:shadow-[0_0_12px_rgba(0,212,255,0.2)] transition-all duration-200"
+        >
+          <ArrowLeft size={15} />
+        </Link>
+      </motion.div>
       {/* Background Decor */}
       <div className="absolute inset-0 pointer-events-none opacity-30 select-none"
            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--border)) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
