@@ -48,18 +48,22 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative">
+      {/* Aurora animated backdrop — fixed, behind all content */}
+      <div className="aurora-backdrop">
+        <div className="aurora-orb-1" />
+        <div className="aurora-orb-2" />
+        <div className="aurora-orb-3" />
+      </div>
+
       <LandingNav />
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 text-center">
         <div
-          className="absolute inset-0 pointer-events-none opacity-30 select-none"
+          className="absolute inset-0 pointer-events-none opacity-20 select-none"
           style={DOT_BG}
         />
-        {/* Glow blobs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -119,11 +123,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ─────────────────────────────────────────────── */}
-      <section id="features" className="relative py-24 px-4 md:px-8">
-        <div
-          className="absolute inset-0 pointer-events-none opacity-20 select-none"
-          style={DOT_BG}
-        />
+      <section id="features" className="relative z-10 py-24 px-4 md:px-8">
         <div className="max-w-6xl mx-auto space-y-16 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -188,7 +188,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── About Teaser ─────────────────────────────────────────── */}
-      <section className="py-24 px-4 md:px-8 border-t border-border/20">
+      <section className="relative z-10 py-24 px-4 md:px-8 border-t border-border/20">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -268,7 +268,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Contact ──────────────────────────────────────────────── */}
-      <section id="contact" className="py-24 px-4 md:px-8 border-t border-border/20">
+      <section id="contact" className="relative z-10 py-24 px-4 md:px-8 border-t border-border/20">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -293,7 +293,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="border-t border-border/20 py-8 px-4 text-center text-sm text-foreground/40">
+      <footer className="relative z-10 border-t border-border/20 py-8 px-4 text-center text-sm text-foreground/40">
         <p>© {new Date().getFullYear()} Sentra. All rights reserved.</p>
       </footer>
     </div>
