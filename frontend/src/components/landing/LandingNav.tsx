@@ -30,10 +30,10 @@ export function LandingNav() {
             About
           </Link>
           <button
-            onClick={() => scrollTo("contact")}
+            onClick={() => scrollTo("features")}
             className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
           >
-            Contact
+            Features
           </button>
         </nav>
 
@@ -78,10 +78,10 @@ export function LandingNav() {
             About
           </Link>
           <button
-            onClick={() => { scrollTo("contact"); setMobileOpen(false); }}
+            onClick={() => { scrollTo("features"); setMobileOpen(false); }}
             className="block w-full text-left text-sm font-medium text-foreground/70 hover:text-foreground py-2"
           >
-            Contact
+            Features
           </button>
           <div className="flex gap-3 pt-2">
             <Link
