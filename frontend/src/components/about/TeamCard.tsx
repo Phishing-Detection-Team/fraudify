@@ -47,7 +47,7 @@ function Avatar({
         fill
         sizes={sizes}
         quality={92}
-        className={`object-cover object-top contrast-[1.07] saturate-[1.06] brightness-[1.02] ${className}`}
+        className={`object-cover object-[center_32%] contrast-[1.07] saturate-[1.06] brightness-[1.02] ${className}`}
       />
     );
   }
