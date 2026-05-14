@@ -22,8 +22,8 @@ export function LanguageSelector({ className = "" }: LanguageSelectorProps) {
       aria-label="Toggle language"
       title={locale === "en" ? "Switch to Vietnamese" : "Chuyển sang Tiếng Anh"}
     >
-      <span>{locale === "en" ? "🇺🇸" : "🇻🇳"}</span>
-      <span>{locale === "en" ? "EN" : "VI"}</span>
+      <span>{locale === "en" ? "🇻🇳" : "🇺🇸"}</span>
+      <span>{locale === "en" ? "VI" : "EN"}</span>
     </button>
   );
 }
