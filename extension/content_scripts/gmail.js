@@ -49,19 +49,20 @@ function getOverlayId() {
  * @param {{ verdict: string, confidence: number, reasoning?: string }} data
  * @returns {string}
  */
-function buildOverlayElement({ verdict, confidence, reasoning }) {
+function buildOverlayElement({ verdict, confidence, reasoning }, locale) {
   const isPhishing   = verdict === 'phishing' || verdict === 'likely_phishing';
   const isSuspicious = verdict === 'suspicious';
+  const o = (key) => extT(locale || 'en', 'overlay', key);
 
   const bgColor   = isPhishing ? '#dc2626' : isSuspicious ? '#d97706' : '#16a34a';
   const textColor = '#ffffff';
   const pct       = Math.round((confidence || 0) * 100);
 
   const label = isPhishing
-    ? '⚠ Sentra: Phishing Detected'
+    ? o('phishingDetected')
     : isSuspicious
-      ? '⚠ Sentra: Suspicious Email'
-      : '✓ Sentra: Email Looks Safe';
+      ? o('suspicious')
+      : o('safe');
 
   const div = document.createElement('div');
   div.id = OVERLAY_ID;
@@ -81,7 +82,7 @@ function buildOverlayElement({ verdict, confidence, reasoning }) {
   `;
 
   const span = document.createElement('span');
-  span.textContent = `${label} — ${pct}% confidence`;
+  span.textContent = `${label} — ${pct}${o('confidence')}`;
   div.appendChild(span);
 
   if (reasoning) {
@@ -95,14 +96,14 @@ function buildOverlayElement({ verdict, confidence, reasoning }) {
 }
 
 /** Inject overlay above the email body; removes any previous overlay first. */
-function injectOverlay(verdictData) {
+function injectOverlay(verdictData, locale) {
   const existing = document.getElementById(OVERLAY_ID);
   if (existing) existing.remove();
 
   const container = document.querySelector('.a3s') || document.querySelector('.gs');
   if (!container) return;
 
-  const overlayElement = buildOverlayElement(verdictData);
+  const overlayElement = buildOverlayElement(verdictData, locale);
   container.prepend(overlayElement);
 }
 
@@ -113,13 +114,14 @@ function removeOverlay() {
 }
 
 /** Inject a temporary "Analyzing…" placeholder while scanning. */
-function injectScanning() {
+function injectScanning(locale) {
   const existing = document.getElementById(OVERLAY_ID);
   if (existing) existing.remove();
 
   const container = document.querySelector('.a3s') || document.querySelector('.gs');
   if (!container) return;
 
+  const analyzingText = extT(locale || 'en', 'overlay', 'analyzing');
   const wrapper = document.createElement('div');
   wrapper.innerHTML = `
     <div id="${OVERLAY_ID}" style="
@@ -136,7 +138,7 @@ function injectScanning() {
       gap:2px;
       box-shadow:0 2px 8px rgba(0,0,0,0.2);
     ">
-      <span>⟳ Sentra: Analyzing…</span>
+      <span>${_escapeHtml(analyzingText)}</span>
     </div>
   `.trim();
   container.prepend(wrapper.firstChild);
@@ -190,8 +192,10 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
     const { subject, body } = extractEmailFromDOM();
     if (!body) return;
 
-    injectScanning();
-    _scanAndShow(subject, body);
+    getExtLocale().then((locale) => {
+      injectScanning(locale);
+      _scanAndShow(subject, body, locale);
+    });
   });
 }
 
@@ -208,7 +212,7 @@ async function _cacheScanResult(subject, verdict, confidence) {
 }
 
 /* istanbul ignore next */
-async function _scanAndShow(subject, body) {
+async function _scanAndShow(subject, body, locale) {
   try {
     const stored = await chrome.storage.local.get(['sentra_api_url', 'sentra_auth_token', 'sentra_inference_mode']);
     const apiUrl = stored.sentra_api_url || DEFAULT_API_URL;
@@ -230,14 +234,14 @@ async function _scanAndShow(subject, body) {
     removeOverlay();
     if (verdictData && verdictData.verdict) {
       await _cacheScanResult(subject, verdictData.verdict, verdictData.confidence);
-      injectOverlay(verdictData);
+      injectOverlay(verdictData, locale);
     } else {
       // Scan ran but returned no verdict — show neutral state
-      injectOverlay({ verdict: 'suspicious', confidence: 0, reasoning: 'Unable to determine verdict.' });
+      injectOverlay({ verdict: 'suspicious', confidence: 0, reasoning: extT(locale || 'en', 'overlay', 'unableToDetermine') }, locale);
     }
   } catch (_) {
     // Network error or scan timeout — show a non-blocking error state
-    _injectError('Sentra: Analysis unavailable');
+    _injectError(extT(locale || 'en', 'overlay', 'analysisUnavailable'));
   }
 }
 
