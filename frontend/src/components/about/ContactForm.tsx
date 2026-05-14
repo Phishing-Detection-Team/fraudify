@@ -45,16 +45,12 @@ export const ContactForm: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
       className="glass-panel p-6 md:p-8 rounded-xl max-w-xl mx-auto w-full"
     >
-      <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-center neon-text">Get in Touch</h2>
-      <p className="text-sm md:text-base text-center text-foreground/70 mb-6 md:mb-8 max-w-md mx-auto leading-relaxed">
-        Have questions or want to collaborate? Send us a message and we&apos;ll get back to you shortly.
-      </p>
-
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
           <div className="space-y-1.5 md:space-y-2 relative group">
