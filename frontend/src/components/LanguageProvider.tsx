@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 import { useSession } from "next-auth/react";
 import { t, LOCALE_COOKIE, isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -12,7 +12,11 @@ interface LanguageContextValue {
   setLocale: (locale: Locale) => Promise<void>;
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+const LanguageContext = createContext<LanguageContextValue>({
+  locale: "en" as Locale,
+  tr: (key: string) => t("en" as Locale, key),
+  setLocale: async () => {},
+});
 
 function setCookie(locale: Locale) {
   const maxAge = 60 * 60 * 24 * 365;
@@ -72,9 +76,7 @@ export function LanguageProvider({ initialLocale, children }: LanguageProviderPr
 }
 
 export function useLanguage(): LanguageContextValue {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used inside <LanguageProvider>");
-  return ctx;
+  return useContext(LanguageContext);
 }
 
 export function resolveInitialLocale(cookieHeader: string | undefined): Locale {
