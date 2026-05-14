@@ -140,6 +140,9 @@ const vi = {
     idle: "Rảnh",
     manageInstances: "Quản lý các instance tiện ích",
     quickActions: "Hành động nhanh",
+    securityCenter: "Trung tâm bảo mật",
+    runManualScan: "Chạy quét thủ công và xem các email đã quét tại đây.",
+    openSecurityTools: "Mở công cụ bảo mật",
     scanAnEmail: "Quét một email",
     analyzeSuspicious: "Phân tích thủ công nội dung đáng ngờ",
     reportPhishing: "Báo cáo lừa đảo",
@@ -417,19 +420,41 @@ const vi = {
     affiliationStudent: "Sinh viên đại học",
     heroTitle1: "Gặp gỡ đội ngũ đứng sau",
     heroSubtitle:
-      "Chúng tôi là nhóm các lập trình viên và người đam mê bảo mật, tập trung chống lại các cuộc tấn công phishing hiện đại. Sứ mệnh của chúng tôi là xây dựng các công cụ AI mạnh mẽ, đáng tin cậy để mang lại sự yên tâm cho môi trường số của bạn.",
+      "Một nhóm các nhà phát triển và người đam mê bảo mật hướng tới một sứ mệnh: làm cho web an toàn hơn — trước cả khi bạn nhận ra điều đó là cần thiết.",
     ourStory: "Câu chuyện của chúng tôi",
     architecture: "Kiến trúc hệ thống",
     coreTeam: "Đội ngũ nòng cốt",
     whyChoose: "Vì sao chọn",
+    storyLabel: "01 — Nguồn gốc",
+    engineeringLabel: "02 — Kỹ thuật",
+    peopleLabel: "03 — Nhóm người",
+    connectLabel: "04 — Kết nối",
+    teamPill: "Những người đứng sau Sentra",
+    pullQuote: "Bảo mật phải bảo vệ bạn trước cả khi bạn nhận ra mình đang bị tấn công.",
+    coreTeamDesc: "Bấm vào thẻ bất kỳ để xem hồ sơ đầy đủ, đóng góp và công nghệ sử dụng.",
+    workWith: "Làm việc cùng",
+    ourTeam: "đội ngũ của chúng tôi",
+    contactReachOut:
+      "Hãy liên hệ để trao đổi về hợp tác, nghiên cứu bảo mật, hoặc câu hỏi về tích hợp Sentra vào tổ chức của bạn. Chúng tôi phản hồi mọi tin nhắn.",
+    emailUsDirect: "Gửi email trực tiếp",
+    openSource: "Mã nguồn mở",
+    detectionPipeline: "Quy trình phát hiện",
+    statsEmailsTrained: "Email huấn luyện",
+    statsEmailsTrainedSub: "Tập dữ liệu phishing đa dạng",
+    statsDetectionAccuracy: "Độ chính xác phát hiện",
+    statsDetectionAccuracySub: "Đối với tấn công zero-day",
+    statsLatency: "Độ trễ quét",
+    statsLatencySub: "Nhanh hơn một cái chớp mắt",
+    statsEngineers: "Kỹ sư",
+    statsEngineersSub: "Bảo vệ bạn mỗi ngày",
     storyParagraph1:
-      "Nguồn gốc của Sentra bắt đầu từ bối cảnh social engineering ngày càng tinh vi. Khi các tác nhân xấu liên tục tạo ra công cụ phức tạp hơn để đánh cắp dữ liệu cá nhân mà không gây nghi ngờ, các biện pháp bảo mật truyền thống thường không đủ sức ngăn chặn. Động lực tạo nên Sentra đến từ trải nghiệm thật: mất tài khoản vào một trang phishing gần như giống hệt trang chính chủ. Sự giả mạo quá liền mạch, và việc bị chiếm đoạt xảy ra chỉ trong tích tắc.",
+      "Nguồn gốc của Sentra bắt đầu từ bối cảnh social engineering ngày càng tinh vi. Khi các tác nhân xấu liên tục tạo ra công cụ phức tạp hơn để đánh cắp dữ liệu cá nhân, các biện pháp bảo mật truyền thống thường không đủ sức ngăn chặn. Động lực tạo nên Sentra rất cá nhân: mất tài khoản vào một trang phishing gần như giống hệt trang chính chủ.",
     storyParagraph2:
-      "Khoảnh khắc đó cho thấy một lỗ hổng rất quan trọng: nếu một trang trông hoàn toàn hợp lệ, ngay cả người dùng cẩn thận cũng có thể giao nộp thông tin. Từ nhận thức đó, chúng tôi tập trung sâu vào cybersecurity và ứng dụng AI để chủ động chống lại các chiến dịch phishing nâng cao. Sau khi kết hợp cùng đồng đội có cùng nền tảng và đam mê, chúng tôi xây dựng Sentra: nền tảng phát hiện phishing dựa trên AI, được thiết kế để bảo vệ người dùng trước cả khi họ nhận ra mình đang bị tấn công.",
+      "Khoảnh khắc đó cho thấy một lỗ hổng quan trọng — nếu một trang trông hoàn toàn hợp lệ, ngay cả người dùng cẩn thận cũng có thể giao nộp thông tin. Từ nhận thức đó, chúng tôi tập trung sâu vào cybersecurity và ứng dụng AI để chủ động chống lại các chiến dịch phishing nâng cao. Sau khi kết hợp cùng đồng đội có cùng đam mê, chúng tôi xây dựng Sentra.",
     architectureParagraph1:
       "Để xây dựng một giải pháp đủ đáng tin cậy để bảo vệ con người, chúng tôi phải đưa ra mọi quyết định kỹ thuật một cách có chủ đích. Ngay từ đầu, chúng tôi hiểu rằng cách làm đơn giản sẽ không thể chống chịu bối cảnh đe doạ số hiện nay, nên đã thiết kế kiến trúc tập trung tuyệt đối vào tốc độ, quyền riêng tư và độ tin cậy.",
     architectureParagraph2:
-      "Để bảo vệ bạn theo thời gian thực - không phải sau khi thiệt hại đã xảy ra - chúng tôi kết nối một browser extension gọn nhẹ với backend hiệu năng cao. Chúng tôi dùng WebSockets để giao tiếp tức thì và Redis để tra cứu mối đe doạ nhanh hơn cả một khung hình video. Trung tâm cơ chế phòng thủ là pipeline LLM tuỳ biến, phân tích các mối đe doạ mới nổi ngay khi chúng xuất hiện mà không lưu trữ dữ liệu cá nhân của bạn.",
+      "Chúng tôi kết nối một browser extension gọn nhẹ với backend hiệu năng cao qua WebSockets để giao tiếp tức thì, và Redis để tra cứu mối đe doạ nhanh hơn cả một khung hình video. Trung tâm là pipeline LLM tuỳ biến, phân tích các mối đe doạ mới nổi mà không lưu trữ dữ liệu cá nhân của bạn.",
     whyChooseDesc:
       "Chúng tôi xây dựng Sentra để mang đến mức bảo vệ cấp doanh nghiệp hoạt động ngay khi cài đặt. Cài đặt dưới 60 giây, không cần cấu hình từ người dùng, và âm thầm bảo vệ hàng triệu tương tác số với độ tin cậy 99.9%. Bảo mật thực sự không nên buộc bạn đổi cách làm việc - nó phải bảo vệ bạn trong lúc bạn làm việc.",
     feature1Title: "Phát hiện mối đe doạ thông minh",
@@ -454,7 +479,7 @@ const vi = {
     member1Contribution2:
       "Pentest LLM với các cuộc tấn công prompt-injection và harden để loại bỏ các điểm có thể khai thác.",
     member1Contribution3:
-      "Thiết kế lớp cơ sở dữ liệu an toàn với constraints và validation chặt chẽ để bảo vệ dữ liệu người dùng trước chỉnh sửa trái phép.",
+      "Thiết kế cơ sở hạ tầng server an toàn bằng FastAPI và JWT authentication để bảo vệ dữ liệu người dùng trước chỉnh sửa trái phép.",
     member1Contribution4:
       "Tích hợp VirusTotal API để đối chiếu link đáng ngờ với hơn 70 công cụ antivirus theo thời gian thực.",
     member2Bio: "Người giải quyết vấn đề sáng tạo, có nền tảng mạnh về backend systems và kiến trúc xử lý thời gian thực.",

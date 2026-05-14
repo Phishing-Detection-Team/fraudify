@@ -140,6 +140,9 @@ const en = {
     idle: "Idle",
     manageInstances: "Manage extension instances",
     quickActions: "Quick Actions",
+    securityCenter: "Security Center",
+    runManualScan: "Run a manual scan and view scanned emails here.",
+    openSecurityTools: "Open security tools",
     scanAnEmail: "Scan an Email",
     analyzeSuspicious: "Manually analyze suspicious content",
     reportPhishing: "Report Phishing",
@@ -417,19 +420,41 @@ const en = {
     affiliationStudent: "Student at University",
     heroTitle1: "Meet the Minds Behind",
     heroSubtitle:
-      "We are a group of dedicated developers and security enthusiasts focused on combating modern-day phishing attacks. Our mission is to build robust, AI-powered tools that bring peace of mind to your digital environment.",
+      "A focused team of developers and security enthusiasts united by one mission: making the web a safer place — before you even know it needs to be.",
     ourStory: "Our Story",
     architecture: "The Architecture",
     coreTeam: "The Core Team",
     whyChoose: "Why Choose",
+    storyLabel: "01 — Origin",
+    engineeringLabel: "02 — Engineering",
+    peopleLabel: "03 — People",
+    connectLabel: "04 — Connect",
+    teamPill: "The People Behind the Shield",
+    pullQuote: "Security should protect you before you even realize you're under attack.",
+    coreTeamDesc: "Click any card to see the full profile, contributions, and tech stack.",
+    workWith: "Work with",
+    ourTeam: "our team",
+    contactReachOut:
+      "Reach out for partnerships, security research collaboration, or questions about integrating Sentra into your organization. We respond to every message.",
+    emailUsDirect: "Email us directly",
+    openSource: "Open source",
+    detectionPipeline: "Detection Pipeline",
+    statsEmailsTrained: "Emails Trained",
+    statsEmailsTrainedSub: "Diverse phishing dataset",
+    statsDetectionAccuracy: "Detection Accuracy",
+    statsDetectionAccuracySub: "Against zero-day attacks",
+    statsLatency: "Scan Latency",
+    statsLatencySub: "Faster than a blink",
+    statsEngineers: "Engineers",
+    statsEngineersSub: "Building your shield",
     storyParagraph1:
-      "The origins of Sentra are rooted in the rapidly evolving landscape of social engineering. As malicious actors continuously develop more sophisticated tools to harvest personal data without triggering alarm, traditional security measures often fall short. The catalyst for Sentra was a personal experience: losing an account to a phishing site that was virtually indistinguishable from the real one. The deception was seamless, and the compromise happened in an instant.",
+      "The origins of Sentra are rooted in the rapidly evolving landscape of social engineering. As malicious actors continuously develop more sophisticated tools to harvest personal data, traditional security measures often fall short. The catalyst for Sentra was personal: losing an account to a phishing site that was virtually indistinguishable from the real one.",
     storyParagraph2:
-      "That moment highlighted a critical vulnerability, if a site looks perfectly legitimate, even cautious users will surrender their information. This realization sparked a deep focus on cybersecurity and a drive to utilize artificial intelligence to proactively fight advanced phishing campaigns. After joining forces with a partner who shared this exact background and passion, we built Sentra: an AI-driven phishing detection platform designed to protect users before they even realize they are under attack.",
+      "That moment highlighted a critical vulnerability — if a site looks perfectly legitimate, even cautious users surrender their information. This realization sparked a deep focus on cybersecurity and a drive to use AI to proactively fight advanced phishing campaigns. After joining forces with partners who shared this passion, we built Sentra.",
     architectureParagraph1:
-      "Building something trustworthy enough to protect people required us to make every technical decision deliberately. We recognized early on that a simple approach would not withstand today's digital threat landscape, so we engineered an architecture focused entirely on speed, privacy, and reliability.",
+      "Building something trustworthy enough to protect people required deliberate technical decisions. We recognized early that a simple approach would not withstand today's threat landscape, so we engineered an architecture focused entirely on speed, privacy, and reliability.",
     architectureParagraph2:
-      "To protect you in real time - not after the damage is done - we bridged a lightweight browser extension with a high-performance backend. We built on WebSockets for instant communication and Redis for threat lookups faster than a single frame of video. At the core of our defense mechanism is a custom LLM pipeline, analyzing emerging threats on the fly without ever storing your personal data.",
+      "We bridged a lightweight browser extension with a high-performance backend via WebSockets for instant communication, and Redis for threat lookups faster than a single frame of video. At the core is a custom LLM pipeline that analyzes emerging threats without ever storing your personal data.",
     whyChooseDesc:
       "We built Sentra to provide enterprise-grade protection that simply works out of the box. It installs in under 60 seconds, requires zero configuration from the user, and silently secures millions of digital interactions with 99.9% reliability. Real security shouldn't force you to change how you work - it should protect you while you do.",
     feature1Title: "Intelligent Threat Detection",
@@ -454,7 +479,7 @@ const en = {
     member1Contribution2:
       "Pen-tested the LLM with prompt-injection attacks and hardened it to eliminate exploitable vulnerabilities.",
     member1Contribution3:
-      "Engineered a secure database layer with strict constraints and validation to keep user data locked down and safe from tampering.",
+      "Engineered a secure server infrastructure using FastAPI and JWT authentication to keep user data locked down and safe from tampering.",
     member1Contribution4:
       "Integrated the VirusTotal API to cross-check suspicious links against 70+ active antivirus scanners in real-time.",
     member2Bio:
