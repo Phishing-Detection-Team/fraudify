@@ -8,78 +8,6 @@ import { TeamCard, TeamMember } from "@/components/about/TeamCard";
 import { ContactForm } from "@/components/about/ContactForm";
 import { useLanguage } from "@/components/LanguageProvider";
 
-const teamMembers: TeamMember[] = [
-  {
-    name: "Thien Quy Pham",
-    role: "Founder",
-    photo: "/quy.png",
-    affiliation: "Computer Science Student at University of Toledo",
-    bio: "Cybersecurity and AI engineer securing LLMs and stopping zero-day phishing in real time.",
-    contributions: [
-      <span key="1"><strong className="text-cyan-400 font-bold">Browser Defense:</strong> Built a DOM-level interception system that catches and disables hidden HTML payloads before they can trick the AI.</span>,
-      <span key="2"><strong className="text-cyan-400 font-bold">AI Safety & Training:</strong> Pen-tested the LLM with prompt-injection attacks and hardened it to eliminate exploitable vulnerabilities.</span>,
-      <span key="3"><strong className="text-cyan-400 font-bold">Threat Intelligence:</strong> Integrated the VirusTotal API to cross-check suspicious links against 70+ active antivirus scanners in real-time.</span>,
-    ],
-    skills: ["Adversarial Prompt Research", "DOM-Level Prompt Defense", "Database Schema Security", "Penetration Testing"],
-    links: {
-      portfolio: "https://thienquypham.vercel.app/",
-      linkedin: "https://www.linkedin.com/in/thienquypham/",
-      github: "https://github.com/thienquy05",
-    },
-  },
-  {
-    name: "Hoang Nhat Duy Le",
-    role: "Co-Founder",
-    photo: "/hoang.png",
-    affiliation: "Student at University",
-    bio: "Innovative problem solver with a strong background in backend systems and real-time processing architectures.",
-    contributions: [
-      <span key="1"><strong className="text-cyan-400 font-bold">Backend Architecture:</strong> Architected the scalable FastAPI backend infrastructure to handle high-volume real-time requests.</span>,
-      <span key="2"><strong className="text-cyan-400 font-bold">Caching Strategy:</strong> Implemented the Redis caching layer to reduce scan latency by 40%.</span>,
-      <span key="3"><strong className="text-cyan-400 font-bold">AI Orchestration:</strong> Designed the AI agentic orchestration logic for browser extensions.</span>,
-    ],
-    skills: ["FastAPI", "Redis", "Docker", "PostgreSQL", "Cloud Config"],
-    links: {
-      portfolio: "https://hoangnhatduyle.github.io/portfolio/",
-      linkedin: "https://www.linkedin.com/in/hoangnhatduyle/",
-      github: "https://github.com/hoangnhatduyle",
-    },
-  },
-  {
-    name: "Hoang Bao Duy Le",
-    affiliation: "Student at University",
-    role: "Co-Founder",
-    bio: "Dedicated engineer focusing on robust integrations, security protocols, and maintaining flawless user experiences.",
-    contributions: [
-      "Integrated secure authentication and OAuth pipelines.",
-      "Developed the rate-limiting and anti-abuse mechanisms.",
-      "Pioneered the browser extension integration with the Sentra backend via WebSockets.",
-    ],
-    skills: ["Node.js", "Socket.io", "TypeScript", "Security", "REST APIs"],
-    links: {
-      portfolio: "#",
-      linkedin: "https://linkedin.com",
-      github: "https://github.com",
-    },
-  },
-  {
-    name: "Thanh Dang Huynh",
-    affiliation: "Student at University",
-    role: "Fullstack Developer",
-    bio: "Creative developer who bridges the gap between powerful backend logic and beautiful, accessible frontend interfaces.",
-    contributions: [
-      "Built the modern Next.js dashboard and analytic views.",
-      "Implemented the Sentra design system and Framer Motion animations.",
-      "Constructed the secure Chrome Extension UI and popup logic.",
-    ],
-    skills: ["React", "Tailwind CSS", "Framer Motion", "Next.js", "UX/UI"],
-    links: {
-      portfolio: "#",
-      linkedin: "https://linkedin.com",
-      github: "https://github.com",
-    },
-  },
-];
 
 const STAT_VALUES = [
   { value: 44, prefix: "", suffix: "K+", labelKey: "about.emailsTrained", sublabelKey: "about.emailsSubLabel" },
@@ -135,6 +63,79 @@ function StatCounter({
 
 export default function AboutPage() {
   const { tr } = useLanguage();
+
+  const teamMembers: TeamMember[] = [
+    {
+      name: tr("about.members.quy.name"),
+      role: tr("about.members.quy.role"),
+      photo: "/quy.png",
+      affiliation: tr("about.members.quy.affiliation"),
+      bio: tr("about.members.quy.bio"),
+      contributions: [
+        <span key="1"><strong className="text-cyan-400 font-bold">{tr("about.members.quy.contrib1Label")}:</strong> {tr("about.members.quy.contrib1Desc")}</span>,
+        <span key="2"><strong className="text-cyan-400 font-bold">{tr("about.members.quy.contrib2Label")}:</strong> {tr("about.members.quy.contrib2Desc")}</span>,
+        <span key="3"><strong className="text-cyan-400 font-bold">{tr("about.members.quy.contrib3Label")}:</strong> {tr("about.members.quy.contrib3Desc")}</span>,
+      ],
+      skills: ["Adversarial Prompt Research", "DOM-Level Prompt Defense", "Database Schema Security", "Penetration Testing"],
+      links: {
+        portfolio: "https://thienquypham.vercel.app/",
+        linkedin: "https://www.linkedin.com/in/thienquypham/",
+        github: "https://github.com/thienquy05",
+      },
+    },
+    {
+      name: tr("about.members.hoang.name"),
+      role: tr("about.members.hoang.role"),
+      photo: "/hoang.png",
+      affiliation: tr("about.members.hoang.affiliation"),
+      bio: tr("about.members.hoang.bio"),
+      contributions: [
+        <span key="1"><strong className="text-cyan-400 font-bold">{tr("about.members.hoang.contrib1Label")}:</strong> {tr("about.members.hoang.contrib1Desc")}</span>,
+        <span key="2"><strong className="text-cyan-400 font-bold">{tr("about.members.hoang.contrib2Label")}:</strong> {tr("about.members.hoang.contrib2Desc")}</span>,
+        <span key="3"><strong className="text-cyan-400 font-bold">{tr("about.members.hoang.contrib3Label")}:</strong> {tr("about.members.hoang.contrib3Desc")}</span>,
+      ],
+      skills: ["FastAPI", "Redis", "Docker", "PostgreSQL", "Cloud Config"],
+      links: {
+        portfolio: "https://hoangnhatduyle.github.io/portfolio/",
+        linkedin: "https://www.linkedin.com/in/hoangnhatduyle/",
+        github: "https://github.com/hoangnhatduyle",
+      },
+    },
+    {
+      name: tr("about.members.bao.name"),
+      role: tr("about.members.bao.role"),
+      affiliation: tr("about.members.bao.affiliation"),
+      bio: tr("about.members.bao.bio"),
+      contributions: [
+        tr("about.members.bao.contrib1"),
+        tr("about.members.bao.contrib2"),
+        tr("about.members.bao.contrib3"),
+      ],
+      skills: ["Node.js", "Socket.io", "TypeScript", "Security", "REST APIs"],
+      links: {
+        portfolio: "#",
+        linkedin: "https://linkedin.com",
+        github: "https://github.com",
+      },
+    },
+    {
+      name: tr("about.members.thanh.name"),
+      role: tr("about.members.thanh.role"),
+      affiliation: tr("about.members.thanh.affiliation"),
+      bio: tr("about.members.thanh.bio"),
+      contributions: [
+        tr("about.members.thanh.contrib1"),
+        tr("about.members.thanh.contrib2"),
+        tr("about.members.thanh.contrib3"),
+      ],
+      skills: ["React", "Tailwind CSS", "Framer Motion", "Next.js", "UX/UI"],
+      links: {
+        portfolio: "#",
+        linkedin: "https://linkedin.com",
+        github: "https://github.com",
+      },
+    },
+  ];
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">

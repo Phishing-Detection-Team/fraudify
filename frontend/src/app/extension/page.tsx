@@ -8,7 +8,7 @@ export default function ExtensionPage() {
   const { tr } = useLanguage();
 
   const INSTALL_STEPS = [
-    { step: 1, titleKey: "extension.step1Title", descKey: "extension.step1Desc" },
+    { step: 1, titleKey: "extension.step1Title", descKey: "extension.step1Desc", codes: ["chrome://extensions", "edge://extensions"] },
     { step: 2, titleKey: "extension.step2Title", descKey: "extension.step2Desc" },
     { step: 3, titleKey: "extension.step3Title", descKey: "extension.step3Desc" },
     { step: 4, titleKey: "extension.step4Title", descKey: "extension.step4Desc" },
@@ -89,7 +89,7 @@ export default function ExtensionPage() {
         <div id="install" className="space-y-4">
           <h2 className="text-xl font-bold">{tr("extension.installTitle")}</h2>
           <ol className="space-y-3">
-            {INSTALL_STEPS.map(({ step, titleKey, descKey }) => (
+            {INSTALL_STEPS.map(({ step, titleKey, descKey, codes }) => (
               <li key={step} className="glass-panel p-5 rounded-xl flex gap-4 items-start" data-testid="install-step">
                 <span className="shrink-0 w-7 h-7 rounded-full bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30 flex items-center justify-center text-xs font-bold">
                   {step}
@@ -97,6 +97,13 @@ export default function ExtensionPage() {
                 <div className="space-y-1">
                   <p className="font-semibold text-sm">{tr(titleKey)}</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">{tr(descKey)}</p>
+                  {codes && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {codes.map((url) => (
+                        <code key={url} className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{url}</code>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </li>
             ))}
