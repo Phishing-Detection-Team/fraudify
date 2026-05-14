@@ -17,10 +17,9 @@ const teamMembers: TeamMember[] = [
     contributions: [
       <span key="1"><strong className="text-cyan-400 font-bold">Browser Defense:</strong> Built a DOM-level interception system that catches and disables hidden HTML payloads before they can trick the AI.</span>,
       <span key="2"><strong className="text-cyan-400 font-bold">AI Safety & Training:</strong> Pen-tested the LLM with prompt-injection attacks and hardened it to eliminate exploitable vulnerabilities.</span>,
-      <span key="3"><strong className="text-cyan-400 font-bold">Backend Security:</strong> Engineered a secure server infrastructure using FastAPI and JWT authentication to keep user data locked down and safe from tampering.</span>,
-      <span key="4"><strong className="text-cyan-400 font-bold">Threat Intelligence:</strong> Integrated the VirusTotal API to cross-check suspicious links against 70+ active antivirus scanners in real-time.</span>,
+      <span key="3"><strong className="text-cyan-400 font-bold">Threat Intelligence:</strong> Integrated the VirusTotal API to cross-check suspicious links against 70+ active antivirus scanners in real-time.</span>,
     ],
-    skills: ["Adversarial Prompt Research", "DOM-Level Prompt Defense", "JWT Auth Architecture", "Database Schema Security", "Penetration Testing"],
+    skills: ["Adversarial Prompt Research", "DOM-Level Prompt Defense", "Database Schema Security", "Penetration Testing"],
     links: {
       portfolio: "https://thienquypham.vercel.app/",
       linkedin: "https://www.linkedin.com/in/thienquypham/",
@@ -382,7 +381,7 @@ export default function AboutPage() {
 
               <div className="space-y-3">
                 <a
-                  href="mailto:team@sentra.dev"
+                  href="mailto:thisshoulebechanged"
                   className="flex items-center gap-4 glass-panel p-4 rounded-xl border border-border/30 hover:border-cyan-500/30 transition-all group"
                 >
                   <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 flex-shrink-0">
@@ -391,7 +390,7 @@ export default function AboutPage() {
                   <div className="min-w-0">
                     <p className="text-xs text-muted-foreground font-medium mb-0.5">Email us directly</p>
                     <p className="text-sm font-semibold text-foreground group-hover:text-cyan-400 transition-colors truncate">
-                      team@sentra.dev
+                      thisshoulebechanged
                     </p>
                   </div>
                 </a>
