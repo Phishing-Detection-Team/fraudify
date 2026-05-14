@@ -472,6 +472,29 @@ def get_me():
 
 
 # ---------------------------------------------------------------------------
+# PUT /api/auth/me/language
+# ---------------------------------------------------------------------------
+
+@auth_bp.route('/auth/me/language', methods=['PUT'])
+@jwt_required()
+def update_language():
+    """Persist the authenticated user's preferred display language."""
+    identity = get_jwt_identity()
+    user = db.session.get(User, int(identity))
+    if not user:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+
+    data = request.get_json(silent=True) or {}
+    language = data.get('language', 'en')
+    if language not in {'en', 'vi'}:
+        return jsonify({'success': False, 'error': 'Unsupported language'}), 400
+
+    user.preferred_language = language
+    db.session.commit()
+    return jsonify({'success': True, 'preferred_language': language}), 200
+
+
+# ---------------------------------------------------------------------------
 # PUT /api/auth/me/password
 # ---------------------------------------------------------------------------
 

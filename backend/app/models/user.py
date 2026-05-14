@@ -18,6 +18,7 @@ class User(db.Model):
     email_verified = db.Column(db.Boolean, default=False, server_default=sa.false(), nullable=False)
     password_reset_token = db.Column(db.String(128), unique=True, nullable=True, index=True)
     password_reset_expires = db.Column(db.DateTime, nullable=True)
+    preferred_language = db.Column(db.String(8), nullable=False, server_default='en', default='en')
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=datetime.utcnow, nullable=False)
 
@@ -60,6 +61,7 @@ class User(db.Model):
             'username': self.username,
             'is_active': self.is_active,
             'email_verified': self.email_verified,
+            'preferred_language': self.preferred_language or 'en',
             'roles': [r.name for r in self.roles],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
