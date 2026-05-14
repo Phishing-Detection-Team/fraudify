@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ChevronRight, AlertTriangle, Loader2 } from "lucide-react";
 import { getAdminRounds } from "@/lib/admin-api";
+import { useLanguage } from "@/components/LanguageProvider";
 import { config } from "@/lib/config";
 import type { Round } from "@/types";
 
@@ -16,6 +17,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function UserRoundsPage() {
   const { data: session } = useSession();
+  const { tr } = useLanguage();
   const [rounds, setRounds] = useState<Round[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,10 +35,8 @@ export default function UserRoundsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Detection Rounds</h1>
-        <p className="text-muted-foreground mt-1">
-          View all synthetic data generation rounds.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{tr("rounds.userTitle")}</h1>
+        <p className="text-muted-foreground mt-1">{tr("rounds.userSubtitle")}</p>
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden">
@@ -44,25 +44,25 @@ export default function UserRoundsPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
               <tr>
-                <th className="px-6 py-4 font-medium">Round ID</th>
-                <th className="px-6 py-4 font-medium">Started</th>
-                <th className="px-6 py-4 font-medium">Total Emails</th>
-                <th className="px-6 py-4 font-medium">Detection Rate</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
+                <th className="px-6 py-4 font-medium">{tr("rounds.headerId")}</th>
+                <th className="px-6 py-4 font-medium">{tr("rounds.headerStarted")}</th>
+                <th className="px-6 py-4 font-medium">{tr("rounds.headerTotal")}</th>
+                <th className="px-6 py-4 font-medium">{tr("rounds.headerRate")}</th>
+                <th className="px-6 py-4 font-medium">{tr("rounds.headerStatus")}</th>
+                <th className="px-6 py-4 font-medium text-right">{tr("rounds.headerActions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    Loading…
+                    {tr("rounds.loading")}
                   </td>
                 </tr>
               ) : rounds.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    No rounds available yet.
+                    {tr("rounds.empty")}
                   </td>
                 </tr>
               ) : (

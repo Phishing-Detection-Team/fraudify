@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { sendContactEmail } from "@/app/actions/contact";
 import { Mail, User, MessageSquare, Send } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export const ContactForm: React.FC = () => {
+  const { tr } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,14 +30,14 @@ export const ContactForm: React.FC = () => {
         }
       }),
       {
-        loading: "Sending message...",
+        loading: tr("contactForm.loadingToast"),
         success: () => {
           formRef.current?.reset();
-          return "Message sent successfully!";
+          return tr("contactForm.successToast");
         },
         error: (err: unknown) => {
           const error = err as Error;
-          return `Error: ${error.message}`;
+          return `${tr("contactForm.errorPrefix")}${error.message}`;
         },
       }
     );
@@ -55,7 +57,7 @@ export const ContactForm: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
           <div className="space-y-1.5 md:space-y-2 relative group">
             <label htmlFor="name" className="text-xs md:text-sm font-bold tracking-wide text-muted-foreground w-full group-focus-within:text-cyan-500 transition-colors">
-              Name
+              {tr("contactForm.name")}
             </label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-cyan-500 transition-colors" size={16} />
@@ -65,13 +67,13 @@ export const ContactForm: React.FC = () => {
                 name="name"
                 required
                 className="w-full text-sm md:text-base bg-background/50 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 md:py-3.5 focus:outline-none focus:ring-0 focus:border-cyan-500 hover:border-cyan-500/50 focus:bg-background focus:shadow-[0_0_15px_rgba(0,255,255,0.1)] transition-all duration-300 text-foreground shadow-sm"
-                placeholder="Your Name"
+                placeholder={tr("contactForm.namePlaceholder")}
               />
             </div>
           </div>
           <div className="space-y-1.5 md:space-y-2 relative group">
             <label htmlFor="email" className="text-xs md:text-sm font-bold tracking-wide text-muted-foreground w-full group-focus-within:text-cyan-500 transition-colors">
-              Email
+              {tr("contactForm.email")}
             </label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-cyan-500 transition-colors" size={16} />
@@ -89,7 +91,7 @@ export const ContactForm: React.FC = () => {
 
         <div className="space-y-1.5 md:space-y-2 relative group">
           <label htmlFor="subject" className="text-xs md:text-sm font-bold tracking-wide text-muted-foreground w-full group-focus-within:text-cyan-500 transition-colors">
-            Subject
+            {tr("contactForm.subject")}
           </label>
           <div className="relative">
             <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-cyan-500 transition-colors" size={16} />
@@ -99,14 +101,14 @@ export const ContactForm: React.FC = () => {
               name="subject"
               required
               className="w-full text-sm md:text-base bg-background/50 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 md:py-3.5 focus:outline-none focus:ring-0 focus:border-cyan-500 hover:border-cyan-500/50 focus:bg-background focus:shadow-[0_0_15px_rgba(0,255,255,0.1)] transition-all duration-300 text-foreground shadow-sm"
-              placeholder="How can we help you?"
+              placeholder={tr("contactForm.subjectPlaceholder")}
             />
           </div>
         </div>
 
         <div className="space-y-1.5 md:space-y-2 relative group">
           <label htmlFor="message" className="text-xs md:text-sm font-bold tracking-wide text-muted-foreground w-full group-focus-within:text-cyan-500 transition-colors">
-            Message
+            {tr("contactForm.message")}
           </label>
           <textarea
             id="message"
@@ -114,7 +116,7 @@ export const ContactForm: React.FC = () => {
             required
             rows={4}
             className="w-full text-sm md:text-base bg-background/50 border border-border/50 rounded-xl px-4 py-2.5 md:py-3.5 focus:outline-none focus:ring-0 focus:border-cyan-500 hover:border-cyan-500/50 focus:bg-background focus:shadow-[0_0_15px_rgba(0,255,255,0.1)] transition-all duration-300 text-foreground resize-none shadow-sm"
-            placeholder="Your message here..."
+            placeholder={tr("contactForm.messagePlaceholder")}
           />
         </div>
 
@@ -124,9 +126,9 @@ export const ContactForm: React.FC = () => {
             disabled={isSubmitting}
             className="w-full btn-neon text-sm md:text-base md:font-bold font-semibold tracking-widest uppercase flex items-center justify-center py-3.5 bg-primary text-primary-foreground rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[0_0_20px_rgba(0,255,255,0.6)] active:scale-[0.98] transition-all duration-300 group"
           >
-            {isSubmitting ? "Sending..." : (
+            {isSubmitting ? tr("contactForm.sending") : (
                <>
-                 Send Message 
+                 {tr("contactForm.send")}
                  <Send className="ml-2 md:ml-3 w-4 h-4 md:w-[18px] md:h-[18px] opacity-80 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
                </>
             )}

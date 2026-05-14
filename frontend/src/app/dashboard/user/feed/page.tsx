@@ -6,9 +6,11 @@ import { Wifi, WifiOff, RefreshCw, Puzzle } from "lucide-react";
 import { getExtensionInstances, type ExtensionInstance } from "@/lib/admin-api";
 import { parseUTC } from "@/lib/utils";
 import Link from "next/link";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function UserLiveFeedPage() {
   const { data: session } = useSession();
+  const { tr } = useLanguage();
   const [instances, setInstances] = useState<ExtensionInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -69,9 +71,9 @@ export default function UserLiveFeedPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Live Feed</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{tr("feed.title")}</h1>
           <p className="text-muted-foreground mt-1">
-            Your registered browser extension instances.
+            {tr("feed.userSubtitle")}
           </p>
         </div>
         <button
@@ -80,13 +82,13 @@ export default function UserLiveFeedPage() {
           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <RefreshCw size={14} />
-          Refresh
+          {tr("common2.refresh")}
         </button>
       </div>
 
       {lastRefresh && (
         <p className="text-xs text-muted-foreground -mt-4">
-          Last updated {lastRefresh.toLocaleTimeString()} · auto-refreshes every 10s
+          {tr("feed.lastUpdated")} {lastRefresh.toLocaleTimeString()} · {tr("feed.autoRefreshHint")}
         </p>
       )}
 
@@ -94,26 +96,24 @@ export default function UserLiveFeedPage() {
       <div className="glass-panel rounded-xl p-5 flex items-start gap-4 border border-accent-cyan/20">
         <Puzzle size={20} className="text-accent-cyan mt-0.5 flex-shrink-0" />
         <div className="space-y-1">
-          <p className="text-sm font-semibold">How extension tracking works</p>
+          <p className="text-sm font-semibold">{tr("feed.howItWorksTitle")}</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Install the Sentra browser extension, then register a new instance from your{" "}
-            <Link href="/dashboard/user/settings" className="text-accent-cyan hover:underline">
-              Profile Settings
-            </Link>
-            . The extension uses the generated token to send periodic heartbeats — this page
-            updates every 10 seconds to reflect which of your devices are currently active.
+            {tr("feed.howItWorksDesc")}
           </p>
+          <Link href="/dashboard/user/settings" className="text-xs text-accent-cyan hover:underline mt-1 inline-block">
+            → {tr("feed.profileSettings")}
+          </Link>
         </div>
       </div>
 
       {/* Instances */}
       <div className="glass-panel rounded-xl overflow-hidden">
         <div className="p-5 border-b border-border/50 bg-card/30 flex items-center justify-between">
-          <h3 className="font-semibold">My Instances</h3>
+          <h3 className="font-semibold">{tr("feed.myInstances")}</h3>
           {activeCount > 0 && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-accent-green/10 text-accent-green">
               <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
-              {activeCount} active
+              {activeCount} {tr("common.active")}
             </span>
           )}
         </div>
@@ -121,18 +121,18 @@ export default function UserLiveFeedPage() {
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
             <RefreshCw size={16} className="animate-spin" />
-            Loading…
+            {tr("feed.loading")}
           </div>
         ) : instances.length === 0 ? (
           <div className="py-16 text-center space-y-3">
             <WifiOff size={28} className="mx-auto text-muted-foreground" />
-            <p className="text-sm font-medium">No extension instances registered</p>
+            <p className="text-sm font-medium">{tr("feed.noInstances")}</p>
             <Link
               href="/dashboard/user/settings"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent-cyan/10 text-accent-cyan text-sm font-semibold hover:bg-accent-cyan/20 transition-colors"
             >
               <Puzzle size={14} />
-              Register an Instance
+              {tr("feed.registerInstance")}
             </Link>
           </div>
         ) : (
@@ -145,7 +145,7 @@ export default function UserLiveFeedPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">
-                      {inst.browser ?? "Unknown browser"}
+                      {inst.browser ?? tr("feed.unknownBrowser")}
                     </span>
                     {inst.os_name && (
                       <span className="text-xs text-muted-foreground">· {inst.os_name}</span>
@@ -156,7 +156,7 @@ export default function UserLiveFeedPage() {
                   </p>
                   {inst.last_seen && (
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Last seen {parseUTC(inst.last_seen).toLocaleString()}
+                      {tr("feed.lastSeen")} {parseUTC(inst.last_seen).toLocaleString()}
                     </p>
                   )}
                 </div>
@@ -170,7 +170,7 @@ export default function UserLiveFeedPage() {
                   {inst.is_active && (
                     <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
                   )}
-                  {inst.is_active ? "Active" : "Idle"}
+                  {inst.is_active ? tr("common.active") : tr("common.idle")}
                 </span>
               </li>
             ))}

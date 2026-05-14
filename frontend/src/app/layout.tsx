@@ -3,7 +3,11 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import { auth } from "@/auth";
+import { cookies } from "next/headers";
+import { isLocale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,6 +31,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  const cookieStore = await cookies();
+  const rawLocale = cookieStore.get("preferred_locale")?.value;
+  const initialLocale: Locale = isLocale(rawLocale) ? rawLocale : "en";
+
   // Embed backend JWT for the browser extension bridge script (sentra_bridge.js).
   // Only present when the user is authenticated; absent on the login page so the
   // extension clears its stored token when the user logs out.
@@ -35,7 +43,7 @@ export default async function RootLayout({
     : null;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={initialLocale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -48,14 +56,16 @@ export default async function RootLayout({
           />
         )}
         <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          <LanguageProvider initialLocale={initialLocale}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>
