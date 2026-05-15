@@ -59,7 +59,12 @@ export function LiveFeed() {
   }, [session]);
 
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000");
+    // TODO(deployment): set NEXT_PUBLIC_API_URL env var; remove localhost fallback
+    const socket = io(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000", {
+      multiplex: false,
+      reconnection: false,
+    });
+    socket.on("connect_error", () => { socket.disconnect(); });
 
     socket.on("extension_heartbeat", (data: HeartbeatEvent) => {
       setEvents((prev) =>

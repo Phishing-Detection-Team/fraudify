@@ -1,5 +1,6 @@
 export const config = {
   API: {
+    // TODO(deployment): replace fallback with production API URL via environment variable
     BASE_URL: process.env.API_URL || 'http://localhost:5000',
     AUTH: {
       LOGIN: '/api/auth/login',
