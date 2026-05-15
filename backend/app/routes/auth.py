@@ -223,15 +223,24 @@ def verify_email():
         base = current_app.config.get('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
         dashboard_path = '/dashboard/admin' if user.has_role('admin') else '/dashboard/user'
         cta_url = f'{base}{dashboard_path}'
-        welcome_sent = welcome_email_sender(
-            to_email=user.email,
-            display_name=user.username,
-            cta_url=cta_url,
-            from_email=current_app.config.get('RESEND_FROM_EMAIL', 'noreply@example.com'),
-            api_key=current_app.config.get('RESEND_API_KEY', ''),
-        )
-        if not welcome_sent:
-            current_app.logger.warning('Welcome email failed to send for user %s', user.id)
+        resend_from_email = current_app.config.get('RESEND_FROM_EMAIL')
+        resend_api_key = current_app.config.get('RESEND_API_KEY')
+
+        if not resend_from_email or not resend_api_key:
+            current_app.logger.warning(
+                'Welcome email skipped for user %s: RESEND_FROM_EMAIL or RESEND_API_KEY is not configured',
+                user.id,
+            )
+        else:
+            welcome_sent = welcome_email_sender(
+                to_email=user.email,
+                display_name=user.username,
+                cta_url=cta_url,
+                from_email=resend_from_email,
+                api_key=resend_api_key,
+            )
+            if not welcome_sent:
+                current_app.logger.warning('Welcome email failed to send for user %s', user.id)
 
     access_token = create_access_token(identity=str(user.id))
     refresh_token = create_refresh_token(identity=str(user.id))
