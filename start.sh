@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # start.sh — Start the full Sentra stack
-# Usage: ./start.sh [--no-seed] [--reset-db] [--detach]
+# Usage: ./start.sh [--no-seed] [--reset-db] [--detach] [--rebuild]
 #
 #   --no-seed   Skip database seeding (use when DB already has data)
 #   --reset-db  Drop and recreate the public schema before migrating (fresh start)
 #   --detach    Run all services in the background and exit
+#   --rebuild   Rebuild all Docker containers before starting
 
 set -euo pipefail
 
@@ -35,11 +36,13 @@ step()    { echo -e "\n${BOLD}${CYAN}▶  $*${RESET}"; }
 SEED=true
 RESET_DB=false
 DETACH=false
+REBUILD=false
 for arg in "$@"; do
   case $arg in
     --no-seed)  SEED=false ;;
     --reset-db) RESET_DB=true ;;
     --detach)   DETACH=true ;;
+    --rebuild)  REBUILD=true ;;
     *) error "Unknown option: $arg"; exit 1 ;;
   esac
 done
@@ -100,6 +103,13 @@ mkdir -p "$LOG_DIR"
 
 # ── 1. Docker services (Postgres + Redis + Ollama) ───────────────────────────
 step "Starting Docker services (Postgres + Redis + Ollama)"
+
+if [ "$REBUILD" = true ]; then
+  info "Rebuilding Docker containers (--rebuild)..."
+  docker compose -f "$SCRIPT_DIR/docker-compose.yml" build --no-cache 2>&1 | sed 's/^/  /'
+  success "Docker containers rebuilt."
+fi
+
 docker compose -f "$SCRIPT_DIR/docker-compose.yml" up -d
 
 info "Waiting for Postgres to be healthy..."
