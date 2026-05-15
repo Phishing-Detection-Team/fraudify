@@ -46,24 +46,28 @@ const landingTeam = [
     name: "Thien Quy Pham",
     role: "Founder",
     photo: "/quy.png",
+    bio: "Cybersecurity and AI engineer securing LLMs and stopping zero-day phishing in real time.",
     links: { portfolio: "https://thienquypham.vercel.app/", linkedin: "https://www.linkedin.com/in/thienquypham/", github: "https://github.com/thienquy05" },
   },
   {
     name: "Hoang Nhat Duy Le",
     role: "Co-Founder",
     photo: "/hoang.png",
+    bio: "Innovative problem solver with a strong background in backend systems and real-time processing architectures.",
     links: { portfolio: "https://hoangnhatduyle.github.io/portfolio/", linkedin: "https://www.linkedin.com/in/hoangnhatduyle/", github: "https://github.com/hoangnhatduyle" },
   },
   {
     name: "Hoang Bao Duy Le",
     role: "Co-Founder",
     photo: undefined,
+    bio: "Dedicated engineer focusing on robust integrations, security protocols, and maintaining flawless user experiences.",
     links: { linkedin: "https://linkedin.com", github: "https://github.com" },
   },
   {
     name: "Thanh Dang Huynh",
     role: "Fullstack Developer",
     photo: undefined,
+    bio: "Creative developer bridging powerful backend logic with beautiful, accessible frontend interfaces.",
     links: { linkedin: "https://linkedin.com", github: "https://github.com" },
   },
 ];
@@ -330,31 +334,33 @@ export default function LandingPage() {
               <motion.div
                 key={member.name}
                 variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-                className="glass-panel rounded-xl p-5 flex flex-col items-center text-center space-y-3 border border-border/30 hover:border-cyan-500/30 transition-all"
+                className="glass-panel rounded-xl p-6 flex flex-col items-center text-center space-y-4 border border-border/30 hover:border-cyan-500/30 transition-all"
               >
-                <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-500 p-[2px] flex-shrink-0">
+                <div className="relative w-28 h-28 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-500 p-[2px] flex-shrink-0">
                   <div className="relative w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
                     {member.photo ? (
                       <Image
                         src={member.photo}
                         alt={member.name}
                         fill
-                        sizes="80px"
+                        sizes="112px"
                         quality={90}
                         className="object-cover object-[center_32%] rounded-full"
                       />
                     ) : (
-                      <span className="text-2xl font-bold neon-text">{member.name.charAt(0)}</span>
+                      <span className="text-3xl font-bold neon-text">{member.name.charAt(0)}</span>
                     )}
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">{member.name}</h3>
-                  <p className="text-xs text-cyan-500/80 font-medium mt-0.5">{member.role}</p>
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-foreground">{member.name}</h3>
+                  <p className="text-xs text-cyan-500/80 font-medium tracking-wide">{member.role}</p>
                 </div>
 
-                <div className="flex items-center justify-center gap-3">
+                <p className="text-xs text-foreground/55 leading-relaxed">{member.bio}</p>
+
+                <div className="flex items-center justify-center gap-3 pt-1">
                   {member.links.portfolio && member.links.portfolio !== "#" && (
                     <a href={member.links.portfolio} target="_blank" rel="noreferrer" className="text-foreground/40 hover:text-cyan-500 transition-colors" aria-label="Portfolio">
                       <Link2 size={15} />
