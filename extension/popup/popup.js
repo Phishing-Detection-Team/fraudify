@@ -54,23 +54,34 @@ async function renderScanHistory() {
     return;
   }
 
-  if (emptyEl) emptyEl.style.display = 'none';
+if (emptyEl) emptyEl.style.display = 'none';
   if (listEl) listEl.style.display = '';
 
-  listEl.innerHTML = history
-    .map((entry) => {
+  listEl.replaceChildren(
+    ...history.map((entry) => {
       const badge = _verdictBadge(entry.verdict);
       const subject = (entry.subject || '').slice(0, 40);
       const time = _timeAgo(entry.timestamp);
-      return (
-        `<li class="scan-history-item">` +
-        `<span class="verdict-badge">${badge}</span>` +
-        `<span class="scan-subject">${subject}</span>` +
-        `<span class="scan-time">${time}</span>` +
-        `</li>`
-      );
+
+      const li = document.createElement('li');
+      li.className = 'scan-history-item';
+
+      const badgeSpan = document.createElement('span');
+      badgeSpan.className = 'verdict-badge';
+      badgeSpan.textContent = badge;
+
+      const subjectSpan = document.createElement('span');
+      subjectSpan.className = 'scan-subject';
+      subjectSpan.textContent = subject;
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'scan-time';
+      timeSpan.textContent = time;
+
+      li.append(badgeSpan, subjectSpan, timeSpan);
+      return li;
     })
-    .join('');
+  );
 }
 
 // ---------------------------------------------------------------------------
