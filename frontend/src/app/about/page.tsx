@@ -380,6 +380,7 @@ export default function AboutPage() {
               </p>
 
               <div className="space-y-3">
+                {/* TODO(deployment): replace placeholder email with real team contact address */}
                 <a
                   href="mailto:thisshoulebechanged"
                   className="flex items-center gap-4 glass-panel p-4 rounded-xl border border-border/30 hover:border-cyan-500/30 transition-all group"

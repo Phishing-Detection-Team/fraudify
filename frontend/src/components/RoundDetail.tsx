@@ -95,7 +95,10 @@ export function RoundDetailView() {
 
   // WebSocket subscription for real-time round progress
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000");
+    // TODO(deployment): set NEXT_PUBLIC_API_URL env var; remove localhost fallback
+    const socket = io(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000", {
+      multiplex: false,
+    });
 
     socket.on(
       "round_progress",

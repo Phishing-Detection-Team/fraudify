@@ -355,6 +355,7 @@ export async function createInvite(
   const json = await res.json();
   const invite = json.invite as { code: string };
   const frontendOrigin =
+    // TODO(deployment): 'http://localhost:3000' fallback must be replaced with production frontend origin
     typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
   return {
     code: invite.code,

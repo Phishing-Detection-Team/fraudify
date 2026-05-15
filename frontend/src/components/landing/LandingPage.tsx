@@ -2,9 +2,10 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { LandingNav } from "./LandingNav";
-import { ArrowRight, ChevronDown, ShieldCheck, Zap, Lock, Github } from "lucide-react";
+import { ArrowRight, ChevronDown, ShieldCheck, Zap, Lock, Github, Link2, Linkedin } from "lucide-react";
 
 const DOT_BG = {
   backgroundImage:
@@ -38,6 +39,33 @@ const stats = [
   { value: 90, prefix: "", suffix: "%", label: "Detection Accuracy", sublabel: "Against zero-day attacks" },
   { value: 800, prefix: "<", suffix: "µs", label: "Scan Latency", sublabel: "Faster than a blink" },
   { value: 4, prefix: "", suffix: "", label: "Engineers", sublabel: "Building your shield" },
+];
+
+const landingTeam = [
+  {
+    name: "Thien Quy Pham",
+    role: "Founder",
+    photo: "/quy.png",
+    links: { portfolio: "https://thienquypham.vercel.app/", linkedin: "https://www.linkedin.com/in/thienquypham/", github: "https://github.com/thienquy05" },
+  },
+  {
+    name: "Hoang Nhat Duy Le",
+    role: "Co-Founder",
+    photo: "/hoang.png",
+    links: { portfolio: "https://hoangnhatduyle.github.io/portfolio/", linkedin: "https://www.linkedin.com/in/hoangnhatduyle/", github: "https://github.com/hoangnhatduyle" },
+  },
+  {
+    name: "Hoang Bao Duy Le",
+    role: "Co-Founder",
+    photo: undefined,
+    links: { linkedin: "https://linkedin.com", github: "https://github.com" },
+  },
+  {
+    name: "Thanh Dang Huynh",
+    role: "Fullstack Developer",
+    photo: undefined,
+    links: { linkedin: "https://linkedin.com", github: "https://github.com" },
+  },
 ];
 
 function StatCounter({
@@ -157,7 +185,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ─────────────────────────────────────────────── */}
-      <section id="features" className="relative z-10 py-24 px-4 md:px-8">
+      <section id="features" className="relative z-10 py-14 px-4 md:px-8">
         <div className="max-w-6xl mx-auto space-y-16 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -222,7 +250,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Mission & Impact ─────────────────────────────────────── */}
-      <section className="relative z-10 py-32 px-4 md:px-8 border-t border-border/20 overflow-hidden">
+      <section className="relative z-10 py-16 px-4 md:px-8 border-t border-border/20 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-gradient-to-br from-cyan-500/6 to-purple-500/6 blur-3xl" />
         </div>
@@ -234,7 +262,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
-            className="text-center max-w-4xl mx-auto mb-24 relative px-8 md:px-20"
+            className="text-center max-w-4xl mx-auto mb-12 relative px-8 md:px-20"
           >
             <span className="absolute -top-6 left-0 text-[8rem] font-serif leading-none select-none pointer-events-none bg-gradient-to-br from-cyan-400/25 to-transparent bg-clip-text text-transparent">
               &ldquo;
@@ -259,7 +287,7 @@ export default function LandingPage() {
               hidden: { opacity: 0 },
               visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
             }}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-20"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10"
           >
             {stats.map((stat) => (
               <motion.div
@@ -277,23 +305,74 @@ export default function LandingPage() {
             ))}
           </motion.div>
 
-          {/* Meet the team link */}
+          {/* Team cards */}
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-center"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-center mb-8"
           >
-            <Link
-              href="/about"
-              className="inline-flex items-center gap-3 text-foreground/55 hover:text-cyan-400 transition-colors group font-semibold text-sm tracking-[0.2em] uppercase"
-            >
-              <span className="w-10 h-px bg-foreground/20 group-hover:bg-cyan-500/50 group-hover:w-14 transition-all duration-300" />
-              Meet the Full Team
-              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              <span className="w-10 h-px bg-foreground/20 group-hover:bg-cyan-500/50 group-hover:w-14 transition-all duration-300" />
-            </Link>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-foreground/45">The Team</span>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+            }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-5"
+          >
+            {landingTeam.map((member) => (
+              <motion.div
+                key={member.name}
+                variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
+                className="glass-panel rounded-xl p-5 flex flex-col items-center text-center space-y-3 border border-border/30 hover:border-cyan-500/30 transition-all"
+              >
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-500 p-[2px] flex-shrink-0">
+                  <div className="relative w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+                    {member.photo ? (
+                      <Image
+                        src={member.photo}
+                        alt={member.name}
+                        fill
+                        sizes="80px"
+                        quality={90}
+                        className="object-cover object-[center_32%] rounded-full"
+                      />
+                    ) : (
+                      <span className="text-2xl font-bold neon-text">{member.name.charAt(0)}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">{member.name}</h3>
+                  <p className="text-xs text-cyan-500/80 font-medium mt-0.5">{member.role}</p>
+                </div>
+
+                <div className="flex items-center justify-center gap-3">
+                  {member.links.portfolio && member.links.portfolio !== "#" && (
+                    <a href={member.links.portfolio} target="_blank" rel="noreferrer" className="text-foreground/40 hover:text-cyan-500 transition-colors" aria-label="Portfolio">
+                      <Link2 size={15} />
+                    </a>
+                  )}
+                  {member.links.linkedin && (
+                    <a href={member.links.linkedin} target="_blank" rel="noreferrer" className="text-foreground/40 hover:text-cyan-500 transition-colors" aria-label="LinkedIn">
+                      <Linkedin size={15} />
+                    </a>
+                  )}
+                  {member.links.github && (
+                    <a href={member.links.github} target="_blank" rel="noreferrer" className="text-foreground/40 hover:text-cyan-500 transition-colors" aria-label="GitHub">
+                      <Github size={15} />
+                    </a>
+                  )}
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -301,7 +380,7 @@ export default function LandingPage() {
       {/* ── Final CTA ────────────────────────────────────────────── */}
       <section
         id="contact"
-        className="relative z-10 py-36 px-4 md:px-8 border-t border-border/20 overflow-hidden"
+        className="relative z-10 py-20 px-4 md:px-8 border-t border-border/20 overflow-hidden"
       >
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[500px] bg-gradient-to-r from-cyan-500/7 via-purple-500/9 to-cyan-500/7 blur-3xl rounded-full" />
