@@ -31,7 +31,7 @@ const PER_PAGE = 10;
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatRelative(iso: string): string {
+function formatRelative(iso: string, LOCALE: import("@/lib/i18n").Messages): string {
   if (!iso) return "—";
   const date = parseUTC(iso);
   if (isNaN(date.getTime())) return iso;
@@ -61,7 +61,16 @@ const TIER_BADGE: Record<VerdictTier, string> = {
   safe: "bg-accent-green/20 text-accent-green border border-accent-green/30",
 };
 
+const VERDICT_LABEL_KEY: Record<string, string> = {
+  phishing: "scanHistory.phishing",
+  likely_phishing: "scanHistory.likelyPhishing",
+  suspicious: "scanHistory.suspicious",
+  likely_legitimate: "scanHistory.likelySafe",
+  legitimate: "scanHistory.safe",
+};
+
 function VerdictBadge({ verdict }: { verdict: string }) {
+  const { locale } = useLanguage();
   const tier = verdictTier(verdict);
   const Icon =
     tier === "danger"
@@ -74,7 +83,7 @@ function VerdictBadge({ verdict }: { verdict: string }) {
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${TIER_BADGE[tier]}`}
     >
       <Icon size={11} />
-      {verdict.replace("_", " ")}
+      {t(locale, VERDICT_LABEL_KEY[verdict] ?? "scanHistory.suspicious")}
     </span>
   );
 }
@@ -134,7 +143,7 @@ function ScanModal({
                   {scan.user_email}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {formatRelative(scan.scanned_at)}
+                  {formatRelative(scan.scanned_at, LOCALE)}
                 </span>
               </div>
             </div>
@@ -327,7 +336,7 @@ export default function RecentScansTable({ initialData }: Props) {
                           : "—"}
                       </td>
                       <td className="px-6 py-3 text-right text-xs text-muted-foreground">
-                        {formatRelative(scan.scanned_at)}
+                        {formatRelative(scan.scanned_at, LOCALE)}
                       </td>
                     </tr>
                   ))}

@@ -136,7 +136,7 @@ export function LiveFeed() {
                     item.verdict === "phishing" ? "bg-accent-red/10 text-accent-red" : "bg-accent-green/10 text-accent-green"
                   }`}>
                     {item.verdict === "phishing" ? <ShieldAlert size={12} /> : <ShieldCheck size={12} />}
-                    {item.verdict}
+                    {item.verdict === "phishing" ? LOCALE.verdict.phishing : LOCALE.verdict.safe}
                   </div>
                 </div>
 

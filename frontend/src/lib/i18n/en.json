@@ -544,7 +544,16 @@
     "unusualUrgency": "Unusual Urgency Score: High",
     "senderAnomaly": "Sender Behavioral Anomalies",
     "reportAndDelete": "Report Phish & Delete",
-    "markSafe": "Mark as Safe"
+    "markSafe": "Mark as Safe",
+    "delete": "Delete",
+    "emailLooksSafe": "EMAIL LOOKS SAFE",
+    "noThreatsDetected": "No threats detected in this email.",
+    "noMaliciousLinks": "No Malicious Links Found",
+    "senderVerified": "Sender Verified",
+    "contentLegitimate": "Content Looks Legitimate",
+    "markReviewed": "Mark as Reviewed",
+    "dismiss": "Dismiss",
+    "reportIssue": "Report Issue"
   },
 
   "common2": {

@@ -1,14 +1,29 @@
 /**
  * Sentra Extension — Auth Bridge (content script for localhost:3000)
  *
- * Reads the backend JWT embedded by the Next.js layout into a
- * <script id="sentra-ext-data" type="application/json"> element,
- * then syncs it to extension storage via the service worker.
+ * Reads data embedded by the Next.js layout and syncs it to extension storage.
  *
+ * Elements written by layout.tsx:
+ *   #sentra-locale-data  — always present; contains { language }
+ *   #sentra-ext-data     — only when authenticated; contains { token, email, language }
+ *
+ * - All page visits:      sync locale so the popup language matches the dashboard
  * - Authenticated pages:  sends SET_AUTH_TOKEN  → popup shows logged-in view
  * - Login / logged-out:   sends CLEAR_AUTH_TOKEN → popup shows login prompt
  */
 (function sentraBridge() {
+  // Always sync locale — works for both authenticated and unauthenticated users.
+  const localeEl = document.getElementById('sentra-locale-data');
+  if (localeEl && localeEl.textContent) {
+    try {
+      const localeData = JSON.parse(localeEl.textContent);
+      if (localeData.language === 'vi' || localeData.language === 'en') {
+        chrome.storage.local.set({ sentra_locale: localeData.language });
+      }
+    } catch (_) {}
+  }
+
+  // Sync auth token separately.
   const el = document.getElementById('sentra-ext-data');
 
   if (!el || !el.textContent) {

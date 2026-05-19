@@ -48,11 +48,14 @@ export default async function RootLayout({
     }
   }
 
-  // Embed backend JWT for the browser extension bridge script (sentra_bridge.js).
-  // Only present when the user is authenticated; absent on the login page so the
-  // extension clears its stored token when the user logs out.
+  // Always-present locale element — lets the extension sync language even when
+  // the user is not authenticated (login page, landing page, etc.).
+  const extLocale = JSON.stringify({ language: initialLocale });
+
+  // Auth element — only present when authenticated so the extension clears its
+  // stored token when the user logs out.
   const extData = session?.accessToken
-    ? JSON.stringify({ token: session.accessToken, email: session.user?.email ?? "" })
+    ? JSON.stringify({ token: session.accessToken, email: session.user?.email ?? "", language: initialLocale })
     : null;
 
   return (
@@ -60,6 +63,12 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          id="sentra-locale-data"
+          type="application/json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: extLocale }}
+        />
         {extData && (
           <script
             id="sentra-ext-data"

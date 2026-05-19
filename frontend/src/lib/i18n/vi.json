@@ -544,7 +544,16 @@
     "unusualUrgency": "Điểm Khẩn Cấp Bất Thường: Cao",
     "senderAnomaly": "Hành Vi Bất Thường Của Người Gửi",
     "reportAndDelete": "Báo Cáo Lừa Đảo & Xóa",
-    "markSafe": "Đánh Dấu An Toàn"
+    "markSafe": "Đánh Dấu An Toàn",
+    "delete": "Xóa",
+    "emailLooksSafe": "EMAIL AN TOÀN",
+    "noThreatsDetected": "Không phát hiện mối đe dọa nào trong email này.",
+    "noMaliciousLinks": "Không Tìm Thấy Liên Kết Độc Hại",
+    "senderVerified": "Người Gửi Đã Xác Minh",
+    "contentLegitimate": "Nội Dung Có Vẻ Hợp Lệ",
+    "markReviewed": "Đánh Dấu Đã Xem",
+    "dismiss": "Bỏ Qua",
+    "reportIssue": "Báo Cáo Sự Cố"
   },
 
   "common2": {

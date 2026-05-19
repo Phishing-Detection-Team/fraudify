@@ -89,10 +89,3 @@ export function LanguageProvider({ initialLocale, children }: LanguageProviderPr
 export function useLanguage(): LanguageContextValue {
   return useContext(LanguageContext);
 }
-
-export function resolveInitialLocale(cookieHeader: string | undefined): Locale {
-  if (!cookieHeader) return "en";
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${LOCALE_COOKIE}=([^;]+)`));
-  const value = match?.[1]?.trim();
-  return isLocale(value) ? value : "en";
-}
