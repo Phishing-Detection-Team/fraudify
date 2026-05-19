@@ -25,7 +25,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [users, setUsers] = useState<BackendUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
       setInviteCopied(true);
       setTimeout(() => setInviteCopied(false), 3000);
     } catch {
-      alert(tr("adminUsers.inviteError"));
+      alert(LOCALE.adminUsers.inviteError);
     } finally {
       setInviteLoading(false);
     }
@@ -68,8 +68,8 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{tr("adminUsers.title")}</h1>
-        <p className="text-muted-foreground mt-1">{tr("adminUsers.subtitle")}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{LOCALE.adminUsers.title}</h1>
+        <p className="text-muted-foreground mt-1">{LOCALE.adminUsers.subtitle}</p>
       </div>
 
       {/* Search + summary + invite */}
@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
           />
           <input
             type="text"
-            placeholder={tr("adminUsers.searchPlaceholder")}
+            placeholder={LOCALE.adminUsers.searchPlaceholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent-cyan"
@@ -90,7 +90,7 @@ export default function AdminUsersPage() {
         <div className="flex items-center gap-3 flex-shrink-0">
           {!loading && (
             <span className="text-sm text-muted-foreground">
-              {filtered.length} / {users.length} {tr("adminUsers.userCount")}
+              {filtered.length} / {users.length} {LOCALE.adminUsers.userCount}
             </span>
           )}
           <button
@@ -105,7 +105,7 @@ export default function AdminUsersPage() {
             ) : (
               <Link2 size={13} />
             )}
-            {inviteCopied ? tr("adminUsers.copied") : tr("adminUsers.copyInviteLink")}
+            {inviteCopied ? LOCALE.adminUsers.copied : LOCALE.adminUsers.copyInviteLink}
           </button>
         </div>
       </div>
@@ -114,19 +114,19 @@ export default function AdminUsersPage() {
       <div className="glass-panel rounded-xl overflow-hidden">
         <div className="p-5 border-b border-border/50 bg-card/30 flex items-center gap-2">
           <UsersIcon size={16} className="text-accent-cyan" />
-          <h3 className="font-semibold">{tr("adminUsers.tableTitle")}</h3>
+          <h3 className="font-semibold">{LOCALE.adminUsers.tableTitle}</h3>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
             <Loader2 size={16} className="animate-spin" />
-            {tr("adminUsers.loading")}
+            {LOCALE.adminUsers.loading}
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground space-y-2">
             <UserIcon size={28} className="mx-auto" />
             <p className="text-sm font-medium">
-              {query ? tr("adminUsers.noMatch") : tr("adminUsers.notFound")}
+              {query ? LOCALE.adminUsers.noMatch : LOCALE.adminUsers.notFound}
             </p>
           </div>
         ) : (
@@ -134,10 +134,10 @@ export default function AdminUsersPage() {
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{tr("adminUsers.headerUser")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("adminUsers.headerRoles")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("adminUsers.headerJoined")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("adminUsers.headerStatus")}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.adminUsers.headerUser}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.adminUsers.headerRoles}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.adminUsers.headerJoined}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.adminUsers.headerStatus}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -186,7 +186,7 @@ export default function AdminUsersPage() {
                             : "bg-accent-red/10 text-accent-red"
                         }`}
                       >
-                        {user.is_active ? tr("adminUsers.statusActive") : tr("adminUsers.statusInactive")}
+                        {user.is_active ? LOCALE.adminUsers.statusActive : LOCALE.adminUsers.statusInactive}
                       </span>
                     </td>
                   </tr>

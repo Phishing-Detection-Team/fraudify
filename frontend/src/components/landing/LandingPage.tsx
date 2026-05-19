@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { LandingNav } from "./LandingNav";
 import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 import { ArrowRight, ChevronDown, ShieldCheck, Zap, Lock, Github } from "lucide-react";
 
 const DOT_BG = {
@@ -58,26 +59,26 @@ function StatCounter({
 }
 
 export default function LandingPage() {
-  const { tr } = useLanguage();
+  const { LOCALE, locale } = useLanguage();
 
   const features = [
     {
       icon: ShieldCheck,
       color: "cyan",
-      title: tr("landing.feature1Title"),
-      body: tr("landing.feature1Body"),
+      title: LOCALE.landing.feature1Title,
+      body: LOCALE.landing.feature1Body,
     },
     {
       icon: Zap,
       color: "purple",
-      title: tr("landing.feature2Title"),
-      body: tr("landing.feature2Body"),
+      title: LOCALE.landing.feature2Title,
+      body: LOCALE.landing.feature2Body,
     },
     {
       icon: Lock,
       color: "cyan",
-      title: tr("landing.feature3Title"),
-      body: tr("landing.feature3Body"),
+      title: LOCALE.landing.feature3Title,
+      body: LOCALE.landing.feature3Body,
     },
   ];
 
@@ -110,19 +111,19 @@ export default function LandingPage() {
           className="relative z-10 max-w-4xl mx-auto space-y-6"
         >
           <span className="inline-block text-xs font-bold tracking-[0.25em] uppercase text-cyan-400 border border-cyan-500/30 rounded-full px-4 py-1.5 bg-cyan-500/5">
-            {tr("landing.badge")}
+            {LOCALE.landing.badge}
           </span>
 
           <h1 className="text-5xl md:text-6xl xl:text-7xl font-extrabold tracking-tight leading-tight">
-            {tr("landing.heroTitle1")}
+            {LOCALE.landing.heroTitle1}
             <br />
             <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-              {tr("landing.heroTitle2")}
+              {LOCALE.landing.heroTitle2}
             </span>
           </h1>
 
           <p className="text-lg md:text-xl text-foreground/70 max-w-2xl mx-auto leading-relaxed">
-            {tr("landing.heroSubtitle")}
+            {LOCALE.landing.heroSubtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
@@ -130,14 +131,14 @@ export default function LandingPage() {
               href="/login"
               className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-cyan-500 text-black font-bold text-sm tracking-wide hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:shadow-[0_0_30px_rgba(0,212,255,0.6)] active:scale-[0.98]"
             >
-              {tr("landing.ctaStart")} <ArrowRight size={16} />
+              {LOCALE.landing.ctaStart} <ArrowRight size={16} />
             </Link>
             <a
               href="#features"
               onClick={handleLearnMore}
               className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-border/60 text-foreground/80 font-semibold text-sm hover:border-cyan-500/40 hover:text-foreground transition-all"
             >
-              {tr("landing.ctaLearn")} <ChevronDown size={16} />
+              {LOCALE.landing.ctaLearn} <ChevronDown size={16} />
             </a>
           </div>
         </motion.div>
@@ -168,13 +169,13 @@ export default function LandingPage() {
             className="text-center space-y-3"
           >
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              {tr("landing.featuresTitle")}{" "}
+              {LOCALE.landing.featuresTitle}{" "}
               <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                {tr("landing.featuresSubtitle")}
+                {LOCALE.landing.featuresSubtitle}
               </span>
             </h2>
             <p className="text-foreground/60 max-w-xl mx-auto">
-              {tr("landing.featuresDesc")}
+              {LOCALE.landing.featuresDesc}
             </p>
           </motion.div>
 
@@ -240,10 +241,10 @@ export default function LandingPage() {
               &ldquo;
             </span>
             <p className="relative z-10 text-2xl md:text-3xl xl:text-4xl font-semibold italic text-foreground/90 leading-relaxed">
-              {tr("landing.missionQuote1")}
+              {LOCALE.landing.missionQuote1}
             </p>
             <p className="relative z-10 text-lg md:text-2xl text-foreground/45 italic mt-5 leading-relaxed">
-              {tr("landing.missionQuote2")}
+              {LOCALE.landing.missionQuote2}
             </p>
             <span className="absolute -bottom-6 right-0 text-[8rem] font-serif leading-none select-none pointer-events-none bg-gradient-to-bl from-purple-400/25 to-transparent bg-clip-text text-transparent">
               &rdquo;
@@ -271,8 +272,8 @@ export default function LandingPage() {
                 <div className="text-4xl xl:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 mb-3 leading-none">
                   <StatCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
-                <p className="text-sm font-bold text-foreground/90 mb-1">{tr(stat.labelKey)}</p>
-                <p className="text-xs text-muted-foreground">{tr(stat.sublabelKey)}</p>
+                <p className="text-sm font-bold text-foreground/90 mb-1">{t(locale, stat.labelKey)}</p>
+                <p className="text-xs text-muted-foreground">{t(locale, stat.sublabelKey)}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -290,7 +291,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-3 text-foreground/55 hover:text-cyan-400 transition-colors group font-semibold text-sm tracking-[0.2em] uppercase"
             >
               <span className="w-10 h-px bg-foreground/20 group-hover:bg-cyan-500/50 group-hover:w-14 transition-all duration-300" />
-              {tr("landing.missionLink")}
+              {LOCALE.landing.missionLink}
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               <span className="w-10 h-px bg-foreground/20 group-hover:bg-cyan-500/50 group-hover:w-14 transition-all duration-300" />
             </Link>
@@ -316,19 +317,19 @@ export default function LandingPage() {
         >
           <div className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.25em] uppercase text-cyan-400 border border-cyan-500/30 rounded-full px-4 py-1.5 bg-cyan-500/5">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            {tr("landing.ctaBadge")}
+            {LOCALE.landing.ctaBadge}
           </div>
 
           <h2 className="text-4xl md:text-5xl xl:text-6xl font-extrabold tracking-tight leading-tight">
-            {tr("landing.ctaTitle1")}
+            {LOCALE.landing.ctaTitle1}
             <br />
             <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-              {tr("landing.ctaTitle2")}
+              {LOCALE.landing.ctaTitle2}
             </span>
           </h2>
 
           <p className="text-lg md:text-xl text-foreground/55 max-w-2xl mx-auto leading-relaxed">
-            {tr("landing.ctaSubtitle")}
+            {LOCALE.landing.ctaSubtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -336,7 +337,7 @@ export default function LandingPage() {
               href="/login"
               className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl bg-cyan-500 text-black font-bold text-sm tracking-wide hover:bg-cyan-400 transition-all shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:shadow-[0_0_55px_rgba(0,212,255,0.65)] active:scale-[0.98]"
             >
-              {tr("landing.ctaButton1")} <ArrowRight size={16} />
+              {LOCALE.landing.ctaButton1} <ArrowRight size={16} />
             </Link>
             <a
               href="https://github.com/Phishing-Detection-Team"
@@ -345,7 +346,7 @@ export default function LandingPage() {
               className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl border border-border/60 text-foreground/80 font-semibold text-sm hover:border-cyan-500/40 hover:text-foreground transition-all"
             >
               <Github size={16} />
-              {tr("landing.ctaButton2")}
+              {LOCALE.landing.ctaButton2}
             </a>
           </div>
         </motion.div>
@@ -353,7 +354,7 @@ export default function LandingPage() {
 
       {/* ── Footer ───────────────────────────────────────────────── */}
       <footer className="relative z-10 border-t border-border/20 py-8 px-4 text-center text-sm text-foreground/40">
-        <p>© {new Date().getFullYear()} {tr("landing.footer")}</p>
+        <p>© {new Date().getFullYear()} {LOCALE.landing.footer}</p>
       </footer>
     </div>
   );

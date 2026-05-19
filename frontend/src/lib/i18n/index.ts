@@ -1,9 +1,12 @@
-import en, { privacyEn, termsEn } from "./en";
-import vi, { privacyVi, termsVi } from "./vi";
+import en from "./en.json";
+import vi from "./vi.json";
+import { privacyEn, termsEn } from "./legal.en";
+import { privacyVi, termsVi } from "./legal.vi";
 import type { Locale, LegalDocument } from "./types";
 
 export type { Locale, LegalDocument, LegalSection, LegalParagraph } from "./types";
 export { LOCALE_COOKIE, SUPPORTED_LOCALES, DEFAULT_LOCALE, isLocale } from "./constants";
+export type Messages = typeof en;
 
 function getMessages(locale: Locale) {
   return locale === "vi" ? vi : en;

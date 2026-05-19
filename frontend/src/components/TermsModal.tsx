@@ -40,7 +40,7 @@ function renderParagraph(p: LegalParagraph, i: number) {
 }
 
 export function TermsModal({ isOpen, onClose }: TermsModalProps) {
-  const { locale, tr } = useLanguage();
+  const { locale } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [, setShowScrollTop] = useState(false);
   const doc = getTermsContent(locale);
@@ -103,7 +103,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
                 title="Close (ESC)"
               >
                 <X size={18} />
-                <span>{tr("common.close")}</span>
+                <span>{LOCALE.common.close}</span>
               </button>
             </div>
 

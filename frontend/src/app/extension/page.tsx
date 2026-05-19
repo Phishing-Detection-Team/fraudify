@@ -3,9 +3,10 @@
 import { Download, Chrome, Shield, Mail, Zap, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 
 export default function ExtensionPage() {
-  const { tr } = useLanguage();
+  const { LOCALE, locale } = useLanguage();
 
   const INSTALL_STEPS = [
     { step: 1, titleKey: "extension.step1Title", descKey: "extension.step1Desc", codes: ["chrome://extensions", "edge://extensions"] },
@@ -34,10 +35,10 @@ export default function ExtensionPage() {
   ];
 
   const COMPAT_ITEMS = [
-    tr("extension.chrome"),
-    tr("extension.edge"),
-    tr("extension.gmail"),
-    tr("extension.outlook"),
+    LOCALE.extension.chrome,
+    LOCALE.extension.edge,
+    LOCALE.extension.gmail,
+    LOCALE.extension.outlook,
   ];
 
   return (
@@ -47,13 +48,13 @@ export default function ExtensionPage() {
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-xs font-semibold uppercase tracking-wider mb-2">
-            <Chrome size={12} /> {tr("extension.badge")}
+            <Chrome size={12} /> {LOCALE.extension.badge}
           </div>
           <h1 className="text-4xl font-bold tracking-tight">
-            {tr("extension.title")}
+            {LOCALE.extension.title}
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            {tr("extension.subtitle")}
+            {LOCALE.extension.subtitle}
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <a
@@ -61,13 +62,13 @@ export default function ExtensionPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent-cyan text-background font-semibold rounded-lg hover:bg-accent-cyan/90 transition-colors text-sm"
             >
               <Download size={16} />
-              {tr("extension.installNow")}
+              {LOCALE.extension.installNow}
             </a>
             <Link
               href="/dashboard/user"
               className="inline-flex items-center gap-2 px-5 py-2.5 border border-border/50 rounded-lg hover:border-accent-cyan/30 transition-colors text-sm text-muted-foreground hover:text-foreground"
             >
-              {tr("extension.goToDashboard")}
+              {LOCALE.extension.goToDashboard}
             </Link>
           </div>
         </div>
@@ -78,16 +79,16 @@ export default function ExtensionPage() {
             <div key={f.titleKey} className="glass-panel p-5 rounded-xl space-y-2">
               <div className="flex items-center gap-2">
                 {f.icon}
-                <span className="font-semibold text-sm">{tr(f.titleKey)}</span>
+                <span className="font-semibold text-sm">{t(locale, f.titleKey)}</span>
               </div>
-              <p className="text-xs text-muted-foreground">{tr(f.descKey)}</p>
+              <p className="text-xs text-muted-foreground">{t(locale, f.descKey)}</p>
             </div>
           ))}
         </div>
 
         {/* Install Steps */}
         <div id="install" className="space-y-4">
-          <h2 className="text-xl font-bold">{tr("extension.installTitle")}</h2>
+          <h2 className="text-xl font-bold">{LOCALE.extension.installTitle}</h2>
           <ol className="space-y-3">
             {INSTALL_STEPS.map(({ step, titleKey, descKey, codes }) => (
               <li key={step} className="glass-panel p-5 rounded-xl flex gap-4 items-start" data-testid="install-step">
@@ -95,8 +96,8 @@ export default function ExtensionPage() {
                   {step}
                 </span>
                 <div className="space-y-1">
-                  <p className="font-semibold text-sm">{tr(titleKey)}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{tr(descKey)}</p>
+                  <p className="font-semibold text-sm">{t(locale, titleKey)}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{t(locale, descKey)}</p>
                   {codes && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {codes.map((url) => (
@@ -112,7 +113,7 @@ export default function ExtensionPage() {
 
         {/* Compatibility */}
         <div className="glass-panel p-6 rounded-xl space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{tr("extension.compatTitle")}</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{LOCALE.extension.compatTitle}</h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
             {COMPAT_ITEMS.map((item) => (
               <div key={item} className="flex items-center gap-2 text-foreground/80">

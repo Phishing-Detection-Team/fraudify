@@ -26,7 +26,7 @@ function SignupForm(): JSX.Element {
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get("invite") ?? "";
   const router = useRouter();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
 
   const [step, setStep] = useState<SignupStep>("details");
 
@@ -59,7 +59,7 @@ function SignupForm(): JSX.Element {
   const isDetailsStepValid = email && isEmailValid && password && isPasswordValid;
 
   const passwordStrength = [hasMinLength, hasNumber, hasSymbol].filter(Boolean).length;
-  const strengthLabels = [tr("signup.weak"), tr("signup.fair"), tr("signup.fair"), tr("signup.strong")];
+  const strengthLabels = [LOCALE.signup.weak, LOCALE.signup.fair, LOCALE.signup.fair, LOCALE.signup.strong];
   const strengthColors = ["text-red-500", "text-yellow-500", "text-yellow-500", "text-green-500"];
 
   const handleNextToConsent = (e: React.FormEvent) => {
@@ -110,7 +110,7 @@ function SignupForm(): JSX.Element {
       const _data = await _res.json();
       const signupResult = _res.ok
         ? { success: true as const }
-        : { success: false as const, error: _data.error || tr("signup.failedCreateAccount"), message: _data.message };
+        : { success: false as const, error: _data.error || LOCALE.signup.failedCreateAccount, message: _data.message };
       if (!signupResult.success) {
         if (signupResult.message?.includes("not yet verified")) {
           const resend = await sendVerificationEmail(email);
@@ -120,7 +120,7 @@ function SignupForm(): JSX.Element {
             return;
           }
         }
-        setError(signupResult.error || tr("signup.failedCreateAccount"));
+        setError(signupResult.error || LOCALE.signup.failedCreateAccount);
         setLoading(false);
         return;
       }
@@ -128,7 +128,7 @@ function SignupForm(): JSX.Element {
       setStep("verify");
       setLoading(false);
     } catch {
-      setError(tr("signup.unexpectedError"));
+      setError(LOCALE.signup.unexpectedError);
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ function SignupForm(): JSX.Element {
   const handleVerify = async () => {
     const code = otpDigits.join("");
     if (code.length < 6) {
-      setVerifyError(tr("signup.enter6Digits"));
+      setVerifyError(LOCALE.signup.enter6Digits);
       return;
     }
     setLoading(true);
@@ -145,14 +145,14 @@ function SignupForm(): JSX.Element {
 
     const result = await verifyEmailWithCode(email, code);
     if (!result.success || !result.data) {
-      setVerifyError(result.error || tr("signup.invalidCode"));
+      setVerifyError(result.error || LOCALE.signup.invalidCode);
       setLoading(false);
       return;
     }
 
     const signInResult = await signIn("credentials", { redirect: false, email, password });
     if (!signInResult?.ok) {
-      setVerifyError(tr("signup.verifiedSignInFailed"));
+      setVerifyError(LOCALE.signup.verifiedSignInFailed);
       setLoading(false);
       return;
     }
@@ -208,8 +208,8 @@ function SignupForm(): JSX.Element {
         <div className="flex flex-col items-center mb-8">
           <LanguageSelector className="self-end mb-3" />
           <Logo className="mb-6 scale-110" />
-          <h1 className="text-2xl font-bold tracking-tight">{tr("signup.createAccount")}</h1>
-          <p className="text-muted-foreground text-sm mt-1">{tr("signup.subtitle")}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{LOCALE.signup.createAccount}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{LOCALE.signup.subtitle}</p>
         </div>
 
         <AnimatePresence mode="wait">
@@ -224,7 +224,7 @@ function SignupForm(): JSX.Element {
             >
               {inviteCode && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-accent-cyan">{tr("signup.inviteCode")}</label>
+                  <label className="text-sm font-medium text-accent-cyan">{LOCALE.signup.inviteCode}</label>
                   <input
                     data-testid="invite-code-input"
                     type="text"
@@ -237,8 +237,8 @@ function SignupForm(): JSX.Element {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium flex justify-between">
-                  <span>{tr("signup.fullName")}</span>
-                  <span className="text-muted-foreground font-normal text-xs">{tr("signup.optional")}</span>
+                  <span>{LOCALE.signup.fullName}</span>
+                  <span className="text-muted-foreground font-normal text-xs">{LOCALE.signup.optional}</span>
                 </label>
                 <input
                   type="text"
@@ -250,7 +250,7 @@ function SignupForm(): JSX.Element {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">{tr("signup.emailAddress")} <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">{LOCALE.signup.emailAddress} <span className="text-red-500">*</span></label>
                 <input
                   type="email"
                   value={email}
@@ -264,13 +264,13 @@ function SignupForm(): JSX.Element {
                 />
                 {email && !isEmailValid && (
                   <p className="text-xs text-red-500 flex items-center gap-1">
-                    <AlertCircle size={14} /> {tr("signup.invalidEmail")}
+                    <AlertCircle size={14} /> {LOCALE.signup.invalidEmail}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">{tr("signup.password")} <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">{LOCALE.signup.password} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -296,7 +296,7 @@ function SignupForm(): JSX.Element {
                 {password && (
                   <div className="space-y-2 mt-3 p-3 bg-background/50 rounded-lg border border-border/50">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium">{tr("signup.passwordStrength")}</span>
+                      <span className="text-xs font-medium">{LOCALE.signup.passwordStrength}</span>
                       <span className={`text-xs font-semibold ${strengthColors[passwordStrength]}`}>
                         {strengthLabels[passwordStrength]}
                       </span>
@@ -315,9 +315,9 @@ function SignupForm(): JSX.Element {
                     </div>
                     <div className="space-y-1 mt-3">
                       {[
-                        { ok: hasMinLength, label: tr("signup.ruleLength") },
-                        { ok: hasNumber, label: tr("signup.ruleNumber") },
-                        { ok: hasSymbol, label: tr("signup.ruleSymbol") },
+                        { ok: hasMinLength, label: LOCALE.signup.ruleLength },
+                        { ok: hasNumber, label: LOCALE.signup.ruleNumber },
+                        { ok: hasSymbol, label: LOCALE.signup.ruleSymbol },
                       ].map(({ ok, label }) => (
                         <div key={label} className={`text-xs flex items-center gap-2 ${ok ? "text-green-500" : "text-muted-foreground"}`}>
                           <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${ok ? "bg-green-500/20 border border-green-500/50" : "bg-border/30 border border-border/50"}`}>
@@ -336,14 +336,14 @@ function SignupForm(): JSX.Element {
                 disabled={!isDetailsStepValid}
                 className="w-full btn-primary flex items-center justify-center gap-2 group mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {tr("signup.continue")} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {LOCALE.signup.continue} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <div className="text-center border-t border-border/50 pt-4 mt-4">
                 <p className="text-sm text-muted-foreground">
-                  {tr("signup.alreadyHaveAccount")}{" "}
+                  {LOCALE.signup.alreadyHaveAccount}{" "}
                   <Link href="/login" className="text-accent-cyan hover:text-accent-cyan/80 transition-colors">
-                    {tr("signup.signIn")}
+                    {LOCALE.signup.signIn}
                   </Link>
                 </p>
               </div>
@@ -362,8 +362,8 @@ function SignupForm(): JSX.Element {
                 <div className="flex items-start gap-3">
                   <ShieldAlert className="w-5 h-5 text-accent-cyan shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-sm">{tr("signup.emailScanTitle")}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">{tr("signup.emailScanDesc")}</p>
+                    <h3 className="font-semibold text-sm">{LOCALE.signup.emailScanTitle}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{LOCALE.signup.emailScanDesc}</p>
                   </div>
                 </div>
 
@@ -376,9 +376,9 @@ function SignupForm(): JSX.Element {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className={`text-sm font-medium ${!hasViewedPrivacy ? "opacity-60" : ""}`}>{tr("signup.agreePrivacy")}</h4>
+                      <h4 className={`text-sm font-medium ${!hasViewedPrivacy ? "opacity-60" : ""}`}>{LOCALE.signup.agreePrivacy}</h4>
                       <button type="button" onClick={(e) => { e.stopPropagation(); setShowPrivacyModal(true); }} className="text-xs px-2 py-1 rounded bg-white/10 border border-white/20 hover:bg-white/20 transition-colors flex-shrink-0">
-                        {hasViewedPrivacy ? tr("signup.readDone") : tr("signup.read")}
+                        {hasViewedPrivacy ? LOCALE.signup.readDone : LOCALE.signup.read}
                       </button>
                     </div>
                   </div>
@@ -391,9 +391,9 @@ function SignupForm(): JSX.Element {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className={`text-sm font-medium ${!hasViewedTerms ? "opacity-60" : ""}`}>{tr("signup.agreeTerms")}</h4>
+                      <h4 className={`text-sm font-medium ${!hasViewedTerms ? "opacity-60" : ""}`}>{LOCALE.signup.agreeTerms}</h4>
                       <button type="button" onClick={(e) => { e.stopPropagation(); setShowTermsModal(true); }} className="text-xs px-2 py-1 rounded bg-white/10 border border-white/20 hover:bg-white/20 transition-colors flex-shrink-0">
-                        {hasViewedTerms ? tr("signup.readDone") : tr("signup.read")}
+                        {hasViewedTerms ? LOCALE.signup.readDone : LOCALE.signup.read}
                       </button>
                     </div>
                   </div>
@@ -406,14 +406,14 @@ function SignupForm(): JSX.Element {
                   {allowTraining && <Check className="w-3.5 h-3.5 text-accent-purple" />}
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium">{tr("signup.optionalTitle")}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{tr("signup.optionalDesc")}</p>
+                  <h4 className="text-sm font-medium">{LOCALE.signup.optionalTitle}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">{LOCALE.signup.optionalDesc}</p>
                 </div>
               </label>
 
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setStep("details")} className="flex-1 px-4 py-2 rounded-lg border border-border/50 hover:bg-background/50 text-sm transition-colors">{tr("common.back")}</button>
-                <button onClick={handleNextToProvider} disabled={!privacyAgreed || !termsAgreed} className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed">{tr("common.continue")}</button>
+                <button type="button" onClick={() => setStep("details")} className="flex-1 px-4 py-2 rounded-lg border border-border/50 hover:bg-background/50 text-sm transition-colors">{LOCALE.common.back}</button>
+                <button onClick={handleNextToProvider} disabled={!privacyAgreed || !termsAgreed} className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed">{LOCALE.common.continue}</button>
               </div>
             </motion.div>
           )}
@@ -430,9 +430,9 @@ function SignupForm(): JSX.Element {
                 <div className="w-14 h-14 rounded-2xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center mx-auto">
                   <MailCheck className="w-7 h-7 text-accent-cyan" />
                 </div>
-                <h2 className="font-semibold text-lg">{tr("signup.verifyEmailTitle")}</h2>
+                <h2 className="font-semibold text-lg">{LOCALE.signup.verifyEmailTitle}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {tr("signup.verifyEmailDescPrefix")} <span className="text-foreground font-medium">{email}</span> {tr("signup.verifyEmailDescSuffix")}
+                  {LOCALE.signup.verifyEmailDescPrefix} <span className="text-foreground font-medium">{email}</span> {LOCALE.signup.verifyEmailDescSuffix}
                 </p>
               </div>
 
@@ -448,11 +448,11 @@ function SignupForm(): JSX.Element {
                 className="w-full btn-primary flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                {loading ? tr("common.sending") : tr("signup.sendVerificationEmail")}
+                {loading ? LOCALE.common.sending : LOCALE.signup.sendVerificationEmail}
               </button>
 
               <button type="button" onClick={() => setStep("consent")} className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors">
-                {tr("common.back")}
+                {LOCALE.common.back}
               </button>
             </motion.div>
           )}
@@ -469,12 +469,12 @@ function SignupForm(): JSX.Element {
                 <div className="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
                   <Mail className="w-7 h-7 text-green-400" />
                 </div>
-                <h2 className="font-semibold text-lg">{tr("signup.checkInboxTitle")}</h2>
+                <h2 className="font-semibold text-lg">{LOCALE.signup.checkInboxTitle}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {tr("signup.checkInboxDescPrefix")} <span className="text-foreground font-medium">{email}</span>.{" "}
-                  {tr("signup.checkInboxDescSuffix")}
+                  {LOCALE.signup.checkInboxDescPrefix} <span className="text-foreground font-medium">{email}</span>.{" "}
+                  {LOCALE.signup.checkInboxDescSuffix}
                 </p>
-                <p className="text-xs text-muted-foreground/70">{tr("signup.codeExpires")}</p>
+                <p className="text-xs text-muted-foreground/70">{LOCALE.signup.codeExpires}</p>
               </div>
 
               <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
@@ -510,11 +510,11 @@ function SignupForm(): JSX.Element {
                 className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                {loading ? tr("signup.verifying") : tr("signup.verifyEmail")}
+                {loading ? LOCALE.signup.verifying : LOCALE.signup.verifyEmail}
               </button>
 
               <div className="text-center space-y-1">
-                <p className="text-xs text-muted-foreground">{tr("signup.didntReceive")}</p>
+                <p className="text-xs text-muted-foreground">{LOCALE.signup.didntReceive}</p>
                 <button
                   type="button"
                   onClick={handleResend}
@@ -525,10 +525,10 @@ function SignupForm(): JSX.Element {
                   {resendStatus === "sent" && <Check size={12} />}
                   {resendStatus === "idle" && <RefreshCw size={12} />}
                   {resendStatus === "idle"
-                    ? tr("signup.resendEmail")
+                    ? LOCALE.signup.resendEmail
                     : resendStatus === "sending"
-                    ? tr("common.sending")
-                    : tr("signup.emailSent")}
+                    ? LOCALE.common.sending
+                    : LOCALE.signup.emailSent}
                 </button>
               </div>
             </motion.div>

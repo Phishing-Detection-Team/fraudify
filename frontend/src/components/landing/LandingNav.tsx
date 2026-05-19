@@ -14,7 +14,7 @@ function scrollTo(id: string) {
 
 export function LandingNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
 
   return (
     <header className="sticky top-0 z-50 glass-panel !rounded-none border-b border-border/50">
@@ -30,13 +30,13 @@ export function LandingNav() {
             href="/about"
             className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
           >
-            {tr("nav.about")}
+            {LOCALE.nav.about}
           </Link>
           <button
             onClick={() => scrollTo("features")}
             className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
           >
-            {tr("nav.features")}
+            {LOCALE.nav.features}
           </button>
         </nav>
 
@@ -48,13 +48,13 @@ export function LandingNav() {
             href="/login"
             className="px-4 py-2 text-sm font-semibold rounded-lg border border-border/60 text-foreground/80 hover:text-foreground hover:border-cyan-500/60 transition-all"
           >
-            {tr("nav.logIn")}
+            {LOCALE.nav.logIn}
           </Link>
           <Link
             href="/signup"
             className="px-4 py-2 text-sm font-semibold rounded-lg bg-cyan-500 text-black hover:bg-cyan-400 transition-colors shadow-[0_0_12px_rgba(0,212,255,0.35)]"
           >
-            {tr("nav.signUp")}
+            {LOCALE.nav.signUp}
           </Link>
         </div>
 
@@ -80,26 +80,26 @@ export function LandingNav() {
             onClick={() => setMobileOpen(false)}
             className="block text-sm font-medium text-foreground/70 hover:text-foreground py-2"
           >
-            {tr("nav.about")}
+            {LOCALE.nav.about}
           </Link>
           <button
             onClick={() => { scrollTo("features"); setMobileOpen(false); }}
             className="block w-full text-left text-sm font-medium text-foreground/70 hover:text-foreground py-2"
           >
-            {tr("nav.features")}
+            {LOCALE.nav.features}
           </button>
           <div className="flex gap-3 pt-2">
             <Link
               href="/login"
               className="flex-1 text-center px-4 py-2 text-sm font-semibold rounded-lg border border-border/60 text-foreground/80 hover:border-cyan-500/60 transition-all"
             >
-              {tr("nav.logIn")}
+              {LOCALE.nav.logIn}
             </Link>
             <Link
               href="/signup"
               className="flex-1 text-center px-4 py-2 text-sm font-semibold rounded-lg bg-cyan-500 text-black hover:bg-cyan-400 transition-colors"
             >
-              {tr("nav.signUp")}
+              {LOCALE.nav.signUp}
             </Link>
           </div>
         </div>

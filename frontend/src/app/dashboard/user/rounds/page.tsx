@@ -17,7 +17,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function UserRoundsPage() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [rounds, setRounds] = useState<Round[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,8 +35,8 @@ export default function UserRoundsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{tr("rounds.userTitle")}</h1>
-        <p className="text-muted-foreground mt-1">{tr("rounds.userSubtitle")}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{LOCALE.rounds.userTitle}</h1>
+        <p className="text-muted-foreground mt-1">{LOCALE.rounds.userSubtitle}</p>
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden">
@@ -44,25 +44,25 @@ export default function UserRoundsPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
               <tr>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerId")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerStarted")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerTotal")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerRate")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerStatus")}</th>
-                <th className="px-6 py-4 font-medium text-right">{tr("rounds.headerActions")}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerId}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerStarted}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerTotal}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerRate}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerStatus}</th>
+                <th className="px-6 py-4 font-medium text-right">{LOCALE.rounds.headerActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    {tr("rounds.loading")}
+                    {LOCALE.rounds.loading}
                   </td>
                 </tr>
               ) : rounds.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    {tr("rounds.empty")}
+                    {LOCALE.rounds.empty}
                   </td>
                 </tr>
               ) : (

@@ -50,7 +50,7 @@ interface DisplayEmail {
 
 export function RoundDetailView() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const params = useParams();
 
   const [loading, setLoading] = useState(true);
@@ -84,10 +84,10 @@ export function RoundDetailView() {
         overrideVerdict,
         overrideReason || undefined
       );
-      setOverrideSuccess(`${tr("roundDetail.overrideSuccessPrefix")} "${overrideVerdict}"`);
+      setOverrideSuccess(`${LOCALE.roundDetail.overrideSuccessPrefix} "${overrideVerdict}"`);
       setOverrideReason("");
     } catch (err) {
-      setOverrideError(err instanceof Error ? err.message : tr("roundDetail.overrideFailed"));
+      setOverrideError(err instanceof Error ? err.message : LOCALE.roundDetail.overrideFailed);
     } finally {
       setOverrideSubmitting(false);
     }
@@ -153,7 +153,7 @@ export function RoundDetailView() {
     return (
       <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
         <Loader2 size={20} className="animate-spin" />
-        {tr("roundDetail.loading")}
+        {LOCALE.roundDetail.loading}
       </div>
     );
   }
@@ -165,10 +165,10 @@ export function RoundDetailView() {
           href={baseHref}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent-cyan transition-colors"
         >
-          <ArrowLeft size={16} /> {tr("roundDetail.backToDashboard")}
+          <ArrowLeft size={16} /> {LOCALE.roundDetail.backToDashboard}
         </Link>
         <div className="p-8 text-center text-muted-foreground pt-20">
-          {tr("roundDetail.notFound")}
+          {LOCALE.roundDetail.notFound}
         </div>
       </div>
     );
@@ -193,13 +193,13 @@ export function RoundDetailView() {
           href={`${baseHref}/rounds`}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent-cyan transition-colors"
         >
-          <ArrowLeft size={16} /> {tr("roundDetail.backToRounds")}
+          <ArrowLeft size={16} /> {LOCALE.roundDetail.backToRounds}
         </Link>
 
         <div className="glass-panel p-6 rounded-xl flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight mb-1">
-              {tr("roundDetail.detailTitle")} #{round.id} {tr("roundDetail.details")}
+              {LOCALE.roundDetail.detailTitle} #{round.id} {LOCALE.roundDetail.details}
             </h1>
             <p className="text-muted-foreground text-sm flex items-center gap-2">
               <span>{new Date(round.date).toLocaleString()}</span> •
@@ -230,7 +230,7 @@ export function RoundDetailView() {
           <div className="flex gap-4">
             <div className="text-right">
               <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">
-                {tr("roundDetail.generator")}
+                {LOCALE.roundDetail.generator}
               </div>
               <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded border border-border/50 text-sm">
                 <Bot size={16} className="text-accent-purple" />
@@ -239,7 +239,7 @@ export function RoundDetailView() {
             </div>
             <div className="text-right">
               <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">
-                {tr("roundDetail.detector")}
+                {LOCALE.roundDetail.detector}
               </div>
               <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded border border-border/50 text-sm">
                 <Activity size={16} className="text-accent-cyan" />
@@ -257,10 +257,10 @@ export function RoundDetailView() {
           >
             <div className="flex items-center justify-between mb-2 text-xs text-muted-foreground">
               <span>
-                {tr("roundDetail.processingEmails")} {progress.processed} / {progress.total}
+                {LOCALE.roundDetail.processingEmails} {progress.processed} / {progress.total}
               </span>
               <span>
-                {tr("roundDetail.accuracySoFar")} {(progress.accuracy * 100).toFixed(1)}%
+                {LOCALE.roundDetail.accuracySoFar} {(progress.accuracy * 100).toFixed(1)}%
               </span>
             </div>
             <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden">
@@ -286,10 +286,10 @@ export function RoundDetailView() {
               <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
                 <tr>
                   <th className="px-6 py-4 font-medium w-16">#</th>
-                  <th className="px-6 py-4 font-medium">{tr("roundDetail.headerSubject")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("roundDetail.headerDetectorReasoning")}</th>
-                  <th className="px-6 py-4 font-medium w-32">{tr("roundDetail.headerVerdict")}</th>
-                  <th className="px-6 py-4 font-medium w-24 text-right">{tr("roundDetail.headerConf")}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.roundDetail.headerSubject}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.roundDetail.headerDetectorReasoning}</th>
+                  <th className="px-6 py-4 font-medium w-32">{LOCALE.roundDetail.headerVerdict}</th>
+                  <th className="px-6 py-4 font-medium w-24 text-right">{LOCALE.roundDetail.headerConf}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -297,8 +297,8 @@ export function RoundDetailView() {
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                       {round.status === "in_progress"
-                        ? tr("roundDetail.stillRunning")
-                        : tr("roundDetail.noEmails")}
+                        ? LOCALE.roundDetail.stillRunning
+                        : LOCALE.roundDetail.noEmails}
                     </td>
                   </tr>
                 ) : (
@@ -328,7 +328,7 @@ export function RoundDetailView() {
                         <td className="px-6 py-4 max-w-sm">
                           <p className="text-xs text-muted-foreground line-clamp-2">
                             {email.detectorResponse || (
-                              <span className="italic opacity-50">{tr("roundDetail.noReasoning")}</span>
+                              <span className="italic opacity-50">{LOCALE.roundDetail.noReasoning}</span>
                             )}
                           </p>
                         </td>
@@ -360,7 +360,7 @@ export function RoundDetailView() {
           </div>
           {displayEmails.length > 0 && (
             <div className="px-6 py-3 border-t border-border/30 text-xs text-muted-foreground">
-              {tr("roundDetail.clickHint")}
+              {LOCALE.roundDetail.clickHint}
             </div>
           )}
         </div>
@@ -415,7 +415,7 @@ export function RoundDetailView() {
                         {selectedEmail.verdict}
                       </span>
                       <span className="text-xs text-muted-foreground font-mono">
-                        {selectedEmail.confidence}{tr("roundDetail.confidence")}
+                        {selectedEmail.confidence}{LOCALE.roundDetail.confidence}
                       </span>
                       {selectedEmail.isPhishing !== null && (
                         <span
@@ -430,7 +430,7 @@ export function RoundDetailView() {
                           ) : (
                             <CheckCircle2 size={11} />
                           )}
-                          {tr("roundDetail.groundTruth")} {selectedEmail.isPhishing ? tr("roundDetail.phishing") : tr("roundDetail.legitimate")}
+                          {LOCALE.roundDetail.groundTruth} {selectedEmail.isPhishing ? LOCALE.roundDetail.phishing : LOCALE.roundDetail.legitimate}
                         </span>
                       )}
                     </div>
@@ -450,7 +450,7 @@ export function RoundDetailView() {
                     <div className="flex items-center gap-2 mb-2">
                       <Bot size={14} className="text-accent-purple" />
                       <span className="text-xs font-semibold text-accent-purple uppercase tracking-wider">
-                        {tr("roundDetail.generatedEmailBody")}
+                        {LOCALE.roundDetail.generatedEmailBody}
                       </span>
                     </div>
                     <div className="bg-background/60 rounded-lg p-4 border border-border/40">
@@ -460,7 +460,7 @@ export function RoundDetailView() {
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground italic">
-                          {tr("roundDetail.noEmailBody")}
+                          {LOCALE.roundDetail.noEmailBody}
                         </p>
                       )}
                     </div>
@@ -471,7 +471,7 @@ export function RoundDetailView() {
                     <div className="flex items-center gap-2 mb-2">
                       <Brain size={14} className="text-accent-cyan" />
                       <span className="text-xs font-semibold text-accent-cyan uppercase tracking-wider">
-                        {tr("roundDetail.detectorReasoning")}
+                        {LOCALE.roundDetail.detectorReasoning}
                       </span>
                     </div>
                     <div className="bg-background/60 rounded-lg p-4 border border-border/40">
@@ -481,7 +481,7 @@ export function RoundDetailView() {
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground italic">
-                          {tr("roundDetail.noDetectorReasoning")}
+                          {LOCALE.roundDetail.noDetectorReasoning}
                         </p>
                       )}
                     </div>
@@ -493,7 +493,7 @@ export function RoundDetailView() {
                       <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle size={14} className="text-accent-yellow" />
                         <span className="text-xs font-semibold text-accent-yellow uppercase tracking-wider">
-                          {tr("roundDetail.overrideVerdict")}
+                          {LOCALE.roundDetail.overrideVerdict}
                         </span>
                       </div>
                       <form
@@ -510,7 +510,7 @@ export function RoundDetailView() {
                                 : "bg-background/50 text-muted-foreground border border-border/40 hover:border-accent-red/30"
                             }`}
                           >
-                            {tr("roundDetail.phishingBtn")}
+                            {LOCALE.roundDetail.phishingBtn}
                           </button>
                           <button
                             type="button"
@@ -521,14 +521,14 @@ export function RoundDetailView() {
                                 : "bg-background/50 text-muted-foreground border border-border/40 hover:border-accent-green/30"
                             }`}
                           >
-                            {tr("roundDetail.legitimateBtn")}
+                            {LOCALE.roundDetail.legitimateBtn}
                           </button>
                         </div>
                         <input
                           type="text"
                           value={overrideReason}
                           onChange={(e) => setOverrideReason(e.target.value)}
-                          placeholder={tr("roundDetail.reasonPlaceholder")}
+                          placeholder={LOCALE.roundDetail.reasonPlaceholder}
                           className="w-full bg-background/50 border border-border/40 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-accent-cyan/50"
                         />
                         {overrideError && (
@@ -542,7 +542,7 @@ export function RoundDetailView() {
                           disabled={overrideSubmitting}
                           className="w-full py-1.5 bg-accent-cyan/20 hover:bg-accent-cyan/30 text-accent-cyan border border-accent-cyan/30 rounded text-xs font-semibold transition-colors disabled:opacity-50"
                         >
-                          {overrideSubmitting ? tr("roundDetail.submitting") : tr("roundDetail.submitOverride")}
+                          {overrideSubmitting ? LOCALE.roundDetail.submitting : LOCALE.roundDetail.submitOverride}
                         </button>
                       </form>
                     </div>

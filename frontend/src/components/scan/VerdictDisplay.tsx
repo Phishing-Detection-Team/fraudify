@@ -48,7 +48,7 @@ export default function VerdictDisplay({
   reasoning,
   subject,
 }: VerdictDisplayProps) {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const isPhishing = verdict === "phishing";
   const confidencePercent = Math.round(confidence * 100);
   const countedPercent = useCountUp(confidencePercent);
@@ -138,13 +138,13 @@ export default function VerdictDisplay({
             initial="hidden"
             animate="visible"
           >
-            {verdict === "phishing" ? tr("verdict.phishing") : tr("verdict.safe")}
+            {verdict === "phishing" ? LOCALE.verdict.phishing : LOCALE.verdict.safe}
           </motion.p>
         </div>
 
         <div className="space-y-1.5">
           <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-            {tr("verdict.threatLevel")}
+            {LOCALE.verdict.threatLevel}
           </p>
           <div className="h-2.5 bg-background/50 rounded-full overflow-hidden">
             <motion.div
@@ -161,7 +161,7 @@ export default function VerdictDisplay({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                {tr("verdict.reasoning")}
+                {LOCALE.verdict.reasoning}
               </p>
               <button
                 onClick={handleCopy}
@@ -169,7 +169,7 @@ export default function VerdictDisplay({
                 aria-label="Copy reasoning"
               >
                 <Copy size={12} />
-                {tr("verdict.copy")}
+                {LOCALE.verdict.copy}
               </button>
             </div>
             <motion.ul

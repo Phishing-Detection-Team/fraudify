@@ -18,7 +18,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function AdminRoundsPage() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [rounds, setRounds] = useState<Round[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -96,8 +96,8 @@ export default function AdminRoundsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{tr("rounds.adminTitle")}</h1>
-          <p className="text-muted-foreground mt-1">{tr("rounds.adminSubtitle")}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{LOCALE.rounds.adminTitle}</h1>
+          <p className="text-muted-foreground mt-1">{LOCALE.rounds.adminSubtitle}</p>
         </div>
         <button
           type="button"
@@ -105,7 +105,7 @@ export default function AdminRoundsPage() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-cyan text-black font-semibold text-sm hover:bg-accent-cyan/90 transition-colors shadow-[0_4px_14px_hsl(var(--accent-cyan)/0.3)]"
         >
           <Plus size={16} />
-          {tr("rounds.triggerButton")}
+          {LOCALE.rounds.triggerButton}
         </button>
       </div>
 
@@ -114,25 +114,25 @@ export default function AdminRoundsPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
               <tr>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerId")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerStarted")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerTotal")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerRate")}</th>
-                <th className="px-6 py-4 font-medium">{tr("rounds.headerStatus")}</th>
-                <th className="px-6 py-4 font-medium text-right">{tr("rounds.headerActions")}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerId}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerStarted}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerTotal}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerRate}</th>
+                <th className="px-6 py-4 font-medium">{LOCALE.rounds.headerStatus}</th>
+                <th className="px-6 py-4 font-medium text-right">{LOCALE.rounds.headerActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    {tr("rounds.loading")}
+                    {LOCALE.rounds.loading}
                   </td>
                 </tr>
               ) : rounds.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    {tr("rounds.adminEmpty")}
+                    {LOCALE.rounds.adminEmpty}
                   </td>
                 </tr>
               ) : (
@@ -215,7 +215,7 @@ export default function AdminRoundsPage() {
               className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold">{tr("rounds.modalTitle")}</h2>
+                <h2 className="text-xl font-bold">{LOCALE.rounds.modalTitle}</h2>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
@@ -228,7 +228,7 @@ export default function AdminRoundsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1.5" htmlFor="total-emails">
-                    {tr("rounds.modalEmailsLabel")}
+                    {LOCALE.rounds.modalEmailsLabel}
                   </label>
                   <input
                     id="total-emails"
@@ -239,13 +239,13 @@ export default function AdminRoundsPage() {
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent-cyan"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {tr("rounds.modalEmailsHint")}
+                    {LOCALE.rounds.modalEmailsHint}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-1.5" htmlFor="parallel-workflows">
-                    {tr("rounds.modalWorkflowsLabel")}
+                    {LOCALE.rounds.modalWorkflowsLabel}
                   </label>
                   <input
                     id="parallel-workflows"
@@ -257,7 +257,7 @@ export default function AdminRoundsPage() {
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent-cyan"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {tr("rounds.modalWorkflowsHint")}
+                    {LOCALE.rounds.modalWorkflowsHint}
                   </p>
                 </div>
 
@@ -274,7 +274,7 @@ export default function AdminRoundsPage() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 py-2.5 rounded-lg border border-border text-sm font-medium hover:bg-muted/50 transition-colors"
                 >
-                  {tr("rounds.modalCancel")}
+                  {LOCALE.rounds.modalCancel}
                 </button>
                 <button
                   type="button"
@@ -285,10 +285,10 @@ export default function AdminRoundsPage() {
                   {triggering ? (
                     <>
                       <Loader2 size={14} className="animate-spin" />
-                      {tr("rounds.modalStarting")}
+                      {LOCALE.rounds.modalStarting}
                     </>
                   ) : (
-                    tr("rounds.modalSubmit")
+                    LOCALE.rounds.modalSubmit
                   )}
                 </button>
               </div>

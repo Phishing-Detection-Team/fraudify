@@ -41,7 +41,7 @@ function renderParagraph(p: LegalParagraph, i: number) {
 }
 
 export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps) {
-  const { locale, tr } = useLanguage();
+  const { locale } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const doc = getPrivacyContent(locale);
 
@@ -93,7 +93,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
                 title="Close (ESC)"
               >
                 <X size={18} />
-                <span>{tr("common.close")}</span>
+                <span>{LOCALE.common.close}</span>
               </button>
             </div>
 

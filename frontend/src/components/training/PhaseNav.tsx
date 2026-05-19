@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Database, Cpu, GitBranch, RefreshCw, Rocket, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 
 const PHASES = [
   { id: 1, labelKey: "phaseNav.phase1Label", shortKey: "phaseNav.phase1Short", icon: Database   },
@@ -28,7 +29,7 @@ export function PhaseNav({
   phaseProgress,
   completedPhases,
 }: PhaseNavProps) {
-  const { tr } = useLanguage();
+  const { LOCALE, locale } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -101,7 +102,7 @@ export function PhaseNav({
                     : "text-muted-foreground"
                 )}
               >
-                {tr(phase.shortKey)}
+                {t(locale, phase.shortKey)}
               </span>
 
               {/* Per-phase progress bar */}
@@ -126,10 +127,10 @@ export function PhaseNav({
       {/* Phase label */}
       <div className="mt-4 text-center">
         <span className="text-xs font-semibold tracking-widest uppercase text-accent-cyan">
-          {tr("phaseNav.phaseLabel")} {currentPhase} —{" "}
+          {LOCALE.phaseNav.phaseLabel} {currentPhase} —{" "}
         </span>
         <span className="text-xs font-medium text-muted-foreground">
-          {tr(PHASES[currentPhase - 1]?.labelKey ?? "")}
+          {t(locale, PHASES[currentPhase - 1]?.labelKey ?? "")}
         </span>
       </div>
     </motion.div>

@@ -14,7 +14,7 @@ type VerifyState = "loading" | "success" | "error";
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [state, setState] = useState<VerifyState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const [resendEmail, setResendEmail] = useState("");
@@ -29,7 +29,7 @@ function VerifyEmailContent() {
     const token = searchParams.get("token");
     if (!token) {
       setState("error");
-      setErrorMsg(tr("verifyEmail.tokenError"));
+      setErrorMsg(LOCALE.verifyEmail.tokenError);
       return;
     }
 
@@ -38,7 +38,7 @@ function VerifyEmailContent() {
 
       if (!signInResult?.ok) {
         setState("error");
-        setErrorMsg(signInResult?.error || tr("verifyEmail.linkExpired"));
+        setErrorMsg(signInResult?.error || LOCALE.verifyEmail.linkExpired);
         return;
       }
 
@@ -50,7 +50,7 @@ function VerifyEmailContent() {
 
       if (!session?.user) {
         setState("error");
-        setErrorMsg(tr("verifyEmail.signInFailed"));
+        setErrorMsg(LOCALE.verifyEmail.signInFailed);
         return;
       }
 
@@ -61,7 +61,7 @@ function VerifyEmailContent() {
       const targetRoute = role === "admin" ? "/dashboard/admin" : "/dashboard/user";
       router.replace(targetRoute);
     })();
-  }, [searchParams, router, tr]);
+  }, [searchParams, router, LOCALE]);
 
   const handleResend = async () => {
     if (!resendEmail) return;
@@ -74,7 +74,7 @@ function VerifyEmailContent() {
     return (
       <div className="text-center space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-accent-cyan mx-auto" />
-        <p className="text-sm text-muted-foreground">{tr("verifyEmail.verifying")}</p>
+        <p className="text-sm text-muted-foreground">{LOCALE.verifyEmail.verifying}</p>
       </div>
     );
   }
@@ -84,16 +84,16 @@ function VerifyEmailContent() {
       <div className="text-center space-y-5">
         <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto" />
         <div>
-          <h1 className="text-xl font-bold">{tr("verifyEmail.verified")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{tr("verifyEmail.accountActive")}</p>
+          <h1 className="text-xl font-bold">{LOCALE.verifyEmail.verified}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{LOCALE.verifyEmail.accountActive}</p>
         </div>
         <button
           onClick={() => router.push("/dashboard/user")}
           className="w-full btn-primary flex items-center justify-center gap-2"
         >
-          {tr("verifyEmail.goToDashboard")} <ArrowRight size={16} />
+          {LOCALE.verifyEmail.goToDashboard} <ArrowRight size={16} />
         </button>
-        <p className="text-xs text-muted-foreground">{tr("verifyEmail.redirecting")}</p>
+        <p className="text-xs text-muted-foreground">{LOCALE.verifyEmail.redirecting}</p>
       </div>
     );
   }
@@ -102,7 +102,7 @@ function VerifyEmailContent() {
     <div className="text-center space-y-5">
       <XCircle className="w-12 h-12 text-red-400 mx-auto" />
       <div>
-        <h1 className="text-xl font-bold">{tr("verifyEmail.failed")}</h1>
+        <h1 className="text-xl font-bold">{LOCALE.verifyEmail.failed}</h1>
         <p className="text-sm text-muted-foreground mt-1">{errorMsg}</p>
       </div>
 
@@ -118,14 +118,14 @@ function VerifyEmailContent() {
             <RefreshCw size={14} />
           )}
           {resendStatus === "idle"
-            ? tr("verifyEmail.requestNewEmail")
+            ? LOCALE.verifyEmail.requestNewEmail
             : resendStatus === "sending"
-            ? tr("common.sending")
-            : tr("verifyEmail.newEmailSent")}
+            ? LOCALE.common.sending
+            : LOCALE.verifyEmail.newEmailSent}
         </button>
       ) : (
         <Link href="/signup" className="w-full btn-primary flex items-center justify-center gap-2">
-          {tr("verifyEmail.backToSignUp")} <ArrowRight size={16} />
+          {LOCALE.verifyEmail.backToSignUp} <ArrowRight size={16} />
         </Link>
       )}
     </div>
@@ -133,7 +133,7 @@ function VerifyEmailContent() {
 }
 
 export default function VerifyEmailPage() {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -146,7 +146,7 @@ export default function VerifyEmailPage() {
           fallback={
             <div className="text-center space-y-4">
               <Loader2 className="w-10 h-10 animate-spin text-accent-cyan mx-auto" />
-              <p className="text-sm text-muted-foreground">{tr("verifyEmail.loading")}</p>
+              <p className="text-sm text-muted-foreground">{LOCALE.verifyEmail.loading}</p>
             </div>
           }
         >

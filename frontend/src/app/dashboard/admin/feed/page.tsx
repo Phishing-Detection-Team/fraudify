@@ -37,7 +37,7 @@ function Initials({ name }: { name: string }) {
 
 export default function AdminLiveFeedPage() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [instances, setInstances] = useState<ExtensionInstance[]>([]);
   const [total, setTotal] = useState(0);
   const [active, setActive] = useState(0);
@@ -106,9 +106,9 @@ export default function AdminLiveFeedPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{tr("feed.title")}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{LOCALE.feed.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {tr("feed.adminSubtitle")}
+            {LOCALE.feed.adminSubtitle}
           </p>
         </div>
         <button
@@ -117,37 +117,37 @@ export default function AdminLiveFeedPage() {
           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <RefreshCw size={14} />
-          {tr("common2.refresh")}
+          {LOCALE.common2.refresh}
         </button>
       </div>
 
       {lastRefresh && (
         <p className="text-xs text-muted-foreground -mt-4">
-          {tr("feed.lastUpdated")} {lastRefresh.toLocaleTimeString()} · {tr("feed.autoRefreshHint")}
+          {LOCALE.feed.lastUpdated} {lastRefresh.toLocaleTimeString()} · {LOCALE.feed.autoRefreshHint}
         </p>
       )}
 
       {/* Summary stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label={tr("feed.totalRegistered")} value={total} icon={Users} />
+        <StatCard label={LOCALE.feed.totalRegistered} value={total} icon={Users} />
         <StatCard
-          label={tr("feed.currentlyActive")}
+          label={LOCALE.feed.currentlyActive}
           value={active}
           icon={Wifi}
           highlight={active > 0 ? "text-accent-green" : ""}
         />
-        <StatCard label={tr("feed.activeLast24h")} value={last24h} icon={Clock} />
+        <StatCard label={LOCALE.feed.activeLast24h} value={last24h} icon={Clock} />
       </div>
 
       {/* Instances table */}
       <div className="glass-panel rounded-xl overflow-hidden">
         <div className="p-5 border-b border-border/50 flex items-center gap-2 bg-card/30">
           <Activity size={16} className="text-accent-cyan" />
-          <h3 className="font-semibold">{tr("feed.extensionInstances")}</h3>
+          <h3 className="font-semibold">{LOCALE.feed.extensionInstances}</h3>
           {active > 0 && (
             <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent-green/10 text-accent-green">
               <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
-              {active} {tr("common.active")}
+              {active} {LOCALE.common.active}
             </span>
           )}
         </div>
@@ -155,24 +155,24 @@ export default function AdminLiveFeedPage() {
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
             <RefreshCw size={16} className="animate-spin" />
-            {tr("feed.loading")}
+            {LOCALE.feed.loading}
           </div>
         ) : instances.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground space-y-2">
             <WifiOff size={28} className="mx-auto" />
-            <p className="text-sm font-medium">{tr("feed.noInstancesAdmin")}</p>
-            <p className="text-xs">{tr("feed.noInstancesAdminHint")}</p>
+            <p className="text-sm font-medium">{LOCALE.feed.noInstancesAdmin}</p>
+            <p className="text-xs">{LOCALE.feed.noInstancesAdminHint}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{tr("feed.colUser")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("feed.colBrowser")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("feed.colOS")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("feed.colLastSeen")}</th>
-                  <th className="px-6 py-4 font-medium">{tr("feed.colStatus")}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.feed.colUser}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.feed.colBrowser}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.feed.colOS}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.feed.colLastSeen}</th>
+                  <th className="px-6 py-4 font-medium">{LOCALE.feed.colStatus}</th>
                 </tr>
 
               </thead>
@@ -193,7 +193,7 @@ export default function AdminLiveFeedPage() {
                     <td className="px-6 py-4 text-muted-foreground text-xs">
                       {inst.last_seen
                         ? parseUTC(inst.last_seen).toLocaleString()
-                        : tr("common2.never")}
+                        : LOCALE.common2.never}
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -206,7 +206,7 @@ export default function AdminLiveFeedPage() {
                         {inst.is_active && (
                           <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
                         )}
-                        {inst.is_active ? tr("common.active") : tr("common.idle")}
+                        {inst.is_active ? LOCALE.common.active : LOCALE.common.idle}
                       </span>
                     </td>
                   </tr>

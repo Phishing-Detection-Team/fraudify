@@ -31,7 +31,7 @@ interface ScanFeedItem {
 
 export function LiveFeed() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [feed, setFeed] = useState<ScanFeedItem[]>([]);
   const [events, setEvents] = useState<HeartbeatFeedItem[]>([]);
 
@@ -42,8 +42,8 @@ export function LiveFeed() {
           const history = await getScanHistory(session.accessToken, 1, 10);
           const mapped: ScanFeedItem[] = history.scans.map((s: ScanHistoryItem) => ({
             id: s.id.toString(),
-            subject: s.subject || tr("liveFeed.noSubject"),
-            detectorResponse: s.reasoning || tr("liveFeed.noReasoning"),
+            subject: s.subject || LOCALE.liveFeed.noSubject,
+            detectorResponse: s.reasoning || LOCALE.liveFeed.noReasoning,
             verdict: s.verdict === "phishing" || s.verdict === "likely_phishing" ? "phishing" : "safe",
             confidence: s.confidence || s.scam_score || 0,
           }));
@@ -93,10 +93,10 @@ export function LiveFeed() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-cyan opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-accent-cyan"></span>
           </span>
-          {tr("liveFeed.title")}
+          {LOCALE.liveFeed.title}
         </h3>
         <span className="text-xs text-muted-foreground flex items-center gap-1">
-          <Clock size={12} /> {tr("liveFeed.autoUpdating")}
+          <Clock size={12} /> {LOCALE.liveFeed.autoUpdating}
         </span>
       </div>
 
@@ -142,7 +142,7 @@ export function LiveFeed() {
 
                 <div className="text-xs text-muted-foreground flex items-center justify-between">
                   <span className="truncate max-w-[200px]">{item.detectorResponse}</span>
-                  <span className="font-mono">{Math.round(item.confidence * 100)}{tr("liveFeed.confidence")}</span>
+                  <span className="font-mono">{Math.round(item.confidence * 100)}{LOCALE.liveFeed.confidence}</span>
                 </div>
               </motion.div>
             ))}

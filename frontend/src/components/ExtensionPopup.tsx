@@ -2,8 +2,10 @@
 
 import { ShieldAlert, Info, AlertTriangle, ShieldCheck, Trash2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function ExtensionPopup() {
+  const { LOCALE } = useLanguage();
   return (
     <div className="w-[380px] bg-background border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col relative text-foreground font-sans">
       {/* Header */}
@@ -21,7 +23,7 @@ export function ExtensionPopup() {
 
       {/* Hero Issue Section */}
       <div className="relative p-6 pt-8 flex-col flex items-center text-center bg-gradient-to-b from-accent-red/10 to-transparent">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", bounce: 0.5 }}
@@ -29,17 +31,17 @@ export function ExtensionPopup() {
         >
           <AlertTriangle size={32} />
         </motion.div>
-        <h2 className="text-xl font-bold mb-1">PHISHING DETECTED</h2>
-        <p className="text-sm text-muted-foreground">High risk markers found in this email.</p>
-        
+        <h2 className="text-xl font-bold mb-1">{LOCALE.extension.phishingDetected}</h2>
+        <p className="text-sm text-muted-foreground">{LOCALE.extension.highRiskMarkers}</p>
+
         {/* Confidence Bar */}
         <div className="w-full mt-6 space-y-2">
           <div className="flex justify-between text-xs font-bold font-mono">
-            <span>Threat Level</span>
+            <span>{LOCALE.extension.threatLevel}</span>
             <span className="text-accent-red">98%</span>
           </div>
           <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
               animate={{ width: "98%" }}
               transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
@@ -53,14 +55,14 @@ export function ExtensionPopup() {
 
       {/* Analysis Details */}
       <div className="flex-1 px-6 space-y-4">
-        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Analysis Results</div>
+        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{LOCALE.extension.analysisResults}</div>
         <ul className="space-y-3">
           {[
-            "Malicious Link Patterns Found",
-            "Unusual Urgency Score: High",
-            "Sender Behavioral Anomalies"
+            LOCALE.extension.maliciousLink,
+            LOCALE.extension.unusualUrgency,
+            LOCALE.extension.senderAnomaly,
           ].map((item, i) => (
-            <motion.li 
+            <motion.li
               key={i}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -77,7 +79,7 @@ export function ExtensionPopup() {
       {/* Action Buttons */}
       <div className="p-4 flex flex-col gap-2 mt-auto">
         <button type="button" aria-label="Report phishing and delete email" className="w-full btn-neon bg-accent-red text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-accent-red/90 border border-transparent shadow-[0_4px_14px_hsl(var(--accent-red)/0.3)]">
-          Report Phish & Delete
+          {LOCALE.extension.reportAndDelete}
         </button>
         <div className="flex gap-2">
           <button type="button" aria-label="Delete email" className="flex-1 bg-muted/50 hover:bg-muted text-muted-foreground font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs transition-colors border border-border/50">
@@ -86,7 +88,7 @@ export function ExtensionPopup() {
           </button>
           <button type="button" aria-label="Mark email as safe" className="flex-1 bg-muted/50 hover:bg-muted text-muted-foreground font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs transition-colors border border-border/50">
             <ShieldCheck size={14} />
-            Mark Safe
+            {LOCALE.extension.markSafe}
           </button>
         </div>
       </div>

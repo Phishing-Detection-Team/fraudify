@@ -53,7 +53,7 @@ function Step({
 }
 
 function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const hasInstance = instances.length > 0;
   const hasActive = instances.some((i) => i.is_active);
   const allDone = hasInstance && hasActive;
@@ -71,37 +71,37 @@ function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
           <Puzzle size={20} className="text-accent-cyan" />
         )}
         <h3 className={`font-semibold ${allDone ? "text-accent-green" : ""}`}>
-          {allDone ? tr("dashboard.user.protectedTitle") : tr("dashboard.user.setupTitle")}
+          {allDone ? LOCALE.dashboard.user.protectedTitle : LOCALE.dashboard.user.setupTitle}
         </h3>
       </div>
       <p className="text-xs text-muted-foreground mb-2">
-        {allDone ? tr("dashboard.user.protectedSubtitle") : tr("dashboard.user.setupSubtitle")}
+        {allDone ? LOCALE.dashboard.user.protectedSubtitle : LOCALE.dashboard.user.setupSubtitle}
       </p>
 
       <div className="space-y-4 flex-1">
-        <Step number={1} label={tr("dashboard.user.step1")} done={hasInstance}>
+        <Step number={1} label={LOCALE.dashboard.user.step1} done={hasInstance}>
           {!hasInstance && (
             <p className="text-xs text-muted-foreground mt-1">
-              {tr("dashboard.user.step1Hint")}{" "}
+              {LOCALE.dashboard.user.step1Hint}{" "}
               <Link href="/extension" className="text-accent-cyan hover:underline">
-                {tr("dashboard.user.step1Link")}
+                {LOCALE.dashboard.user.step1Link}
               </Link>
             </p>
           )}
         </Step>
 
-        <Step number={2} label={tr("dashboard.user.step2")} done={hasInstance}>
+        <Step number={2} label={LOCALE.dashboard.user.step2} done={hasInstance}>
           {!hasInstance && (
             <p className="text-xs text-muted-foreground mt-1">
-              {tr("dashboard.user.step2Hint")}
+              {LOCALE.dashboard.user.step2Hint}
             </p>
           )}
         </Step>
 
-        <Step number={3} label={tr("dashboard.user.step3")} done={hasActive}>
+        <Step number={3} label={LOCALE.dashboard.user.step3} done={hasActive}>
           {!hasActive && hasInstance && (
             <p className="text-xs text-muted-foreground mt-1">
-              {tr("dashboard.user.step3Hint")}
+              {LOCALE.dashboard.user.step3Hint}
             </p>
           )}
         </Step>
@@ -133,7 +133,7 @@ function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
                     : "bg-muted text-muted-foreground"
                 }`}
               >
-                {inst.is_active ? tr("common.active") : tr("common.idle")}
+                {inst.is_active ? LOCALE.common.active : LOCALE.common.idle}
               </span>
             </li>
           ))}
@@ -144,23 +144,23 @@ function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
         href="/dashboard/user/settings"
         className="inline-flex items-center gap-1.5 text-xs text-accent-cyan hover:underline mt-2"
       >
-        {tr("dashboard.user.manageExtension")} <ArrowRight size={12} />
+        {LOCALE.dashboard.user.manageExtension} <ArrowRight size={12} />
       </Link>
 
       <div className="pt-4 border-t border-border/50">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <ShieldCheckIcon size={16} className="text-accent-cyan" />
-          {tr("dashboard.user.securityCenter")}
+          {LOCALE.dashboard.user.securityCenter}
         </h4>
         <div className="rounded-xl border border-border/50 bg-background/20 px-4 py-3 space-y-2">
           <p className="text-xs text-muted-foreground">
-            {tr("dashboard.user.securityHint")}
+            {LOCALE.dashboard.user.securityHint}
           </p>
           <Link
             href="/dashboard/user/scan"
             className="inline-flex items-center gap-1.5 text-xs text-accent-cyan hover:underline"
           >
-            {tr("dashboard.user.openSecurityTools")} <ArrowRight size={12} />
+            {LOCALE.dashboard.user.openSecurityTools} <ArrowRight size={12} />
           </Link>
         </div>
       </div>
@@ -174,7 +174,7 @@ function OnboardingPanel({ instances }: { instances: ExtensionInstance[] }) {
 
 export default function UserDashboard() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [loading, setLoading] = useState(true);
 
   const [stats, setStats] = useState<UserStats>({
@@ -204,35 +204,35 @@ export default function UserDashboard() {
   return (
     <div className="flex flex-col h-full space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{tr("dashboard.user.title")}</h1>
-        <p className="text-muted-foreground mt-2">{tr("dashboard.user.subtitle")}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{LOCALE.dashboard.user.title}</h1>
+        <p className="text-muted-foreground mt-2">{LOCALE.dashboard.user.subtitle}</p>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
         <StatCard
-          title={tr("dashboard.user.scanned")}
+          title={LOCALE.dashboard.user.scanned}
           value={stats.totalEmailsScanned.toLocaleString()}
           icon={Mail}
           delay={0.1}
         />
         <StatCard
-          title={tr("dashboard.user.threats")}
+          title={LOCALE.dashboard.user.threats}
           value={stats.phishingDetected.toLocaleString()}
           icon={ShieldAlert}
           valueClassName="text-accent-red"
           delay={0.2}
         />
         <StatCard
-          title={tr("dashboard.user.safe")}
+          title={LOCALE.dashboard.user.safe}
           value={stats.markedSafe.toLocaleString()}
           icon={ShieldCheck}
           valueClassName="text-accent-green"
           delay={0.3}
         />
         <StatCard
-          title={tr("dashboard.user.extensionStatus")}
-          value={hasActiveExtension ? tr("dashboard.user.extensionActive") : tr("dashboard.user.extensionNotInstalled")}
+          title={LOCALE.dashboard.user.extensionStatus}
+          value={hasActiveExtension ? LOCALE.dashboard.user.extensionActive : LOCALE.dashboard.user.extensionNotInstalled}
           icon={Puzzle}
           valueClassName={
             hasActiveExtension ? "text-accent-green" : "text-muted-foreground"

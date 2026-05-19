@@ -10,7 +10,7 @@ import { Loader2, Mail, MessageSquare } from "lucide-react";
 
 export default function FeedbackPage() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -18,19 +18,19 @@ export default function FeedbackPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) {
-      toast.error(tr("feedback.required"));
+      toast.error(LOCALE.feedback.required);
       return;
     }
 
     try {
       setIsLoading(true);
       await submitFeedback(session?.accessToken as string, { subject, description });
-      toast.success(tr("feedback.success"));
+      toast.success(LOCALE.feedback.success);
       setSubject("");
       setDescription("");
     } catch (err: unknown) {
       const e = err as Error;
-      toast.error(e.message || tr("feedback.error"));
+      toast.error(e.message || LOCALE.feedback.error);
     } finally {
       setIsLoading(false);
     }
@@ -53,10 +53,10 @@ export default function FeedbackPage() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 text-foreground">
-            {tr("feedback.title")}
+            {LOCALE.feedback.title}
           </h1>
           <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
-            {tr("feedback.subtitle")}
+            {LOCALE.feedback.subtitle}
           </p>
         </motion.div>
 
@@ -70,12 +70,12 @@ export default function FeedbackPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="subject" className="text-sm font-semibold text-foreground/90">
-                  {tr("feedback.subject")} <span className="text-muted-foreground text-xs font-normal ml-1">{tr("feedback.subjectOptional")}</span>
+                  {LOCALE.feedback.subject} <span className="text-muted-foreground text-xs font-normal ml-1">{LOCALE.feedback.subjectOptional}</span>
                 </label>
                 <input
                   id="subject"
                   type="text"
-                  placeholder={tr("feedback.subjectPlaceholder")}
+                  placeholder={LOCALE.feedback.subjectPlaceholder}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   className="w-full bg-background border border-border/80 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 transition-all shadow-sm placeholder:text-muted-foreground/60"
@@ -84,11 +84,11 @@ export default function FeedbackPage() {
 
               <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-semibold text-foreground/90 flex justify-between">
-                  <span>{tr("feedback.description")} <span className="text-destructive ml-0.5">*</span></span>
+                  <span>{LOCALE.feedback.description} <span className="text-destructive ml-0.5">*</span></span>
                 </label>
                 <textarea
                   id="description"
-                  placeholder={tr("feedback.descriptionPlaceholder")}
+                  placeholder={LOCALE.feedback.descriptionPlaceholder}
                   className="w-full min-h-[300px] bg-background border border-border/80 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 transition-all shadow-sm resize-y placeholder:text-muted-foreground/60 leading-relaxed"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -105,10 +105,10 @@ export default function FeedbackPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      {tr("feedback.submitting")}
+                      {LOCALE.feedback.submitting}
                     </>
                   ) : (
-                    tr("feedback.submit")
+                    LOCALE.feedback.submit
                   )}
                 </button>
               </div>
@@ -116,7 +116,7 @@ export default function FeedbackPage() {
 
             <div className="pt-6 border-t border-border/40 text-center">
               <p className="text-sm text-muted-foreground flex items-center justify-center flex-wrap gap-1.5">
-                {tr("feedback.emailContact")}
+                {LOCALE.feedback.emailContact}
                 <a
                   href="mailto:sentra.quest@gmail.com"
                   className="inline-flex items-center gap-1.5 text-accent-cyan hover:text-accent-cyan/80 font-medium transition-colors hover:underline"

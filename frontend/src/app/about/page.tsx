@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Mail, Github } from "lucide-react";
 import { TeamCard, TeamMember } from "@/components/about/TeamCard";
 import { ContactForm } from "@/components/about/ContactForm";
 import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 
 
 const STAT_VALUES = [
@@ -62,19 +63,19 @@ function StatCounter({
 }
 
 export default function AboutPage() {
-  const { tr } = useLanguage();
+  const { LOCALE, locale } = useLanguage();
 
   const teamMembers: TeamMember[] = [
     {
-      name: tr("about.members.quy.name"),
-      role: tr("about.members.quy.role"),
+      name: LOCALE.about.members.quy.name,
+      role: LOCALE.about.members.quy.role,
       photo: "/quy.png",
-      affiliation: tr("about.members.quy.affiliation"),
-      bio: tr("about.members.quy.bio"),
+      affiliation: LOCALE.about.members.quy.affiliation,
+      bio: LOCALE.about.members.quy.bio,
       contributions: [
-        <span key="1"><strong className="text-cyan-400 font-bold">{tr("about.members.quy.contrib1Label")}:</strong> {tr("about.members.quy.contrib1Desc")}</span>,
-        <span key="2"><strong className="text-cyan-400 font-bold">{tr("about.members.quy.contrib2Label")}:</strong> {tr("about.members.quy.contrib2Desc")}</span>,
-        <span key="3"><strong className="text-cyan-400 font-bold">{tr("about.members.quy.contrib3Label")}:</strong> {tr("about.members.quy.contrib3Desc")}</span>,
+        <span key="1"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.quy.contrib1Label}:</strong> {LOCALE.about.members.quy.contrib1Desc}</span>,
+        <span key="2"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.quy.contrib2Label}:</strong> {LOCALE.about.members.quy.contrib2Desc}</span>,
+        <span key="3"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.quy.contrib3Label}:</strong> {LOCALE.about.members.quy.contrib3Desc}</span>,
       ],
       skills: ["Adversarial Prompt Research", "DOM-Level Prompt Defense", "Database Schema Security", "Penetration Testing"],
       links: {
@@ -84,15 +85,15 @@ export default function AboutPage() {
       },
     },
     {
-      name: tr("about.members.hoang.name"),
-      role: tr("about.members.hoang.role"),
+      name: LOCALE.about.members.hoang.name,
+      role: LOCALE.about.members.hoang.role,
       photo: "/hoang.png",
-      affiliation: tr("about.members.hoang.affiliation"),
-      bio: tr("about.members.hoang.bio"),
+      affiliation: LOCALE.about.members.hoang.affiliation,
+      bio: LOCALE.about.members.hoang.bio,
       contributions: [
-        <span key="1"><strong className="text-cyan-400 font-bold">{tr("about.members.hoang.contrib1Label")}:</strong> {tr("about.members.hoang.contrib1Desc")}</span>,
-        <span key="2"><strong className="text-cyan-400 font-bold">{tr("about.members.hoang.contrib2Label")}:</strong> {tr("about.members.hoang.contrib2Desc")}</span>,
-        <span key="3"><strong className="text-cyan-400 font-bold">{tr("about.members.hoang.contrib3Label")}:</strong> {tr("about.members.hoang.contrib3Desc")}</span>,
+        <span key="1"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.hoang.contrib1Label}:</strong> {LOCALE.about.members.hoang.contrib1Desc}</span>,
+        <span key="2"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.hoang.contrib2Label}:</strong> {LOCALE.about.members.hoang.contrib2Desc}</span>,
+        <span key="3"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.hoang.contrib3Label}:</strong> {LOCALE.about.members.hoang.contrib3Desc}</span>,
       ],
       skills: ["FastAPI", "Redis", "Docker", "PostgreSQL", "Cloud Config"],
       links: {
@@ -102,14 +103,14 @@ export default function AboutPage() {
       },
     },
     {
-      name: tr("about.members.bao.name"),
-      role: tr("about.members.bao.role"),
-      affiliation: tr("about.members.bao.affiliation"),
-      bio: tr("about.members.bao.bio"),
+      name: LOCALE.about.members.bao.name,
+      role: LOCALE.about.members.bao.role,
+      affiliation: LOCALE.about.members.bao.affiliation,
+      bio: LOCALE.about.members.bao.bio,
       contributions: [
-        tr("about.members.bao.contrib1"),
-        tr("about.members.bao.contrib2"),
-        tr("about.members.bao.contrib3"),
+        LOCALE.about.members.bao.contrib1,
+        LOCALE.about.members.bao.contrib2,
+        LOCALE.about.members.bao.contrib3,
       ],
       skills: ["Node.js", "Socket.io", "TypeScript", "Security", "REST APIs"],
       links: {
@@ -119,14 +120,14 @@ export default function AboutPage() {
       },
     },
     {
-      name: tr("about.members.thanh.name"),
-      role: tr("about.members.thanh.role"),
-      affiliation: tr("about.members.thanh.affiliation"),
-      bio: tr("about.members.thanh.bio"),
+      name: LOCALE.about.members.thanh.name,
+      role: LOCALE.about.members.thanh.role,
+      affiliation: LOCALE.about.members.thanh.affiliation,
+      bio: LOCALE.about.members.thanh.bio,
       contributions: [
-        tr("about.members.thanh.contrib1"),
-        tr("about.members.thanh.contrib2"),
-        tr("about.members.thanh.contrib3"),
+        LOCALE.about.members.thanh.contrib1,
+        LOCALE.about.members.thanh.contrib2,
+        LOCALE.about.members.thanh.contrib3,
       ],
       skills: ["React", "Tailwind CSS", "Framer Motion", "Next.js", "UX/UI"],
       links: {
@@ -172,17 +173,17 @@ export default function AboutPage() {
           className="text-center max-w-3xl mx-auto pt-24 pb-4 space-y-6"
         >
           <span className="inline-block text-xs font-bold tracking-[0.25em] uppercase text-cyan-400 border border-cyan-500/30 rounded-full px-4 py-1.5 bg-cyan-500/5">
-            {tr("about.badge")}
+            {LOCALE.about.badge}
           </span>
           <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold tracking-tight pb-2">
-            {tr("about.heroTitle1")}{" "}
+            {LOCALE.about.heroTitle1}{" "}
             <br />
             <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-              {tr("about.heroTitle2")}
+              {LOCALE.about.heroTitle2}
             </span>
           </h1>
           <p className="text-lg md:text-xl text-foreground/70 leading-relaxed">
-            {tr("about.heroSubtitle")}
+            {LOCALE.about.heroSubtitle}
           </p>
         </motion.section>
 
@@ -207,8 +208,8 @@ export default function AboutPage() {
                 <div className="text-4xl xl:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 mb-2 leading-none">
                   <StatCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
-                <p className="text-sm font-bold text-foreground/85 mb-0.5">{tr(stat.labelKey)}</p>
-                <p className="text-xs text-muted-foreground">{tr(stat.sublabelKey)}</p>
+                <p className="text-sm font-bold text-foreground/85 mb-0.5">{t(locale, stat.labelKey)}</p>
+                <p className="text-xs text-muted-foreground">{t(locale, stat.sublabelKey)}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -227,20 +228,20 @@ export default function AboutPage() {
               className="space-y-5"
             >
               <div className="space-y-3">
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{tr("about.storyTag")}</span>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{tr("about.storyTitle")}</h2>
+                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{LOCALE.about.storyTag}</span>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{LOCALE.about.storyTitle}</h2>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-500 to-cyan-500/0 rounded-full" />
               </div>
 
               <div className="space-y-4 text-foreground/70 text-sm md:text-base leading-relaxed">
-                <p>{tr("about.storyP1")}</p>
-                <p>{tr("about.storyP2")}</p>
+                <p>{LOCALE.about.storyP1}</p>
+                <p>{LOCALE.about.storyP2}</p>
               </div>
 
               {/* Pull quote */}
               <div className="border-l-2 border-cyan-500/50 pl-4 py-1 mt-6">
                 <p className="text-foreground/60 italic text-sm leading-relaxed">
-                  &ldquo;{tr("about.storyQuote")}&rdquo;
+                  &ldquo;{LOCALE.about.storyQuote}&rdquo;
                 </p>
               </div>
             </motion.div>
@@ -254,20 +255,20 @@ export default function AboutPage() {
               className="space-y-5"
             >
               <div className="space-y-3">
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-purple-400">{tr("about.archTag")}</span>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{tr("about.archTitle")}</h2>
+                <span className="text-xs font-bold tracking-[0.2em] uppercase text-purple-400">{LOCALE.about.archTag}</span>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{LOCALE.about.archTitle}</h2>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-purple-500/0 rounded-full" />
               </div>
 
               <div className="space-y-4 text-foreground/70 text-sm md:text-base leading-relaxed">
-                <p>{tr("about.archP1")}</p>
-                <p>{tr("about.archP2")}</p>
+                <p>{LOCALE.about.archP1}</p>
+                <p>{LOCALE.about.archP2}</p>
               </div>
 
               {/* Pipeline visual */}
               <div className="mt-6 glass-panel rounded-xl p-4 border border-border/30">
                 <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-4">
-                  {tr("about.pipelineTitle")}
+                  {LOCALE.about.pipelineTitle}
                 </p>
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
                   {pipeline.map((node, i) => (
@@ -306,15 +307,15 @@ export default function AboutPage() {
             transition={{ duration: 0.5 }}
             className="text-center mb-14 space-y-3"
           >
-            <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{tr("about.teamTag")}</span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{LOCALE.about.teamTag}</span>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              {tr("about.teamTitle1")}{" "}
+              {LOCALE.about.teamTitle1}{" "}
               <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                {tr("about.teamTitle2")}
+                {LOCALE.about.teamTitle2}
               </span>
             </h2>
             <p className="text-foreground/55 max-w-md mx-auto text-sm md:text-base">
-              {tr("about.teamSubtitle")}
+              {LOCALE.about.teamSubtitle}
             </p>
           </motion.div>
 
@@ -347,19 +348,19 @@ export default function AboutPage() {
               className="space-y-8"
             >
               <div className="space-y-3">
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{tr("about.contactTag")}</span>
+                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{LOCALE.about.contactTag}</span>
                 <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
-                  {tr("about.contactTitle1")}
+                  {LOCALE.about.contactTitle1}
                   <br />
                   <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                    {tr("about.contactTitle2")}
+                    {LOCALE.about.contactTitle2}
                   </span>
                 </h2>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-500 to-cyan-500/0 rounded-full" />
               </div>
 
               <p className="text-foreground/65 text-sm md:text-base leading-relaxed">
-                {tr("about.contactDesc")}
+                {LOCALE.about.contactDesc}
               </p>
 
               <div className="space-y-3">
@@ -371,7 +372,7 @@ export default function AboutPage() {
                     <Mail size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium mb-0.5">{tr("about.emailLabel")}</p>
+                    <p className="text-xs text-muted-foreground font-medium mb-0.5">{LOCALE.about.emailLabel}</p>
                     <p className="text-sm font-semibold text-foreground group-hover:text-cyan-400 transition-colors truncate">
                       thisshoulebechanged
                     </p>
@@ -388,7 +389,7 @@ export default function AboutPage() {
                     <Github size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium mb-0.5">{tr("about.openSource")}</p>
+                    <p className="text-xs text-muted-foreground font-medium mb-0.5">{LOCALE.about.openSource}</p>
                     <p className="text-sm font-semibold text-foreground group-hover:text-purple-400 transition-colors truncate">
                       github.com/Phishing-Detection-Team
                     </p>

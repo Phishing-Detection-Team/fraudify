@@ -18,7 +18,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const sessionExpired = searchParams.get("expired") === "1";
   const { data: session, status } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -47,9 +47,9 @@ function LoginForm() {
       if (loginStatus.status === 403 && loginStatus.error === "Email not verified") {
         setUnverifiedEmail(true);
       } else if (loginStatus.status === 401) {
-        setError(tr("login.wrongEmailPassword"));
+        setError(LOCALE.login.wrongEmailPassword);
       } else {
-        setError(loginStatus.error || tr("login.loginFailedTryAgain"));
+        setError(loginStatus.error || LOCALE.login.loginFailedTryAgain);
       }
       setLoading(false);
       return;
@@ -62,7 +62,7 @@ function LoginForm() {
     });
 
     if (result?.error || !result?.ok) {
-      setError(tr("login.loginFailedTryAgain"));
+      setError(LOCALE.login.loginFailedTryAgain);
       setLoading(false);
       return;
     }
@@ -98,14 +98,14 @@ function LoginForm() {
         <div className="flex flex-col items-center mb-8">
           <LanguageSelector className="self-end mb-3" />
           <Logo className="mb-6 scale-110" />
-          <h1 className="text-2xl font-bold tracking-tight">{tr("login.welcomeBack")}</h1>
-          <p className="text-muted-foreground text-sm mt-1">{tr("login.signInSubtitle")}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{LOCALE.login.welcomeBack}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{LOCALE.login.signInSubtitle}</p>
         </div>
 
         {sessionExpired && (
           <div className="mb-6 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm p-3 rounded-lg flex items-center gap-2">
             <Clock size={16} className="flex-shrink-0" />
-            {tr("login.sessionExpired")}
+            {LOCALE.login.sessionExpired}
           </div>
         )}
 
@@ -122,9 +122,9 @@ function LoginForm() {
               <div className="flex items-start gap-2">
                 <MailCheck size={16} className="text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-amber-300">{tr("login.emailNotVerified")}</p>
+                  <p className="text-sm font-medium text-amber-300">{LOCALE.login.emailNotVerified}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {tr("login.verifyBeforeLogin")}
+                    {LOCALE.login.verifyBeforeLogin}
                   </p>
                 </div>
               </div>
@@ -137,16 +137,16 @@ function LoginForm() {
                 {resendStatus === "sending" && <Loader2 size={12} className="animate-spin" />}
                 {resendStatus === "sent" && <Check size={12} />}
                 {resendStatus === "idle"
-                  ? tr("login.resendVerificationEmail")
+                  ? LOCALE.login.resendVerificationEmail
                   : resendStatus === "sending"
-                  ? tr("common.sending")
-                  : tr("login.emailSentCheckInbox")}
+                  ? LOCALE.common.sending
+                  : LOCALE.login.emailSentCheckInbox}
               </button>
             </div>
           )}
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">{tr("login.emailAddress")}</label>
+            <label htmlFor="email" className="text-sm font-medium">{LOCALE.login.emailAddress}</label>
             <input
               id="email"
               type="text"
@@ -159,7 +159,7 @@ function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">{tr("login.password")}</label>
+            <label htmlFor="password" className="text-sm font-medium">{LOCALE.login.password}</label>
             <div className="relative">
               <input
                 id="password"
@@ -182,7 +182,7 @@ function LoginForm() {
             </div>
             <div className="text-right">
               <Link href="/forgot-password" passHref>
-                <p className="text-sm text-accent-cyan hover:underline">{tr("login.forgotPassword")}</p>
+                <p className="text-sm text-accent-cyan hover:underline">{LOCALE.login.forgotPassword}</p>
               </Link>
             </div>
           </div>
@@ -197,7 +197,7 @@ function LoginForm() {
             ) : (
               <>
                 <LogIn size={18} />
-                {tr("login.signIn")}
+                {LOCALE.login.signIn}
               </>
             )}
           </button>
@@ -205,9 +205,9 @@ function LoginForm() {
 
         <div className="text-center mt-6">
           <p className="text-sm text-muted-foreground">
-            {tr("login.noAccount")}{" "}
+            {LOCALE.login.noAccount}{" "}
             <Link href="/signup" className="text-accent-cyan hover:text-accent-cyan/80 transition-colors">
-              {tr("login.signUp")}
+              {LOCALE.login.signUp}
             </Link>
           </p>
         </div>
@@ -220,7 +220,7 @@ function LoginForm() {
             className="text-sm text-muted-foreground hover:text-accent-cyan transition-colors inline-flex items-center gap-2"
           >
             <ShieldCheck size={16} />
-            {tr("login.extensionPreview")}
+            {LOCALE.login.extensionPreview}
           </Link>
         </div>
       </motion.div>

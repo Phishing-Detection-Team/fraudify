@@ -48,7 +48,7 @@ function CopyButton({ text }: { text: string }) {
 
 export function ProfileSettings() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [profile, setProfile] = useState<BackendUser | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
@@ -87,23 +87,23 @@ export function ProfileSettings() {
     setMessage(null);
 
     if (newPassword !== confirmPassword) {
-      setMessage({ type: "error", text: tr("profile.passwordMismatch") });
+      setMessage({ type: "error", text: LOCALE.profile.passwordMismatch });
       return;
     }
     if (newPassword.length < 8) {
-      setMessage({ type: "error", text: tr("profile.passwordTooShort") });
+      setMessage({ type: "error", text: LOCALE.profile.passwordTooShort });
       return;
     }
     if (!session?.accessToken) return;
     setSaving(true);
     try {
       await updatePassword(session.accessToken, currentPassword, newPassword);
-      setMessage({ type: "success", text: tr("profile.passwordUpdated") });
+      setMessage({ type: "success", text: LOCALE.profile.passwordUpdated });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setMessage({ type: "error", text: (err as Error).message ?? tr("profile.passwordFailed") });
+      setMessage({ type: "error", text: (err as Error).message ?? LOCALE.profile.passwordFailed });
     } finally {
       setSaving(false);
     }
@@ -117,7 +117,7 @@ export function ProfileSettings() {
       await deleteExtensionInstance(session.accessToken, instanceId);
       setInstances((prev) => prev.filter((i) => i.id !== instanceId));
     } catch (err) {
-      setDeleteError((err as Error).message ?? tr("profile.failedRemove"));
+      setDeleteError((err as Error).message ?? LOCALE.profile.failedRemove);
     } finally {
       setDeletingId(null);
     }
@@ -137,13 +137,13 @@ export function ProfileSettings() {
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{tr("profile.title")}</h1>
-        <p className="text-muted-foreground mt-1">{tr("profile.subtitle")}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{LOCALE.profile.title}</h1>
+        <p className="text-muted-foreground mt-1">{LOCALE.profile.subtitle}</p>
       </div>
 
       {/* Account Info */}
       <div className="glass-panel rounded-xl p-6 space-y-6">
-        <h2 className="text-lg font-semibold border-b border-border/50 pb-3">{tr("profile.accountInfo")}</h2>
+        <h2 className="text-lg font-semibold border-b border-border/50 pb-3">{LOCALE.profile.accountInfo}</h2>
 
         <div className="flex items-center gap-5">
           <Initials name={displayName} />
@@ -156,25 +156,25 @@ export function ProfileSettings() {
         {loadingProfile ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 size={14} className="animate-spin" />
-            {tr("profile.loadingProfile")}
+            {LOCALE.profile.loadingProfile}
           </div>
         ) : (
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <dt className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                {tr("profile.username")}
+                {LOCALE.profile.username}
               </dt>
               <dd className="text-sm font-medium">{profile?.username ?? displayName}</dd>
             </div>
             <div>
               <dt className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                {tr("profile.email")}
+                {LOCALE.profile.email}
               </dt>
               <dd className="text-sm font-medium">{displayEmail}</dd>
             </div>
             <div>
               <dt className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                {tr("profile.roles")}
+                {LOCALE.profile.roles}
               </dt>
               <dd className="flex flex-wrap gap-1.5">
                 {roles.map((role) => (
@@ -190,7 +190,7 @@ export function ProfileSettings() {
             {memberSince && (
               <div>
                 <dt className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                  {tr("profile.memberSince")}
+                  {LOCALE.profile.memberSince}
                 </dt>
                 <dd className="text-sm font-medium">{memberSince}</dd>
               </div>
@@ -201,24 +201,24 @@ export function ProfileSettings() {
 
       {/* Language */}
       <div className="glass-panel rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold border-b border-border/50 pb-3">{tr("profile.languageSection")}</h2>
+        <h2 className="text-lg font-semibold border-b border-border/50 pb-3">{LOCALE.profile.languageSection}</h2>
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">{tr("profile.displayLanguage")}</p>
+          <p className="text-sm text-muted-foreground">{LOCALE.profile.displayLanguage}</p>
           <LanguageSelector />
         </div>
       </div>
 
       {/* Change Password */}
       <div className="glass-panel rounded-xl p-6 space-y-5">
-        <h2 className="text-lg font-semibold border-b border-border/50 pb-3">{tr("profile.changePassword")}</h2>
+        <h2 className="text-lg font-semibold border-b border-border/50 pb-3">{LOCALE.profile.changePassword}</h2>
 
         {!session?.user?.fromBackend ? (
-          <p className="text-sm text-muted-foreground">{tr("profile.passwordOnlyBackend")}</p>
+          <p className="text-sm text-muted-foreground">{LOCALE.profile.passwordOnlyBackend}</p>
         ) : (
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div>
               <label htmlFor="current-password" className="block text-sm font-medium mb-1.5">
-                {tr("profile.currentPassword")}
+                {LOCALE.profile.currentPassword}
               </label>
               <div className="relative">
                 <input
@@ -243,7 +243,7 @@ export function ProfileSettings() {
 
             <div>
               <label htmlFor="new-password" className="block text-sm font-medium mb-1.5">
-                {tr("profile.newPassword")}
+                {LOCALE.profile.newPassword}
               </label>
               <div className="relative">
                 <input
@@ -269,7 +269,7 @@ export function ProfileSettings() {
 
             <div>
               <label htmlFor="confirm-password" className="block text-sm font-medium mb-1.5">
-                {tr("profile.confirmNewPassword")}
+                {LOCALE.profile.confirmNewPassword}
               </label>
               <input
                 id="confirm-password"
@@ -307,7 +307,7 @@ export function ProfileSettings() {
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent-cyan text-black font-semibold text-sm hover:bg-accent-cyan/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving && <Loader2 size={14} className="animate-spin" />}
-                {tr("profile.updatePassword")}
+                {LOCALE.profile.updatePassword}
               </button>
             </div>
           </form>
@@ -318,16 +318,16 @@ export function ProfileSettings() {
       <div className="glass-panel rounded-xl p-6 space-y-5">
         <div className="flex items-center gap-2 border-b border-border/50 pb-3">
           <Puzzle size={18} className="text-accent-cyan" />
-          <h2 className="text-lg font-semibold">{tr("profile.browserExtension")}</h2>
+          <h2 className="text-lg font-semibold">{LOCALE.profile.browserExtension}</h2>
         </div>
 
         <div className="rounded-lg border border-accent-cyan/20 bg-accent-cyan/5 px-4 py-4 space-y-3">
-          <p className="text-xs font-semibold text-accent-cyan uppercase tracking-wider">{tr("profile.howItWorks")}</p>
+          <p className="text-xs font-semibold text-accent-cyan uppercase tracking-wider">{LOCALE.profile.howItWorks}</p>
           <ol className="space-y-2">
             {[
-              tr("profile.extensionStep1"),
-              tr("profile.extensionStep2"),
-              tr("profile.extensionStep3"),
+              LOCALE.profile.extensionStep1,
+              LOCALE.profile.extensionStep2,
+              LOCALE.profile.extensionStep3,
             ].map((step, i) => (
               <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                 <span className="flex-shrink-0 w-4 h-4 rounded-full bg-accent-cyan/20 text-accent-cyan flex items-center justify-center text-[10px] font-bold mt-0.5">
@@ -340,17 +340,17 @@ export function ProfileSettings() {
         </div>
 
         {!session?.user?.fromBackend ? (
-          <p className="text-sm text-muted-foreground">{tr("profile.extensionOnlyBackend")}</p>
+          <p className="text-sm text-muted-foreground">{LOCALE.profile.extensionOnlyBackend}</p>
         ) : loadingInstances ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 size={14} className="animate-spin" />
-            {tr("profile.loadingInstances")}
+            {LOCALE.profile.loadingInstances}
           </div>
         ) : instances.length === 0 ? (
           <div className="rounded-lg border border-border/50 bg-muted/20 px-4 py-6 text-center space-y-2">
             <WifiOff size={24} className="mx-auto text-muted-foreground" />
-            <p className="text-sm font-medium">{tr("profile.noInstancesTitle")}</p>
-            <p className="text-xs text-muted-foreground">{tr("profile.noInstancesDesc")}</p>
+            <p className="text-sm font-medium">{LOCALE.profile.noInstancesTitle}</p>
+            <p className="text-xs text-muted-foreground">{LOCALE.profile.noInstancesDesc}</p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -377,22 +377,22 @@ export function ProfileSettings() {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {inst.is_active ? tr("profile.instanceActive") : tr("profile.instanceIdle")}
+                      {inst.is_active ? LOCALE.profile.instanceActive : LOCALE.profile.instanceIdle}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 mt-1">
                     <span className="font-mono text-[10px] text-muted-foreground truncate">
-                      {tr("profile.token")} {inst.instance_token}
+                      {LOCALE.profile.token} {inst.instance_token}
                     </span>
                     <CopyButton text={inst.instance_token} />
                   </div>
                   {inst.last_seen ? (
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {tr("profile.lastHeartbeat")} {parseUTC(inst.last_seen).toLocaleString()}
+                      {LOCALE.profile.lastHeartbeat} {parseUTC(inst.last_seen).toLocaleString()}
                     </p>
                   ) : (
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {tr("profile.noHeartbeat")}
+                      {LOCALE.profile.noHeartbeat}
                     </p>
                   )}
                 </div>

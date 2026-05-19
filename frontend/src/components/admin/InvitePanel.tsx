@@ -17,17 +17,17 @@ const ROLE_BADGE: Record<string, string> = {
 };
 
 export default function InvitePanel({ token }: InvitePanelProps) {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
 
   const ROLE_OPTIONS = [
-    { value: "user" as const, label: tr("invite.roleUser") },
-    { value: "admin" as const, label: tr("invite.roleAdmin") },
+    { value: "user" as const, label: LOCALE.invite.roleUser },
+    { value: "admin" as const, label: LOCALE.invite.roleAdmin },
   ];
 
   const EXPIRY_OPTIONS = [
-    { value: 24,  label: tr("invite.expiry24h") },
-    { value: 168, label: tr("invite.expiry7d")  },
-    { value: 720, label: tr("invite.expiry30d") },
+    { value: 24,  label: LOCALE.invite.expiry24h },
+    { value: 168, label: LOCALE.invite.expiry7d  },
+    { value: 720, label: LOCALE.invite.expiry30d },
   ];
 
   const [role, setRole]         = useState<"user" | "admin">("user");
@@ -84,13 +84,13 @@ export default function InvitePanel({ token }: InvitePanelProps) {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Link2 size={16} className="text-accent-cyan" />
-        <h3 className="font-semibold">{tr("invite.title")}</h3>
+        <h3 className="font-semibold">{LOCALE.invite.title}</h3>
       </div>
 
       {/* Generate form */}
       <div className="flex flex-col sm:flex-row gap-3 items-end">
         <div className="flex flex-col gap-1 flex-1">
-          <label className="text-xs text-muted-foreground font-medium">{tr("invite.roleLabel")}</label>
+          <label className="text-xs text-muted-foreground font-medium">{LOCALE.invite.roleLabel}</label>
           <select
             data-testid="invite-role-select"
             value={role}
@@ -104,7 +104,7 @@ export default function InvitePanel({ token }: InvitePanelProps) {
         </div>
 
         <div className="flex flex-col gap-1 flex-1">
-          <label className="text-xs text-muted-foreground font-medium">{tr("invite.expiryLabel")}</label>
+          <label className="text-xs text-muted-foreground font-medium">{LOCALE.invite.expiryLabel}</label>
           <select
             data-testid="invite-expiry-select"
             value={expiry}
@@ -124,7 +124,7 @@ export default function InvitePanel({ token }: InvitePanelProps) {
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan text-sm font-medium hover:bg-accent-cyan/20 transition-colors disabled:opacity-60"
         >
           {generating ? <Loader2 size={14} className="animate-spin" data-testid="loader-icon" /> : null}
-          {tr("invite.generate")}
+          {LOCALE.invite.generate}
         </button>
       </div>
 
@@ -143,7 +143,7 @@ export default function InvitePanel({ token }: InvitePanelProps) {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-xs hover:bg-muted/30 transition-colors flex-shrink-0"
           >
             {copied ? <Check size={12} /> : <Copy size={12} />}
-            {copied ? tr("invite.copied") : tr("invite.copy")}
+            {copied ? LOCALE.invite.copied : LOCALE.invite.copy}
           </button>
         </div>
       )}
@@ -151,25 +151,25 @@ export default function InvitePanel({ token }: InvitePanelProps) {
       {/* Active invites table */}
       <div data-testid="invites-table">
         <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-3">
-          {tr("invite.activeInvites")}
+          {LOCALE.invite.activeInvites}
         </p>
 
         {loadingInvites ? (
           <div className="flex items-center gap-2 text-muted-foreground text-sm py-4">
             <Loader2 size={14} className="animate-spin" />
-            {tr("invite.loading")}
+            {LOCALE.invite.loading}
           </div>
         ) : invites.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{tr("invite.noInvites")}</p>
+          <p className="text-sm text-muted-foreground py-4">{LOCALE.invite.noInvites}</p>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-border/50">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
                 <tr>
-                  <th className="px-4 py-3 font-medium">{tr("invite.headerCode")}</th>
-                  <th className="px-4 py-3 font-medium">{tr("invite.headerRole")}</th>
-                  <th className="px-4 py-3 font-medium">{tr("invite.headerExpires")}</th>
-                  <th className="px-4 py-3 font-medium sr-only">{tr("adminFeedback.headerActions")}</th>
+                  <th className="px-4 py-3 font-medium">{LOCALE.invite.headerCode}</th>
+                  <th className="px-4 py-3 font-medium">{LOCALE.invite.headerRole}</th>
+                  <th className="px-4 py-3 font-medium">{LOCALE.invite.headerExpires}</th>
+                  <th className="px-4 py-3 font-medium sr-only">{LOCALE.adminFeedback.headerActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -201,7 +201,7 @@ export default function InvitePanel({ token }: InvitePanelProps) {
                         className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400 hover:bg-red-500/10 transition-colors"
                       >
                         <Trash2 size={12} />
-                        {tr("invite.revoke")}
+                        {LOCALE.invite.revoke}
                       </button>
                     </td>
                   </tr>

@@ -26,7 +26,7 @@ const TOTAL_DURATION = PHASES.reduce((acc, p) => acc + p.duration, 0);
 const PHASE_COMPONENTS = [Phase1Data, Phase2QLoRA, Phase3LoRA, Phase4Training, Phase5Results];
 
 export default function TrainingPage() {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [currentPhase, setCurrentPhase]       = useState(1);
   const [phaseKey, setPhaseKey]               = useState(0);
   const [autoRunning, setAutoRunning]         = useState(false);
@@ -163,15 +163,15 @@ export default function TrainingPage() {
                 <BrainCircuit className="text-accent-cyan" size={22} />
               </div>
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                {tr("training.badge")}
+                {LOCALE.training.badge}
               </span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">
-              <span className="neon-text">{tr("training.title")}</span>
-              <span className="text-foreground">{tr("training.subtitle")}</span>
+              <span className="neon-text">{LOCALE.training.title}</span>
+              <span className="text-foreground">{LOCALE.training.subtitle}</span>
             </h1>
             <p className="text-muted-foreground text-sm max-w-lg leading-relaxed">
-              {tr("training.description")}
+              {LOCALE.training.description}
             </p>
           </div>
 
@@ -183,14 +183,14 @@ export default function TrainingPage() {
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border/60 bg-background/60 text-sm font-medium hover:bg-muted transition-colors"
                 >
                   {paused ? <Play size={15} /> : <Pause size={15} />}
-                  {paused ? tr("training.resume") : tr("training.pause")}
+                  {paused ? LOCALE.training.resume : LOCALE.training.pause}
                 </button>
                 <button
                   onClick={resetPipeline}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border/60 bg-background/60 text-sm font-medium hover:bg-muted transition-colors"
                 >
                   <RotateCcw size={15} />
-                  {tr("training.reset")}
+                  {LOCALE.training.reset}
                 </button>
               </>
             )}
@@ -202,9 +202,9 @@ export default function TrainingPage() {
                 className="btn-neon flex items-center gap-2.5 px-7 py-3.5 rounded-xl border border-accent-cyan/50 bg-accent-cyan/10 text-accent-cyan font-semibold text-sm hover:bg-accent-cyan/20 transition-all shadow-[0_0_30px_hsl(var(--accent-cyan)/0.2)]"
               >
                 {done ? (
-                  <><RotateCcw size={16} /> {tr("training.runAgain")}</>
+                  <><RotateCcw size={16} /> {LOCALE.training.runAgain}</>
                 ) : (
-                  <><Play size={16} fill="currentColor" /> {tr("training.runPipeline")}</>
+                  <><Play size={16} fill="currentColor" /> {LOCALE.training.runPipeline}</>
                 )}
               </motion.button>
             )}
@@ -215,7 +215,7 @@ export default function TrainingPage() {
         {(autoRunning || done) && (
           <div className="mt-6 relative z-10">
             <div className="flex justify-between text-xs text-muted-foreground mb-2">
-              <span className="font-medium">{tr("training.pipelineProgress")}</span>
+              <span className="font-medium">{LOCALE.training.pipelineProgress}</span>
               <span>{Math.round(totalProgress)}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -235,7 +235,7 @@ export default function TrainingPage() {
             className="mt-4 p-3 rounded-lg bg-accent-green/10 border border-accent-green/30 text-accent-green text-sm font-medium flex items-center gap-2"
           >
             <span className="text-base">✓</span>
-            {tr("training.complete")}
+            {LOCALE.training.complete}
           </motion.div>
         )}
       </motion.div>
@@ -275,11 +275,11 @@ export default function TrainingPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border/60 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeft size={16} />
-          {tr("training.previous")}
+          {LOCALE.training.previous}
         </button>
 
         <span className="text-xs text-muted-foreground">
-          {tr("training.phase")} {currentPhase} {tr("training.of")} {PHASES.length}
+          {LOCALE.training.phase} {currentPhase} {LOCALE.training.of} {PHASES.length}
         </span>
 
         <button
@@ -287,7 +287,7 @@ export default function TrainingPage() {
           disabled={currentPhase === PHASES.length}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border/60 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          {tr("training.next")}
+          {LOCALE.training.next}
           <ChevronRight size={16} />
         </button>
       </div>

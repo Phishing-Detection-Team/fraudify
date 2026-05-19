@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { auth } from "@/auth";
 import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
@@ -31,9 +32,21 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  const cookieStore = await cookies();
-  const rawLocale = cookieStore.get("preferred_locale")?.value;
-  const initialLocale: Locale = isLocale(rawLocale) ? rawLocale : "en";
+  let initialLocale: Locale = "en";
+
+  if (session?.user?.language && isLocale(session.user.language)) {
+    initialLocale = session.user.language;
+  } else {
+    const cookieStore = await cookies();
+    const cookieLocale = cookieStore.get("preferred_locale")?.value;
+    if (isLocale(cookieLocale)) {
+      initialLocale = cookieLocale;
+    } else {
+      const headersList = await headers();
+      const acceptLang = headersList.get("accept-language") ?? "";
+      initialLocale = acceptLang.toLowerCase().includes("vi") ? "vi" : "en";
+    }
+  }
 
   // Embed backend JWT for the browser extension bridge script (sentra_bridge.js).
   // Only present when the user is authenticated; absent on the login page so the

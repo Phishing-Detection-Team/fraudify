@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { History, Loader2, Mail, Brain, X, RefreshCw } from "lucide-react";
 import { getScanHistory, type ScanHistoryItem, type ScanVerdict } from "@/lib/user-api";
 import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 import { parseUTC } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -103,13 +104,13 @@ const VERDICT_CLASS: Record<ScanVerdict, string> = {
 };
 
 function VerdictBadge({ verdict, id }: { verdict: ScanVerdict; id: number }) {
-  const { tr } = useLanguage();
+  const { locale } = useLanguage();
   return (
     <span
       data-testid={`verdict-badge-${id}`}
       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${VERDICT_CLASS[verdict] ?? VERDICT_CLASS.suspicious}`}
     >
-      {tr(VERDICT_LABEL_KEY[verdict] ?? "scanHistory.suspicious")}
+      {t(locale, VERDICT_LABEL_KEY[verdict] ?? "scanHistory.suspicious")}
     </span>
   );
 }
@@ -158,7 +159,7 @@ function StatChip({
 // ---------------------------------------------------------------------------
 
 function ScanModal({ scan, onClose }: { scan: ScanHistoryItem; onClose: () => void }) {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   return (
     <>
       <motion.div
@@ -187,14 +188,14 @@ function ScanModal({ scan, onClose }: { scan: ScanHistoryItem; onClose: () => vo
               <div className="flex items-center gap-2 mb-1">
                 <Mail size={15} className="text-accent-cyan shrink-0" />
                 <h2 className="text-base font-semibold truncate">
-                  {scan.subject ?? tr("scanHistory.noSubject")}
+                  {scan.subject ?? LOCALE.scanHistory.noSubject}
                 </h2>
               </div>
               <div className="flex items-center gap-3 flex-wrap mt-1.5">
                 <VerdictBadge verdict={scan.verdict} id={scan.id} />
                 {scan.confidence != null && (
                   <span className="text-xs text-muted-foreground font-mono">
-                    {Math.round(scan.confidence * 100)}% {tr("scanHistory.confidence")}
+                    {Math.round(scan.confidence * 100)}% {LOCALE.scanHistory.confidence}
                   </span>
                 )}
                 <span className="text-xs text-muted-foreground">
@@ -217,7 +218,7 @@ function ScanModal({ scan, onClose }: { scan: ScanHistoryItem; onClose: () => vo
               <div className="flex items-center gap-2 mb-2">
                 <Mail size={13} className="text-accent-purple" />
                 <span className="text-xs font-semibold text-accent-purple uppercase tracking-wider">
-                  {tr("scanHistory.emailBody")}
+                  {LOCALE.scanHistory.emailBody}
                 </span>
               </div>
               <div className="bg-background/60 rounded-lg p-4 border border-border/40">
@@ -230,7 +231,7 @@ function ScanModal({ scan, onClose }: { scan: ScanHistoryItem; onClose: () => vo
                     {scan.body_snippet}
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">{tr("scanHistory.noBody")}</p>
+                  <p className="text-sm text-muted-foreground italic">{LOCALE.scanHistory.noBody}</p>
                 )}
               </div>
             </div>
@@ -240,7 +241,7 @@ function ScanModal({ scan, onClose }: { scan: ScanHistoryItem; onClose: () => vo
               <div className="flex items-center gap-2 mb-2">
                 <Brain size={13} className="text-accent-cyan" />
                 <span className="text-xs font-semibold text-accent-cyan uppercase tracking-wider">
-                  {tr("scanHistory.reasoning")}
+                  {LOCALE.scanHistory.reasoning}
                 </span>
               </div>
               <div className="bg-background/60 rounded-lg p-4 border border-border/40">
@@ -249,7 +250,7 @@ function ScanModal({ scan, onClose }: { scan: ScanHistoryItem; onClose: () => vo
                     {scan.reasoning}
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">{tr("scanHistory.noReasoning")}</p>
+                  <p className="text-sm text-muted-foreground italic">{LOCALE.scanHistory.noReasoning}</p>
                 )}
               </div>
             </div>
@@ -265,7 +266,7 @@ function ScanModal({ scan, onClose }: { scan: ScanHistoryItem; onClose: () => vo
 // ---------------------------------------------------------------------------
 
 export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [scans, setScans] = useState<ScanHistoryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
@@ -285,7 +286,7 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
         setPage(p);
         setFetchError(null);
       } catch {
-        setFetchError(tr("scanHistory.loadError"));
+        setFetchError(LOCALE.scanHistory.loadError);
         if (p === 1) setScans([]);
       } finally {
         setLoading(false);
@@ -343,7 +344,7 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
         <div className="flex items-center gap-2">
           <History size={18} className="text-accent-cyan" />
           <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-            {tr("scanHistory.title")}
+            {LOCALE.scanHistory.title}
           </h2>
         </div>
         <button
@@ -368,9 +369,9 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatChip label={tr("scanHistory.totalScanned")} value={String(total)} testId="stat-total" />
-        <StatChip label={tr("scanHistory.percentPhishing")} value={`${phishingPct}%`} testId="stat-phishing-pct" />
-        <StatChip label={tr("scanHistory.percentSafe")} value={`${safePct}%`} testId="stat-safe-pct" />
+        <StatChip label={LOCALE.scanHistory.totalScanned} value={String(total)} testId="stat-total" />
+        <StatChip label={LOCALE.scanHistory.percentPhishing} value={`${phishingPct}%`} testId="stat-phishing-pct" />
+        <StatChip label={LOCALE.scanHistory.percentSafe} value={`${safePct}%`} testId="stat-safe-pct" />
       </div>
 
       {/* Line chart: scans per day (last 30 days) */}
@@ -434,7 +435,7 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
           data-testid="no-scans-message"
           className="py-10 text-center text-muted-foreground text-sm"
         >
-          {tr("scanHistory.empty")}
+          {LOCALE.scanHistory.empty}
         </div>
       ) : (
         <div className="space-y-0 divide-y divide-border/30 rounded-xl overflow-hidden border border-border/30">
@@ -494,10 +495,10 @@ export default function ScanHistoryPanel({ token }: ScanHistoryPanelProps) {
           {loading ? (
             <span className="flex items-center justify-center gap-2">
               <Loader2 size={14} className="animate-spin" />
-              {tr("scanHistory.loading")}
+              {LOCALE.scanHistory.loading}
             </span>
           ) : (
-            tr("scanHistory.loadMore")
+            LOCALE.scanHistory.loadMore
           )}
         </button>
       )}

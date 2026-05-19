@@ -14,7 +14,7 @@ function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,19 +27,19 @@ function ResetPasswordForm() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError(tr("resetPassword.passwordMismatch"));
+      setError(LOCALE.resetPassword.passwordMismatch);
       return;
     }
     if (password.length <= 10) {
-      setError(tr("resetPassword.passwordTooShort"));
+      setError(LOCALE.resetPassword.passwordTooShort);
       return;
     }
     if (!/\d/.test(password)) {
-      setError(tr("resetPassword.passwordNeedsNumber"));
+      setError(LOCALE.resetPassword.passwordNeedsNumber);
       return;
     }
     if (!/[!@#$%^&*]/.test(password)) {
-      setError(tr("resetPassword.passwordNeedsSymbol"));
+      setError(LOCALE.resetPassword.passwordNeedsSymbol);
       return;
     }
 
@@ -54,13 +54,13 @@ function ResetPasswordForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || tr("resetPassword.failedReset"));
+        setError(data.message || LOCALE.resetPassword.failedReset);
         return;
       }
 
       router.push("/login?reset=success");
     } catch {
-      setError(tr("resetPassword.connectionError"));
+      setError(LOCALE.resetPassword.connectionError);
     } finally {
       setLoading(false);
     }
@@ -69,9 +69,9 @@ function ResetPasswordForm() {
   if (!token) {
     return (
       <div className="text-center space-y-4 py-4">
-        <p className="text-sm text-red-400">{tr("resetPassword.invalidToken")}</p>
+        <p className="text-sm text-red-400">{LOCALE.resetPassword.invalidToken}</p>
         <Link href="/forgot-password" className="text-sm text-accent-cyan hover:text-accent-cyan/80 transition-colors">
-          {tr("resetPassword.requestNewLink")}
+          {LOCALE.resetPassword.requestNewLink}
         </Link>
       </div>
     );
@@ -80,7 +80,7 @@ function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="rp-password" className="text-sm font-medium">{tr("resetPassword.newPassword")}</label>
+        <label htmlFor="rp-password" className="text-sm font-medium">{LOCALE.resetPassword.newPassword}</label>
         <div className="relative">
           <input
             id="rp-password"
@@ -89,7 +89,7 @@ function ResetPasswordForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
-            placeholder={tr("resetPassword.minPlaceholder")}
+            placeholder={LOCALE.resetPassword.minPlaceholder}
           />
           <button
             type="button"
@@ -104,7 +104,7 @@ function ResetPasswordForm() {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="rp-confirm" className="text-sm font-medium">{tr("resetPassword.confirmPassword")}</label>
+        <label htmlFor="rp-confirm" className="text-sm font-medium">{LOCALE.resetPassword.confirmPassword}</label>
         <input
           id="rp-confirm"
           type={showPassword ? "text" : "password"}
@@ -112,7 +112,7 @@ function ResetPasswordForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
-          placeholder={tr("resetPassword.reenterPlaceholder")}
+          placeholder={LOCALE.resetPassword.reenterPlaceholder}
         />
       </div>
 
@@ -131,7 +131,7 @@ function ResetPasswordForm() {
         {loading ? (
           <span className="animate-spin w-5 h-5 border-2 border-background border-t-transparent rounded-full" />
         ) : (
-          tr("resetPassword.resetButton")
+          LOCALE.resetPassword.resetButton
         )}
       </button>
 
@@ -141,7 +141,7 @@ function ResetPasswordForm() {
           className="text-sm text-muted-foreground hover:text-accent-cyan transition-colors inline-flex items-center gap-1"
         >
           <ArrowLeft size={14} />
-          {tr("resetPassword.backToLogin")}
+          {LOCALE.resetPassword.backToLogin}
         </Link>
       </div>
     </form>
@@ -149,7 +149,7 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -164,11 +164,11 @@ export default function ResetPasswordPage() {
         <div className="flex flex-col items-center mb-8">
           <LanguageSelector className="self-end mb-3" />
           <Logo className="mb-6 scale-110" />
-          <h1 className="text-2xl font-bold tracking-tight">{tr("resetPassword.title")}</h1>
-          <p className="text-muted-foreground text-sm mt-1">{tr("resetPassword.subtitle")}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{LOCALE.resetPassword.title}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{LOCALE.resetPassword.subtitle}</p>
         </div>
 
-        <Suspense fallback={<div className="text-center text-sm text-muted-foreground">{tr("resetPassword.loading")}</div>}>
+        <Suspense fallback={<div className="text-center text-sm text-muted-foreground">{LOCALE.resetPassword.loading}</div>}>
           <ResetPasswordForm />
         </Suspense>
       </motion.div>

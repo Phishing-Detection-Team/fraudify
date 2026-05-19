@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { authConfig } from "./auth.config";
 import { config } from "./lib/config";
 import { loginWithBackend, loginWithToken } from "./lib/auth-api";
+import type { Locale } from "@/lib/i18n";
 
 export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -30,6 +31,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
               isActive: backendUser.is_active,
               fromBackend: true,
               accessToken,
+              language: (backendUser.preferred_language ?? "en") as Locale,
             };
           }
           return null;
@@ -54,6 +56,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
             fromBackend: true,
             accessToken,
             refreshToken,
+            language: (backendUser.preferred_language ?? "en") as Locale,
           };
         }
 

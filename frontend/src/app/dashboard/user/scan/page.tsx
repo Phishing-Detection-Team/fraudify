@@ -18,6 +18,7 @@ import {
   type ScanCacheHitResult,
 } from "@/lib/user-api";
 import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 import dynamic from "next/dynamic";
 import VerdictDisplay from "@/components/scan/VerdictDisplay";
 const ScanHistoryPanel = dynamic(() => import("@/components/scan/ScanHistoryPanel"), { ssr: false });
@@ -66,7 +67,7 @@ const VERDICT_CONFIG: Record<
 };
 
 function VerdictBadge({ verdict }: { verdict: ScanVerdict }) {
-  const { tr } = useLanguage();
+  const { locale } = useLanguage();
   const cfg = VERDICT_CONFIG[verdict] ?? VERDICT_CONFIG.suspicious;
   const Icon = cfg.icon;
   return (
@@ -74,13 +75,13 @@ function VerdictBadge({ verdict }: { verdict: ScanVerdict }) {
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.bg} ${cfg.color}`}
     >
       <Icon size={12} />
-      {tr(cfg.labelKey)}
+      {t(locale, cfg.labelKey)}
     </span>
   );
 }
 
 function ResultCard({ result }: { result: ScanDisplayResult }) {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const cfg = VERDICT_CONFIG[result.verdict] ?? VERDICT_CONFIG.suspicious;
   const scorePercent = Math.round(result.scam_score ?? 0);
   const confidencePercent = Math.round((result.confidence ?? 0) * 100);
@@ -88,13 +89,13 @@ function ResultCard({ result }: { result: ScanDisplayResult }) {
   return (
     <div className={`glass-panel rounded-xl border p-6 space-y-4 ${cfg.bg}`}>
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{tr("scan.analysisResult")}</h3>
+        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{LOCALE.scan.analysisResult}</h3>
         <VerdictBadge verdict={result.verdict} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">{tr("scan.scamScore")}</p>
+          <p className="text-xs text-muted-foreground">{LOCALE.scan.scamScore}</p>
           <div className="flex items-center gap-2">
             <div className="flex-1 h-2 bg-background/50 rounded-full overflow-hidden">
               <div
@@ -106,7 +107,7 @@ function ResultCard({ result }: { result: ScanDisplayResult }) {
           </div>
         </div>
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">{tr("scan.confidence")}</p>
+          <p className="text-xs text-muted-foreground">{LOCALE.scan.confidence}</p>
           <div className="flex items-center gap-2">
             <div className="flex-1 h-2 bg-background/50 rounded-full overflow-hidden">
               <div
@@ -121,7 +122,7 @@ function ResultCard({ result }: { result: ScanDisplayResult }) {
 
       {result.reasoning && (
         <div className="pt-2 border-t border-border/30">
-          <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide font-medium">{tr("scan.reasoning")}</p>
+          <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide font-medium">{LOCALE.scan.reasoning}</p>
           <p className="text-sm leading-relaxed">{result.reasoning}</p>
         </div>
       )}
@@ -134,7 +135,7 @@ const MAX_POLL_ATTEMPTS = 120;
 
 export default function ScanEmailPage() {
   const { data: session } = useSession();
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const token = session?.accessToken as string | undefined;
 
   const [subject, setSubject] = useState("");
@@ -175,7 +176,7 @@ export default function ScanEmailPage() {
     } else if (statusResult.status === 'failed') {
       stopPolling();
       setScanning(false);
-      setError(statusResult.error ?? tr("scan.detectionError"));
+      setError(statusResult.error ?? LOCALE.scan.detectionError);
     }
   };
 
@@ -188,7 +189,7 @@ export default function ScanEmailPage() {
       if (pollAttemptsRef.current > MAX_POLL_ATTEMPTS) {
         stopPolling();
         setScanning(false);
-        setError(tr("scan.timeoutError"));
+        setError(LOCALE.scan.timeoutError);
         return;
       }
 
@@ -198,7 +199,7 @@ export default function ScanEmailPage() {
       } catch {
         stopPolling();
         setScanning(false);
-        setError(tr("scan.statusError"));
+        setError(LOCALE.scan.statusError);
       }
     }, POLL_INTERVAL_MS);
   };
@@ -230,7 +231,7 @@ export default function ScanEmailPage() {
       }
     } catch (err) {
       setScanning(false);
-      setError(err instanceof Error ? err.message : tr("scan.detectionError"));
+      setError(err instanceof Error ? err.message : LOCALE.scan.detectionError);
     }
   };
 
@@ -239,37 +240,37 @@ export default function ScanEmailPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <ScanText className="text-accent-cyan" size={28} />
-          {tr("scan.title")}
+          {LOCALE.scan.title}
         </h1>
-        <p className="text-muted-foreground mt-1">{tr("scan.subtitle")}</p>
+        <p className="text-muted-foreground mt-1">{LOCALE.scan.subtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: form */}
         <div className="glass-panel rounded-xl p-6 space-y-4">
-          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{tr("scan.emailContent")}</h2>
+          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{LOCALE.scan.emailContent}</h2>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              {tr("scan.subject")} <span className="text-muted-foreground font-normal text-xs">{tr("scan.subjectOptional")}</span>
+              {LOCALE.scan.subject} <span className="text-muted-foreground font-normal text-xs">{LOCALE.scan.subjectOptional}</span>
             </label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder={tr("scan.subjectPlaceholder")}
+              placeholder={LOCALE.scan.subjectPlaceholder}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              {tr("scan.body")} <span className="text-red-500">*</span>
+              {LOCALE.scan.body} <span className="text-red-500">*</span>
             </label>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder={tr("scan.bodyPlaceholder")}
+              placeholder={LOCALE.scan.bodyPlaceholder}
               rows={10}
               className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 resize-none"
             />
@@ -289,12 +290,12 @@ export default function ScanEmailPage() {
             {scanning ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
-                {tr("scan.analyzing")}
+                {LOCALE.scan.analyzing}
               </>
             ) : (
               <>
                 <ScanText size={16} />
-                {tr("scan.scanButton")}
+                {LOCALE.scan.scanButton}
               </>
             )}
           </button>
@@ -324,7 +325,7 @@ export default function ScanEmailPage() {
             <div className="glass-panel rounded-xl p-10 text-center text-muted-foreground space-y-3 h-full flex flex-col items-center justify-center">
               <ShieldCheck size={40} className="opacity-30" />
               <p className="text-sm">
-                {scanning ? tr("scan.analysingAI") : tr("scan.resultPlaceholder")}
+                {scanning ? LOCALE.scan.analysingAI : LOCALE.scan.resultPlaceholder}
               </p>
             </div>
           )}
@@ -335,7 +336,7 @@ export default function ScanEmailPage() {
         <ScanHistoryPanel token={token} />
       ) : (
         <div className="glass-panel rounded-xl p-6 text-center text-sm text-muted-foreground">
-          {tr("scan.loginRequired")}
+          {LOCALE.scan.loginRequired}
         </div>
       )}
     </div>

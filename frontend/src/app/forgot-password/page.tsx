@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import { Mail, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
       });
       setSubmitted(true);
     } catch {
-      setError(tr("forgotPassword.connectionError"));
+      setError(LOCALE.forgotPassword.connectionError);
     } finally {
       setLoading(false);
     }
@@ -48,9 +48,9 @@ export default function ForgotPasswordPage() {
         <div className="flex flex-col items-center mb-8">
           <LanguageSelector className="self-end mb-3" />
           <Logo className="mb-6 scale-110" />
-          <h1 className="text-2xl font-bold tracking-tight">{tr("forgotPassword.title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{LOCALE.forgotPassword.title}</h1>
           <p className="text-muted-foreground text-sm mt-1 text-center">
-            {tr("forgotPassword.subtitle")}
+            {LOCALE.forgotPassword.subtitle}
           </p>
         </div>
 
@@ -58,22 +58,22 @@ export default function ForgotPasswordPage() {
           <div className="flex flex-col items-center gap-4 py-4">
             <CheckCircle size={48} className="text-accent-cyan" />
             <p className="text-sm text-center text-muted-foreground">
-              {tr("forgotPassword.sentMessagePrefix")}{" "}
+              {LOCALE.forgotPassword.sentMessagePrefix}{" "}
               <span className="text-foreground font-medium">{email}</span>,{" "}
-              {tr("forgotPassword.sentMessageSuffix")}
+              {LOCALE.forgotPassword.sentMessageSuffix}
             </p>
             <Link
               href="/login"
               className="mt-2 text-sm text-accent-cyan hover:text-accent-cyan/80 transition-colors inline-flex items-center gap-1"
             >
               <ArrowLeft size={14} />
-              {tr("forgotPassword.backToLogin")}
+              {LOCALE.forgotPassword.backToLogin}
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="fp-email" className="text-sm font-medium">{tr("forgotPassword.emailAddress")}</label>
+              <label htmlFor="fp-email" className="text-sm font-medium">{LOCALE.forgotPassword.emailAddress}</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
               {loading ? (
                 <span className="animate-spin w-5 h-5 border-2 border-background border-t-transparent rounded-full" />
               ) : (
-                tr("forgotPassword.sendResetLink")
+                LOCALE.forgotPassword.sendResetLink
               )}
             </button>
 
@@ -113,7 +113,7 @@ export default function ForgotPasswordPage() {
                 className="text-sm text-muted-foreground hover:text-accent-cyan transition-colors inline-flex items-center gap-1"
               >
                 <ArrowLeft size={14} />
-                {tr("forgotPassword.backToLogin")}
+                {LOCALE.forgotPassword.backToLogin}
               </Link>
             </div>
           </form>

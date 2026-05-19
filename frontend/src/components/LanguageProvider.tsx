@@ -1,20 +1,24 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { t, LOCALE_COOKIE, isLocale } from "@/lib/i18n";
-import type { Locale } from "@/lib/i18n";
+import { LOCALE_COOKIE, isLocale } from "@/lib/i18n";
+import type { Locale, Messages } from "@/lib/i18n";
 import { config } from "@/lib/config";
+import en from "@/lib/i18n/en.json";
+import vi from "@/lib/i18n/vi.json";
+
+const dictionaries = { en, vi } as const;
 
 interface LanguageContextValue {
   locale: Locale;
-  tr: (key: string) => string;
+  LOCALE: Messages;
   setLocale: (locale: Locale) => Promise<void>;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
-  locale: "en" as Locale,
-  tr: (key: string) => t("en" as Locale, key),
+  locale: "en",
+  LOCALE: dictionaries["en"],
   setLocale: async () => {},
 });
 
@@ -46,30 +50,37 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({ initialLocale, children }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {
       setLocaleState(newLocale);
+      // Locale cookie — serves unauthenticated users for SSR on next visit
       setCookie(newLocale);
-      // Sync to browser extension if available
+      // Extension sync
       try {
         const chromeExt = (window as unknown as { chrome?: { storage?: { local?: { set: (v: Record<string, string>) => void } } } }).chrome;
         chromeExt?.storage?.local?.set({ sentra_locale: newLocale });
       } catch {
         // Extension not present — ignore
       }
+      // If authenticated: persist to DB + refresh JWT
       if (session?.accessToken) {
         await persistToBackend(session.accessToken, newLocale);
+        await update({ language: newLocale });
       }
     },
-    [session?.accessToken],
+    [session?.accessToken, update],
   );
 
-  const tr = useCallback((key: string) => t(locale, key), [locale]);
+  const value = useMemo(() => ({
+    locale,
+    LOCALE: dictionaries[locale],
+    setLocale,
+  }), [locale, setLocale]);
 
   return (
-    <LanguageContext.Provider value={{ locale, tr, setLocale }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

@@ -6,10 +6,10 @@ import { parseUTC } from "@/lib/utils";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export function AgentLogsTable({ agents }: { agents: Agent[] }) {
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
 
   function formatLastActive(iso: string): string {
-    if (!iso || iso === "null" || iso === "undefined") return tr("common2.never");
+    if (!iso || iso === "null" || iso === "undefined") return LOCALE.common2.never;
     const date = parseUTC(iso);
     if (isNaN(date.getTime())) return iso;
 
@@ -20,22 +20,22 @@ export function AgentLogsTable({ agents }: { agents: Agent[] }) {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffSecs < 60) return tr("common2.justNow");
-    if (diffMins < 60) return `${diffMins}${tr("common2.mAgo")}`;
-    if (diffHours < 24) return `${diffHours}${tr("common2.hAgo")}`;
-    if (diffDays < 7) return `${diffDays}${tr("common2.dAgo")}`;
+    if (diffSecs < 60) return LOCALE.common2.justNow;
+    if (diffMins < 60) return `${diffMins}${LOCALE.common2.mAgo}`;
+    if (diffHours < 24) return `${diffHours}${LOCALE.common2.hAgo}`;
+    if (diffDays < 7) return `${diffDays}${LOCALE.common2.dAgo}`;
 
     return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   }
 
   return (
     <div className="glass-panel p-6 rounded-xl flex flex-col h-full">
-      <h3 className="text-lg font-semibold mb-4">{tr("agentLogs.title")}</h3>
+      <h3 className="text-lg font-semibold mb-4">{LOCALE.agentLogs.title}</h3>
 
       <div className="flex flex-col gap-3 flex-1">
         {agents.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            {tr("agentLogs.noAgents")}
+            {LOCALE.agentLogs.noAgents}
           </p>
         ) : (
           agents.map((agent) => {
@@ -88,7 +88,7 @@ export function AgentLogsTable({ agents }: { agents: Agent[] }) {
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Cpu size={11} />
                       <span className="text-[10px] uppercase tracking-wider font-semibold">
-                        {tr("agentLogs.calls")}
+                        {LOCALE.agentLogs.calls}
                       </span>
                     </div>
                     <span className="text-sm font-bold tabular-nums">
@@ -100,7 +100,7 @@ export function AgentLogsTable({ agents }: { agents: Agent[] }) {
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Coins size={11} />
                       <span className="text-[10px] uppercase tracking-wider font-semibold">
-                        {tr("agentLogs.cost")}
+                        {LOCALE.agentLogs.cost}
                       </span>
                     </div>
                     <span className="text-sm font-bold tabular-nums">
@@ -114,7 +114,7 @@ export function AgentLogsTable({ agents }: { agents: Agent[] }) {
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Clock size={11} />
                       <span className="text-[10px] uppercase tracking-wider font-semibold">
-                        {tr("agentLogs.lastActive")}
+                        {LOCALE.agentLogs.lastActive}
                       </span>
                     </div>
                     <span className="text-sm font-bold">

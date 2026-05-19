@@ -33,7 +33,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter();
   const { data: session } = useSession();
   
-  const { tr } = useLanguage();
+  const { LOCALE } = useLanguage();
   const isAdmin = session?.user?.role === 'admin';
   const basePath = isAdmin ? config.ROUTES.DASHBOARD_ADMIN : config.ROUTES.DASHBOARD_USER;
 
@@ -54,21 +54,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navLinks = isAdmin
     ? [
-        { name: tr("sidebar.dashboard"), href: basePath, icon: LayoutDashboard },
-        { name: tr("sidebar.rounds"), href: `${basePath}/rounds`, icon: ShieldAlert },
-        { name: tr("sidebar.liveFeed"), href: `${basePath}/feed`, icon: Activity },
-        { name: tr("sidebar.users"), href: `${basePath}/team`, icon: Users },
-        { name: tr("sidebar.training"), href: `${basePath}/training`, icon: BrainCircuit },
-        { name: tr("sidebar.feedback"), href: `${basePath}/feedback`, icon: MessageSquare },
-        { name: tr("sidebar.settings"), href: `${basePath}/settings`, icon: Settings },
+        { name: LOCALE.sidebar.dashboard, href: basePath, icon: LayoutDashboard },
+        { name: LOCALE.sidebar.rounds, href: `${basePath}/rounds`, icon: ShieldAlert },
+        { name: LOCALE.sidebar.liveFeed, href: `${basePath}/feed`, icon: Activity },
+        { name: LOCALE.sidebar.users, href: `${basePath}/team`, icon: Users },
+        { name: LOCALE.sidebar.training, href: `${basePath}/training`, icon: BrainCircuit },
+        { name: LOCALE.sidebar.feedback, href: `${basePath}/feedback`, icon: MessageSquare },
+        { name: LOCALE.sidebar.settings, href: `${basePath}/settings`, icon: Settings },
       ]
     : [
-        { name: tr("sidebar.dashboard"), href: basePath, icon: LayoutDashboard },
-        { name: tr("sidebar.scanEmail"), href: `${basePath}/scan`, icon: ScanText },
-        { name: tr("sidebar.training"), href: `${basePath}/training`, icon: BrainCircuit },
-        { name: tr("sidebar.feedback"), href: `${basePath}/feedback`, icon: MessageSquare },
-        { name: tr("sidebar.settings"), href: `${basePath}/settings`, icon: Settings },
-        { name: tr("sidebar.aboutUs"), href: "/about", icon: Info },
+        { name: LOCALE.sidebar.dashboard, href: basePath, icon: LayoutDashboard },
+        { name: LOCALE.sidebar.scanEmail, href: `${basePath}/scan`, icon: ScanText },
+        { name: LOCALE.sidebar.training, href: `${basePath}/training`, icon: BrainCircuit },
+        { name: LOCALE.sidebar.feedback, href: `${basePath}/feedback`, icon: MessageSquare },
+        { name: LOCALE.sidebar.settings, href: `${basePath}/settings`, icon: Settings },
+        { name: LOCALE.sidebar.aboutUs, href: "/about", icon: Info },
       ];
 
   return (
@@ -127,7 +127,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
           <div className="flex flex-col flex-1 overflow-hidden">
             <span className="text-sm font-medium truncate">{userName}</span>
-            <span className="text-xs text-muted-foreground capitalize">{isAdmin ? tr("sidebar.admin") : tr("sidebar.user")}</span>
+            <span className="text-xs text-muted-foreground capitalize">{isAdmin ? LOCALE.sidebar.admin : LOCALE.sidebar.user}</span>
           </div>
         </div>
         
@@ -136,7 +136,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-all text-sm font-medium text-muted-foreground hover:bg-accent-red/10 hover:text-accent-red"
         >
           <LogOut size={18} />
-          {tr("sidebar.signOut")}
+          {LOCALE.sidebar.signOut}
         </button>
       </div>
     </div>
