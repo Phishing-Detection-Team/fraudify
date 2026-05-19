@@ -26,10 +26,12 @@ import {
   type AdminScansPage,
 } from "@/lib/admin-api";
 import { config } from "@/lib/config";
+import { useLanguage } from "@/components/LanguageProvider";
 import type { Round, Agent, ModelCost, DashboardStats } from "@/types";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
+  const { LOCALE } = useLanguage();
   const [loading, setLoading] = useState(true);
 
   // Real data state
@@ -122,34 +124,32 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Overview</h1>
-        <p className="text-muted-foreground mt-2">
-          System performance, cost analysis, and active agents.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{LOCALE.dashboard.admin.title}</h1>
+        <p className="text-muted-foreground mt-2">{LOCALE.dashboard.admin.subtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Total API Cost"
+          title={LOCALE.dashboard.admin.cost}
           value={`$${stats.totalApiCost?.toLocaleString()}`}
           icon={BadgeDollarSign}
           delay={0.1}
           valueClassName="text-accent-cyan"
         />
         <StatCard
-          title="Active Agents"
+          title={LOCALE.dashboard.admin.agents}
           value={stats.activeAgents || 0}
           icon={Activity}
           delay={0.15}
         />
         <StatCard
-          title="Global Scanning"
+          title={LOCALE.dashboard.admin.scanning}
           value={stats.totalEmailsScanned.toLocaleString()}
           icon={Mail}
           delay={0.2}
         />
         <StatCard
-          title="Total Threats Detected"
+          title={LOCALE.dashboard.admin.threats}
           value={stats.phishingDetected.toLocaleString()}
           icon={ShieldAlert}
           valueClassName="text-accent-red"

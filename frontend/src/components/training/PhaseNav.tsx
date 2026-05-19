@@ -3,13 +3,15 @@
 import { motion } from "framer-motion";
 import { Database, Cpu, GitBranch, RefreshCw, Rocket, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 
 const PHASES = [
-  { id: 1, label: "Data Pipeline",    shortLabel: "Data",     icon: Database   },
-  { id: 2, label: "QLoRA Setup",      shortLabel: "QLoRA",    icon: Cpu        },
-  { id: 3, label: "LoRA Injection",   shortLabel: "LoRA",     icon: GitBranch  },
-  { id: 4, label: "Training Loop",    shortLabel: "Training", icon: RefreshCw  },
-  { id: 5, label: "Results & Deploy", shortLabel: "Results",  icon: Rocket     },
+  { id: 1, labelKey: "phaseNav.phase1Label", shortKey: "phaseNav.phase1Short", icon: Database   },
+  { id: 2, labelKey: "phaseNav.phase2Label", shortKey: "phaseNav.phase2Short", icon: Cpu        },
+  { id: 3, labelKey: "phaseNav.phase3Label", shortKey: "phaseNav.phase3Short", icon: GitBranch  },
+  { id: 4, labelKey: "phaseNav.phase4Label", shortKey: "phaseNav.phase4Short", icon: RefreshCw  },
+  { id: 5, labelKey: "phaseNav.phase5Label", shortKey: "phaseNav.phase5Short", icon: Rocket     },
 ];
 
 interface PhaseNavProps {
@@ -27,6 +29,7 @@ export function PhaseNav({
   phaseProgress,
   completedPhases,
 }: PhaseNavProps) {
+  const { LOCALE, locale } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -99,7 +102,7 @@ export function PhaseNav({
                     : "text-muted-foreground"
                 )}
               >
-                {phase.shortLabel}
+                {t(locale, phase.shortKey)}
               </span>
 
               {/* Per-phase progress bar */}
@@ -124,10 +127,10 @@ export function PhaseNav({
       {/* Phase label */}
       <div className="mt-4 text-center">
         <span className="text-xs font-semibold tracking-widest uppercase text-accent-cyan">
-          Phase {currentPhase} —{" "}
+          {LOCALE.phaseNav.phaseLabel} {currentPhase} —{" "}
         </span>
         <span className="text-xs font-medium text-muted-foreground">
-          {PHASES[currentPhase - 1]?.label}
+          {t(locale, PHASES[currentPhase - 1]?.labelKey ?? "")}
         </span>
       </div>
     </motion.div>

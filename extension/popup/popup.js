@@ -12,15 +12,16 @@ const $ = (id) => document.getElementById(id);
 // Time-ago formatter
 // ---------------------------------------------------------------------------
 
-function _timeAgo(timestamp) {
+function _timeAgo(timestamp, locale) {
+  const t = (key) => extT(locale, 'time', key);
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return 'just now';
+  if (seconds < 60) return t('justNow');
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return `${minutes}${t('mAgo')}`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours}${t('hAgo')}`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${days}${t('dAgo')}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -28,16 +29,50 @@ function _timeAgo(timestamp) {
 // ---------------------------------------------------------------------------
 
 function _verdictBadge(verdict) {
-  if (verdict === 'phishing') return '\uD83D\uDD34'; // 🔴
-  if (verdict === 'safe') return '\uD83D\uDFE2';     // 🟢
-  return '\uD83D\uDFE1';                              // 🟡 suspicious / other
+  if (verdict === 'phishing') return '🔴'; // 🔴
+  if (verdict === 'safe') return '🟢';     // 🟢
+  return '🟡';                              // 🟡 suspicious / other
+}
+
+// ---------------------------------------------------------------------------
+// Apply translations to all static text elements
+// ---------------------------------------------------------------------------
+
+function applyTranslations(locale) {
+  const p = (key) => extT(locale, 'popup', key);
+
+  const el = {
+    loginHint:        $('loginHint'),
+    btnOpenDashboard: $('btnOpenDashboard'),
+    labelLoggedInAs:  $('labelLoggedInAs'),
+    labelInstance:    $('labelInstance'),
+    scanHint:         $('scanHint'),
+    labelRecentScans: $('labelRecentScans'),
+    scanHistoryEmpty: $('scan-history-empty'),
+    viewAllLink:      $('view-all-link'),
+    btnLogout:        $('btnLogout'),
+    btnOpenDashboard2:$('btnOpenDashboard2'),
+    btnLangToggle:    $('btnLangToggle'),
+  };
+
+  if (el.loginHint)         el.loginHint.textContent        = p('loginHint');
+  if (el.btnOpenDashboard)  el.btnOpenDashboard.textContent  = p('openDashboard');
+  if (el.labelLoggedInAs)   el.labelLoggedInAs.textContent   = p('loggedInAs');
+  if (el.labelInstance)     el.labelInstance.textContent     = p('instance');
+  if (el.scanHint)          el.scanHint.textContent          = p('scanHint');
+  if (el.labelRecentScans)  el.labelRecentScans.textContent  = p('recentScans');
+  if (el.scanHistoryEmpty)  el.scanHistoryEmpty.textContent  = p('noScans');
+  if (el.viewAllLink)       el.viewAllLink.textContent       = p('viewAll');
+  if (el.btnLogout)         el.btnLogout.textContent         = p('logOut');
+  if (el.btnOpenDashboard2) el.btnOpenDashboard2.textContent = p('openDashboard2');
+  if (el.btnLangToggle)     el.btnLangToggle.textContent     = locale.toUpperCase();
 }
 
 // ---------------------------------------------------------------------------
 // Scan history renderer (exported for unit tests)
 // ---------------------------------------------------------------------------
 
-async function renderScanHistory() {
+async function renderScanHistory(locale) {
   const { sentra_scan_history: history = [] } = await chrome.storage.local.get('sentra_scan_history');
 
   const listEl = $('scan-history-list');
@@ -61,7 +96,7 @@ if (emptyEl) emptyEl.style.display = 'none';
     ...history.map((entry) => {
       const badge = _verdictBadge(entry.verdict);
       const subject = (entry.subject || '').slice(0, 40);
-      const time = _timeAgo(entry.timestamp);
+      const time = _timeAgo(entry.timestamp, locale || 'en');
 
       const li = document.createElement('li');
       li.className = 'scan-history-item';
@@ -89,6 +124,9 @@ if (emptyEl) emptyEl.style.display = 'none';
 // ---------------------------------------------------------------------------
 
 async function init() {
+  const locale = await getExtLocale();
+  applyTranslations(locale);
+
   const stored = await chrome.storage.local.get([
     'sentra_auth_token',
     'sentra_user_email',
@@ -96,6 +134,18 @@ async function init() {
   ]);
 
   const dot = $('statusDot');
+
+  // Language toggle
+  const btnLang = $('btnLangToggle');
+  if (btnLang) {
+    btnLang.addEventListener('click', async () => {
+      const current = await getExtLocale();
+      const next = current === 'en' ? 'vi' : 'en';
+      await chrome.storage.local.set({ sentra_locale: next });
+      applyTranslations(next);
+      await renderScanHistory(next);
+    });
+  }
 
   if (!stored.sentra_auth_token) {
     // Not logged in
@@ -111,18 +161,18 @@ async function init() {
   $('userEmail').textContent = stored.sentra_user_email || 'Unknown';
   $('instanceToken').textContent = stored.sentra_instance_token
     ? stored.sentra_instance_token.slice(0, 12) + '…'
-    : 'Not registered';
+    : extT(locale, 'popup', 'notRegistered');
 
   $('btnLogout').addEventListener('click', logout);
   $('btnOpenDashboard2').addEventListener('click', openDashboard);
-  $('btnRefreshHistory').addEventListener('click', renderScanHistory);
+  $('btnRefreshHistory').addEventListener('click', () => renderScanHistory(locale));
 
   // Auto-refresh the list whenever the content script writes a new scan result
   chrome.storage.onChanged.addListener((changes) => {
-    if (changes.sentra_scan_history) renderScanHistory();
+    if (changes.sentra_scan_history) renderScanHistory(locale);
   });
 
-  await renderScanHistory();
+  await renderScanHistory(locale);
 }
 
 async function logout() {

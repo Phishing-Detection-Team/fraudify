@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Loader2, RefreshCw, CheckCircle2, Circle, Clock } from "lucide-react";
 import { parseUTC } from "@/lib/utils";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function AdminFeedbackPage() {
   const { data: session } = useSession();
+  const { LOCALE } = useLanguage();
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -26,7 +28,7 @@ export default function AdminFeedbackPage() {
       setPage(data.page);
     } catch (err: unknown) {
       const e = err as Error;
-      toast.error(e.message || "Failed to load feedback");
+      toast.error(e.message || LOCALE.adminFeedback.loadError);
     } finally {
       setIsLoading(false);
     }
@@ -45,13 +47,13 @@ export default function AdminFeedbackPage() {
   const handleStatusChange = async (id: number, newStatus: string) => {
     try {
       await updateFeedbackStatus(session?.accessToken as string, id, newStatus);
-      toast.success("Status updated!");
+      toast.success(LOCALE.adminFeedback.statusUpdated);
       setFeedback((prev) =>
         prev.map((f) => (f.id === id ? { ...f, status: newStatus } : f))
       );
     } catch (err: unknown) {
       const e = err as Error;
-      toast.error(e.message || "Failed to update status");
+      toast.error(e.message || LOCALE.adminFeedback.statusUpdateError);
     }
   };
 
@@ -59,8 +61,8 @@ export default function AdminFeedbackPage() {
     <div className="space-y-6 pt-6 px-4 pb-12">      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Feedback</h1>
-          <p className="text-muted-foreground mt-1">Review and manage feedback submitted by users.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{LOCALE.adminFeedback.title}</h1>
+          <p className="text-muted-foreground mt-1">{LOCALE.adminFeedback.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -71,17 +73,17 @@ export default function AdminFeedbackPage() {
             }}
             className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent-cyan outline-none"
           >
-            <option value="pending">Pending</option>
-            <option value="reviewed">Under Review</option>
-            <option value="resolved">Resolved</option>
-            <option value="all">All Statuses</option>
+            <option value="pending">{LOCALE.adminFeedback.pending}</option>
+            <option value="reviewed">{LOCALE.adminFeedback.underReview}</option>
+            <option value="resolved">{LOCALE.adminFeedback.resolved}</option>
+            <option value="all">{LOCALE.adminFeedback.allStatuses}</option>
           </select>
           <button
             onClick={() => fetchFeedbackData(1)}
             className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 rounded-lg transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan"
           >
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            {LOCALE.feed.refresh}
           </button>
         </div>
       </div>
@@ -93,17 +95,17 @@ export default function AdminFeedbackPage() {
           </div>
         ) : feedback.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground">
-            No feedback found.
+            {LOCALE.adminFeedback.empty}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-muted/30 text-muted-foreground text-xs uppercase font-semibold">
                 <tr>
-                  <th className="px-6 py-4">ID / User</th>
-                  <th className="px-6 py-4">Content</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">{LOCALE.adminFeedback.headerIdUser}</th>
+                  <th className="px-6 py-4">{LOCALE.adminFeedback.headerContent}</th>
+                  <th className="px-6 py-4">{LOCALE.adminFeedback.headerStatus}</th>
+                  <th className="px-6 py-4 text-right">{LOCALE.adminFeedback.headerActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
@@ -116,14 +118,14 @@ export default function AdminFeedbackPage() {
                   >
                     <td className="px-6 py-4 align-top">
                       <div className="font-mono text-xs text-muted-foreground mb-1">#{item.id}</div>
-                      <div className="font-medium">User {item.user_id}</div>
+                      <div className="font-medium">{LOCALE.adminFeedback.userLabel} {item.user_id}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         {parseUTC(item.created_at).toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 align-top max-w-md">
                       <div className="font-semibold text-foreground mb-1">
-                        {item.subject || "No Subject"}
+                        {item.subject || LOCALE.adminFeedback.noSubject}
                       </div>
                       <div className="text-muted-foreground whitespace-pre-wrap">
                         {item.description}
@@ -156,9 +158,9 @@ export default function AdminFeedbackPage() {
                           value={item.status}
                           onChange={(e) => handleStatusChange(item.id, e.target.value)}
                         >
-                          <option value="pending">Pending</option>
-                          <option value="reviewed">Reviewed</option>
-                          <option value="resolved">Resolved</option>
+                          <option value="pending">{LOCALE.adminFeedback.pending}</option>
+                          <option value="reviewed">{LOCALE.adminFeedback.reviewed}</option>
+                          <option value="resolved">{LOCALE.adminFeedback.resolved}</option>
                         </select>
                       </div>
                     </td>
@@ -176,17 +178,17 @@ export default function AdminFeedbackPage() {
               onClick={() => setPage(page - 1)}
               className="px-3 py-1 border border-border rounded text-sm disabled:opacity-50"
             >
-              Previous
+              {LOCALE.adminFeedback.prev}
             </button>
             <span className="text-sm text-muted-foreground">
-              Page {page} of {totalPages}
+              {page} {LOCALE.adminFeedback.pageOf} {totalPages}
             </span>
             <button
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
               className="px-3 py-1 border border-border rounded text-sm disabled:opacity-50"
             >
-              Next
+              {LOCALE.adminFeedback.next}
             </button>
           </div>
         )}

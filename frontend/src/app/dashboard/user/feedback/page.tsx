@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { submitFeedback } from "@/lib/user-api";
+import { useLanguage } from "@/components/LanguageProvider";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Loader2, Mail, MessageSquare } from "lucide-react";
 
 export default function FeedbackPage() {
   const { data: session } = useSession();
+  const { LOCALE } = useLanguage();
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -16,30 +18,30 @@ export default function FeedbackPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) {
-      toast.error("Description is required.");
+      toast.error(LOCALE.feedback.required);
       return;
     }
 
     try {
       setIsLoading(true);
       await submitFeedback(session?.accessToken as string, { subject, description });
-      toast.success("Feedback submitted successfully!");
+      toast.success(LOCALE.feedback.success);
       setSubject("");
       setDescription("");
     } catch (err: unknown) {
       const e = err as Error;
-      toast.error(e.message || "Failed to submit feedback.");
+      toast.error(e.message || LOCALE.feedback.error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center justify-start pt-12 pb-10 px-4 sm:px-6">      
+    <div className="flex-1 w-full flex flex-col items-center justify-start pt-12 pb-10 px-4 sm:px-6">
       <div className="w-full max-w-4xl mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}  
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="text-center mb-12 flex flex-col items-center"
         >
@@ -49,12 +51,12 @@ export default function FeedbackPage() {
               <MessageSquare className="w-7 h-7 stroke-[2]" />
             </div>
           </div>
-          
+
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 text-foreground">
-            We'd Love Your Input
+            {LOCALE.feedback.title}
           </h1>
           <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
-            Let us know about any issues or how we can improve the platform.
+            {LOCALE.feedback.subtitle}
           </p>
         </motion.div>
 
@@ -68,25 +70,25 @@ export default function FeedbackPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="subject" className="text-sm font-semibold text-foreground/90">
-                  Subject <span className="text-muted-foreground text-xs font-normal ml-1">(Optional)</span>
+                  {LOCALE.feedback.subject} <span className="text-muted-foreground text-xs font-normal ml-1">{LOCALE.feedback.subjectOptional}</span>
                 </label>
                 <input
                   id="subject"
                   type="text"
-                  placeholder="What is this regarding?"
+                  placeholder={LOCALE.feedback.subjectPlaceholder}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   className="w-full bg-background border border-border/80 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 transition-all shadow-sm placeholder:text-muted-foreground/60"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-semibold text-foreground/90 flex justify-between">
-                  <span>Description <span className="text-destructive ml-0.5">*</span></span>
+                  <span>{LOCALE.feedback.description} <span className="text-destructive ml-0.5">*</span></span>
                 </label>
                 <textarea
                   id="description"
-                  placeholder="Please provide details about your suggestion or any issues you encountered..."
+                  placeholder={LOCALE.feedback.descriptionPlaceholder}
                   className="w-full min-h-[300px] bg-background border border-border/80 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 transition-all shadow-sm resize-y placeholder:text-muted-foreground/60 leading-relaxed"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -103,10 +105,10 @@ export default function FeedbackPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      Submitting...
+                      {LOCALE.feedback.submitting}
                     </>
                   ) : (
-                    "Send Feedback"
+                    LOCALE.feedback.submit
                   )}
                 </button>
               </div>
@@ -114,13 +116,13 @@ export default function FeedbackPage() {
 
             <div className="pt-6 border-t border-border/40 text-center">
               <p className="text-sm text-muted-foreground flex items-center justify-center flex-wrap gap-1.5">
-                Prefer email? Contact us directly at
-                <a 
-                  href="mailto:sentra.quest@gmail.com" 
+                {LOCALE.feedback.emailContact}
+                <a
+                  href="mailto:sentra.quest@gmail.com"
                   className="inline-flex items-center gap-1.5 text-accent-cyan hover:text-accent-cyan/80 font-medium transition-colors hover:underline"
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  sentra.quest-
+                  sentra.quest@gmail.com
                 </a>
               </p>
             </div>

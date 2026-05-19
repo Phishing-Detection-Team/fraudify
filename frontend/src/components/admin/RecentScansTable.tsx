@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { getAdminRecentScans, type AdminScanItem, type AdminScansPage } from "@/lib/admin-api";
 import { parseUTC } from "@/lib/utils";
+import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -29,7 +31,7 @@ const PER_PAGE = 10;
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatRelative(iso: string): string {
+function formatRelative(iso: string, LOCALE: import("@/lib/i18n").Messages): string {
   if (!iso) return "—";
   const date = parseUTC(iso);
   if (isNaN(date.getTime())) return iso;
@@ -38,10 +40,10 @@ function formatRelative(iso: string): string {
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
   const d = Math.floor(h / 24);
-  if (s < 60) return "Just now";
-  if (m < 60) return `${m}m ago`;
-  if (h < 24) return `${h}h ago`;
-  if (d < 7) return `${d}d ago`;
+  if (s < 60) return LOCALE.common2.justNow;
+  if (m < 60) return `${m}${LOCALE.common2.mAgo}`;
+  if (h < 24) return `${h}${LOCALE.common2.hAgo}`;
+  if (d < 7) return `${d}${LOCALE.common2.dAgo}`;
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
@@ -59,7 +61,16 @@ const TIER_BADGE: Record<VerdictTier, string> = {
   safe: "bg-accent-green/20 text-accent-green border border-accent-green/30",
 };
 
+const VERDICT_LABEL_KEY: Record<string, string> = {
+  phishing: "scanHistory.phishing",
+  likely_phishing: "scanHistory.likelyPhishing",
+  suspicious: "scanHistory.suspicious",
+  likely_legitimate: "scanHistory.likelySafe",
+  legitimate: "scanHistory.safe",
+};
+
 function VerdictBadge({ verdict }: { verdict: string }) {
+  const { locale } = useLanguage();
   const tier = verdictTier(verdict);
   const Icon =
     tier === "danger"
@@ -72,7 +83,7 @@ function VerdictBadge({ verdict }: { verdict: string }) {
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${TIER_BADGE[tier]}`}
     >
       <Icon size={11} />
-      {verdict.replace("_", " ")}
+      {t(locale, VERDICT_LABEL_KEY[verdict] ?? "scanHistory.suspicious")}
     </span>
   );
 }
@@ -88,6 +99,7 @@ function ScanModal({
   scan: AdminScanItem;
   onClose: () => void;
 }) {
+  const { LOCALE } = useLanguage();
   return (
     <>
       <motion.div
@@ -123,7 +135,7 @@ function ScanModal({
                 <VerdictBadge verdict={scan.verdict} />
                 {scan.confidence != null && (
                   <span className="text-xs text-muted-foreground font-mono">
-                    {Math.round(scan.confidence * 100)}% confidence
+                    {Math.round(scan.confidence * 100)}{LOCALE.adminScans.confidence}
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -131,7 +143,7 @@ function ScanModal({
                   {scan.user_email}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {formatRelative(scan.scanned_at)}
+                  {formatRelative(scan.scanned_at, LOCALE)}
                 </span>
               </div>
             </div>
@@ -150,8 +162,9 @@ function ScanModal({
               <div className="flex items-center gap-2 mb-2">
                 <Mail size={13} className="text-accent-purple" />
                 <span className="text-xs font-semibold text-accent-purple uppercase tracking-wider">
-                  Email Body
+                  {LOCALE.adminScans.emailBody}
                 </span>
+
               </div>
               <div className="bg-background/60 rounded-lg p-4 border border-border/40">
                 {scan.full_body ? (
@@ -163,7 +176,7 @@ function ScanModal({
                     {scan.body_snippet}
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">No body content</p>
+                  <p className="text-sm text-muted-foreground italic">{LOCALE.adminScans.noBodyContent}</p>
                 )}
               </div>
             </div>
@@ -173,7 +186,7 @@ function ScanModal({
               <div className="flex items-center gap-2 mb-2">
                 <Brain size={13} className="text-accent-cyan" />
                 <span className="text-xs font-semibold text-accent-cyan uppercase tracking-wider">
-                  Detector Reasoning
+                  {LOCALE.adminScans.detectorReasoning}
                 </span>
               </div>
               <div className="bg-background/60 rounded-lg p-4 border border-border/40">
@@ -182,7 +195,7 @@ function ScanModal({
                     {scan.reasoning}
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">No reasoning available</p>
+                  <p className="text-sm text-muted-foreground italic">{LOCALE.adminScans.noReasoning}</p>
                 )}
               </div>
             </div>
@@ -204,6 +217,7 @@ interface Props {
 
 export default function RecentScansTable({ initialData }: Props) {
   const { data: session } = useSession();
+  const { LOCALE, locale } = useLanguage();
   const [scans, setScans] = useState<AdminScanItem[]>(initialData.scans);
   const [total, setTotal] = useState(initialData.total);
   const [page, setPage] = useState(initialData.page);
@@ -224,7 +238,7 @@ export default function RecentScansTable({ initialData }: Props) {
         setPages(data.pages);
         setFetchError(null);
       } catch {
-        setFetchError("Failed to load scans. Please try again.");
+        setFetchError(LOCALE.adminScans.loadError);
       } finally {
         setLoading(false);
       }
@@ -246,10 +260,10 @@ export default function RecentScansTable({ initialData }: Props) {
         {/* Section header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
           <div>
-            <h3 className="text-base font-semibold">Recent User Scans</h3>
+            <h3 className="text-base font-semibold">{LOCALE.adminScans.title}</h3>
             {total > 0 && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                {total.toLocaleString()} total scan{total !== 1 ? "s" : ""}
+                {total.toLocaleString()} {t(locale, total === 1 ? "adminScans.totalScan" : "adminScans.totalScans")}
               </p>
             )}
           </div>
@@ -274,22 +288,22 @@ export default function RecentScansTable({ initialData }: Props) {
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
             <Loader2 size={18} className="animate-spin" />
-            <span className="text-sm">Loading scans…</span>
+            <span className="text-sm">{LOCALE.adminScans.loading}</span>
           </div>
         ) : scans.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
-            No user scans yet.
+            {LOCALE.adminScans.empty}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-muted-foreground uppercase bg-background/50 border-b border-border/50">
                 <tr>
-                  <th className="px-6 py-3 font-medium">User</th>
-                  <th className="px-6 py-3 font-medium">Subject</th>
-                  <th className="px-6 py-3 font-medium w-36">Verdict</th>
-                  <th className="px-6 py-3 font-medium w-24 text-right">Conf.</th>
-                  <th className="px-6 py-3 font-medium w-28 text-right">When</th>
+                  <th className="px-6 py-3 font-medium">{LOCALE.adminScans.headerUser}</th>
+                  <th className="px-6 py-3 font-medium">{LOCALE.adminScans.headerSubject}</th>
+                  <th className="px-6 py-3 font-medium w-36">{LOCALE.adminScans.headerVerdict}</th>
+                  <th className="px-6 py-3 font-medium w-24 text-right">{LOCALE.adminScans.headerConf}</th>
+                  <th className="px-6 py-3 font-medium w-28 text-right">{LOCALE.adminScans.headerWhen}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -322,7 +336,7 @@ export default function RecentScansTable({ initialData }: Props) {
                           : "—"}
                       </td>
                       <td className="px-6 py-3 text-right text-xs text-muted-foreground">
-                        {formatRelative(scan.scanned_at)}
+                        {formatRelative(scan.scanned_at, LOCALE)}
                       </td>
                     </tr>
                   ))}
@@ -339,24 +353,24 @@ export default function RecentScansTable({ initialData }: Props) {
               disabled={page <= 1}
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronLeft size={14} /> Prev
+              <ChevronLeft size={14} /> {LOCALE.adminScans.prev}
             </button>
             <span>
-              Page {page} of {pages}
+              {page} {LOCALE.adminScans.pageOf} {pages}
             </span>
             <button
               onClick={() => fetchPage(page + 1)}
               disabled={page >= pages}
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Next <ChevronRight size={14} />
+              {LOCALE.adminScans.next} <ChevronRight size={14} />
             </button>
           </div>
         )}
 
         {scans.length > 0 && pages <= 1 && (
           <div className="px-6 py-3 border-t border-border/30 text-xs text-muted-foreground">
-            Click any row to view full scan details
+            {LOCALE.adminScans.clickHint}
           </div>
         )}
       </div>

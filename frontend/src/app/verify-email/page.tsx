@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
 import { Logo } from "@/components/Logo";
+import { useLanguage } from "@/components/LanguageProvider";
 import { sendVerificationEmail } from "@/lib/auth-api";
 import { Loader2, CheckCircle2, XCircle, ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
@@ -13,12 +14,12 @@ type VerifyState = "loading" | "success" | "error";
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { LOCALE } = useLanguage();
   const [state, setState] = useState<VerifyState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const [resendEmail, setResendEmail] = useState("");
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
-  // Guard against React Strict Mode double-invoking the effect, which would
-  // consume the token on the first call and cause the second to always fail.
+  // Guard against React Strict Mode double-invoking the effect
   const verifiedRef = useRef(false);
 
   useEffect(() => {
@@ -28,21 +29,19 @@ function VerifyEmailContent() {
     const token = searchParams.get("token");
     if (!token) {
       setState("error");
-      setErrorMsg("No verification token found in the URL.");
+      setErrorMsg(LOCALE.verifyEmail.tokenError);
       return;
     }
 
     (async () => {
-      // Let NextAuth exchange the token and create a session server-side
       const signInResult = await signIn("credentials", { redirect: false, token });
 
       if (!signInResult?.ok) {
         setState("error");
-        setErrorMsg(signInResult?.error || "This link has expired or is invalid.");
+        setErrorMsg(signInResult?.error || LOCALE.verifyEmail.linkExpired);
         return;
       }
 
-      // Poll briefly for the session to appear (NextAuth may need a moment)
       let session = await getSession();
       for (let i = 0; i < 6 && !session?.user; i += 1) {
         await new Promise((r) => setTimeout(r, 250));
@@ -50,9 +49,8 @@ function VerifyEmailContent() {
       }
 
       if (!session?.user) {
-        // Session didn't appear — show success but instruct manual login
         setState("error");
-        setErrorMsg("Verification succeeded but automatic sign-in failed. Please sign in manually.");
+        setErrorMsg(LOCALE.verifyEmail.signInFailed);
         return;
       }
 
@@ -61,10 +59,9 @@ function VerifyEmailContent() {
 
       const role = session.user.role || "user";
       const targetRoute = role === "admin" ? "/dashboard/admin" : "/dashboard/user";
-      // Redirect immediately now that session is available
       router.replace(targetRoute);
     })();
-  }, [searchParams, router]);
+  }, [searchParams, router, LOCALE]);
 
   const handleResend = async () => {
     if (!resendEmail) return;
@@ -77,7 +74,7 @@ function VerifyEmailContent() {
     return (
       <div className="text-center space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-accent-cyan mx-auto" />
-        <p className="text-sm text-muted-foreground">Verifying your email…</p>
+        <p className="text-sm text-muted-foreground">{LOCALE.verifyEmail.verifying}</p>
       </div>
     );
   }
@@ -87,18 +84,16 @@ function VerifyEmailContent() {
       <div className="text-center space-y-5">
         <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto" />
         <div>
-          <h1 className="text-xl font-bold">Email verified!</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Your account is active. You&apos;re being redirected to the dashboard…
-          </p>
+          <h1 className="text-xl font-bold">{LOCALE.verifyEmail.verified}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{LOCALE.verifyEmail.accountActive}</p>
         </div>
         <button
           onClick={() => router.push("/dashboard/user")}
           className="w-full btn-primary flex items-center justify-center gap-2"
         >
-          Go to Dashboard <ArrowRight size={16} />
+          {LOCALE.verifyEmail.goToDashboard} <ArrowRight size={16} />
         </button>
-        <p className="text-xs text-muted-foreground">Redirecting automatically in a few seconds…</p>
+        <p className="text-xs text-muted-foreground">{LOCALE.verifyEmail.redirecting}</p>
       </div>
     );
   }
@@ -107,7 +102,7 @@ function VerifyEmailContent() {
     <div className="text-center space-y-5">
       <XCircle className="w-12 h-12 text-red-400 mx-auto" />
       <div>
-        <h1 className="text-xl font-bold">Verification failed</h1>
+        <h1 className="text-xl font-bold">{LOCALE.verifyEmail.failed}</h1>
         <p className="text-sm text-muted-foreground mt-1">{errorMsg}</p>
       </div>
 
@@ -123,14 +118,14 @@ function VerifyEmailContent() {
             <RefreshCw size={14} />
           )}
           {resendStatus === "idle"
-            ? "Request a new verification email"
+            ? LOCALE.verifyEmail.requestNewEmail
             : resendStatus === "sending"
-            ? "Sending…"
-            : "New email sent — check your inbox"}
+            ? LOCALE.common.sending
+            : LOCALE.verifyEmail.newEmailSent}
         </button>
       ) : (
         <Link href="/signup" className="w-full btn-primary flex items-center justify-center gap-2">
-          Back to Sign Up <ArrowRight size={16} />
+          {LOCALE.verifyEmail.backToSignUp} <ArrowRight size={16} />
         </Link>
       )}
     </div>
@@ -138,6 +133,8 @@ function VerifyEmailContent() {
 }
 
 export default function VerifyEmailPage() {
+  const { LOCALE } = useLanguage();
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="glass-panel w-full max-w-sm p-8 rounded-2xl relative overflow-hidden">
@@ -149,7 +146,7 @@ export default function VerifyEmailPage() {
           fallback={
             <div className="text-center space-y-4">
               <Loader2 className="w-10 h-10 animate-spin text-accent-cyan mx-auto" />
-              <p className="text-sm text-muted-foreground">Loading…</p>
+              <p className="text-sm text-muted-foreground">{LOCALE.verifyEmail.loading}</p>
             </div>
           }
         >

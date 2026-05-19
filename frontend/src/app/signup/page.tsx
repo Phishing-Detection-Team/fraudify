@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { config } from "@/lib/config";
 import { Logo } from "@/components/Logo";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useLanguage } from "@/components/LanguageProvider";
 import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
 import { TermsModal } from "@/components/TermsModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,17 +26,16 @@ function SignupForm(): JSX.Element {
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get("invite") ?? "";
   const router = useRouter();
+  const { LOCALE } = useLanguage();
 
   const [step, setStep] = useState<SignupStep>("details");
 
-  // User details (kept in state so signIn can use email/password after verification)
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [allowTraining, setAllowTraining] = useState(false);
 
-  // Consent modals
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
@@ -42,19 +43,14 @@ function SignupForm(): JSX.Element {
   const [hasViewedPrivacy, setHasViewedPrivacy] = useState(false);
   const [hasViewedTerms, setHasViewedTerms] = useState(false);
 
-  // Verify step
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [verifyError, setVerifyError] = useState("");
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
 
-  // General loading/error
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ---------------------------------------------------------------------------
-  // Password validation
-  // ---------------------------------------------------------------------------
   const hasMinLength = password.length > 10;
   const hasNumber = /\d/.test(password);
   const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
@@ -63,12 +59,9 @@ function SignupForm(): JSX.Element {
   const isDetailsStepValid = email && isEmailValid && password && isPasswordValid;
 
   const passwordStrength = [hasMinLength, hasNumber, hasSymbol].filter(Boolean).length;
-  const strengthLabels = ["Weak", "Fair", "Fair", "Strong"];
+  const strengthLabels = [LOCALE.signup.weak, LOCALE.signup.fair, LOCALE.signup.fair, LOCALE.signup.strong];
   const strengthColors = ["text-red-500", "text-yellow-500", "text-yellow-500", "text-green-500"];
 
-  // ---------------------------------------------------------------------------
-  // Step handlers
-  // ---------------------------------------------------------------------------
   const handleNextToConsent = (e: React.FormEvent) => {
     e.preventDefault();
     if (isDetailsStepValid) setStep("consent");
@@ -78,12 +71,9 @@ function SignupForm(): JSX.Element {
     if (privacyAgreed && termsAgreed) setStep("provider");
   };
 
-  // Step 3 → 4: create account + send verification email
   const handleSendVerification = async () => {
     setLoading(true);
     try {
-      // 1. Create the user account securely BEFORE redirecting.
-      // If an invite code is present in the URL, use the admin signup endpoint.
       const signupEndpoint = inviteCode
         ? config.API.AUTH.ADMIN_SIGNUP
         : config.API.AUTH.SIGNUP;
@@ -120,9 +110,8 @@ function SignupForm(): JSX.Element {
       const _data = await _res.json();
       const signupResult = _res.ok
         ? { success: true as const }
-        : { success: false as const, error: _data.error || "Failed to create account", message: _data.message };
+        : { success: false as const, error: _data.error || LOCALE.signup.failedCreateAccount, message: _data.message };
       if (!signupResult.success) {
-        // 409 means account exists but not verified — try to resend
         if (signupResult.message?.includes("not yet verified")) {
           const resend = await sendVerificationEmail(email);
           if (resend.success) {
@@ -131,7 +120,7 @@ function SignupForm(): JSX.Element {
             return;
           }
         }
-        setError(signupResult.error || "Failed to create account");
+        setError(signupResult.error || LOCALE.signup.failedCreateAccount);
         setLoading(false);
         return;
       }
@@ -139,17 +128,16 @@ function SignupForm(): JSX.Element {
       setStep("verify");
       setLoading(false);
     } catch {
-      setError("An unexpected error occurred. Please try again.");
+      setError(LOCALE.signup.unexpectedError);
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 4: verify with 6-digit code
   const handleVerify = async () => {
     const code = otpDigits.join("");
     if (code.length < 6) {
-      setVerifyError("Please enter all 6 digits");
+      setVerifyError(LOCALE.signup.enter6Digits);
       return;
     }
     setLoading(true);
@@ -157,15 +145,14 @@ function SignupForm(): JSX.Element {
 
     const result = await verifyEmailWithCode(email, code);
     if (!result.success || !result.data) {
-      setVerifyError(result.error || "Invalid or expired code. Please try again.");
+      setVerifyError(result.error || LOCALE.signup.invalidCode);
       setLoading(false);
       return;
     }
 
-    // Establish NextAuth session
     const signInResult = await signIn("credentials", { redirect: false, email, password });
     if (!signInResult?.ok) {
-      setVerifyError("Verification succeeded but sign-in failed. Please try logging in.");
+      setVerifyError(LOCALE.signup.verifiedSignInFailed);
       setLoading(false);
       return;
     }
@@ -184,9 +171,6 @@ function SignupForm(): JSX.Element {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // OTP input handlers
-  // ---------------------------------------------------------------------------
   const handleOtpChange = (index: number, value: string) => {
     const digit = value.replace(/\D/, "").slice(-1);
     const next = [...otpDigits];
@@ -212,9 +196,6 @@ function SignupForm(): JSX.Element {
     otpRefs.current[Math.min(pasted.length, 5)]?.focus();
   };
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <motion.div
@@ -225,15 +206,13 @@ function SignupForm(): JSX.Element {
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-cyan to-accent-purple" />
 
         <div className="flex flex-col items-center mb-8">
+          <LanguageSelector className="self-end mb-3" />
           <Logo className="mb-6 scale-110" />
-          <h1 className="text-2xl font-bold tracking-tight">Create your Account</h1>
-          <p className="text-muted-foreground text-sm mt-1">Join Sentra to protect your inbox</p>
+          <h1 className="text-2xl font-bold tracking-tight">{LOCALE.signup.createAccount}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{LOCALE.signup.subtitle}</p>
         </div>
 
         <AnimatePresence mode="wait">
-          {/* ================================================================
-              STEP 1: Details
-          ================================================================ */}
           {step === "details" && (
             <motion.form
               key="details"
@@ -245,7 +224,7 @@ function SignupForm(): JSX.Element {
             >
               {inviteCode && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-accent-cyan">Invite Code</label>
+                  <label className="text-sm font-medium text-accent-cyan">{LOCALE.signup.inviteCode}</label>
                   <input
                     data-testid="invite-code-input"
                     type="text"
@@ -258,8 +237,8 @@ function SignupForm(): JSX.Element {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium flex justify-between">
-                  <span>Full Name</span>
-                  <span className="text-muted-foreground font-normal text-xs">(Optional)</span>
+                  <span>{LOCALE.signup.fullName}</span>
+                  <span className="text-muted-foreground font-normal text-xs">{LOCALE.signup.optional}</span>
                 </label>
                 <input
                   type="text"
@@ -271,7 +250,7 @@ function SignupForm(): JSX.Element {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Email Address <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">{LOCALE.signup.emailAddress} <span className="text-red-500">*</span></label>
                 <input
                   type="email"
                   value={email}
@@ -285,13 +264,13 @@ function SignupForm(): JSX.Element {
                 />
                 {email && !isEmailValid && (
                   <p className="text-xs text-red-500 flex items-center gap-1">
-                    <AlertCircle size={14} /> Please enter a valid email address
+                    <AlertCircle size={14} /> {LOCALE.signup.invalidEmail}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Password <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">{LOCALE.signup.password} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -317,7 +296,7 @@ function SignupForm(): JSX.Element {
                 {password && (
                   <div className="space-y-2 mt-3 p-3 bg-background/50 rounded-lg border border-border/50">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium">Password Strength</span>
+                      <span className="text-xs font-medium">{LOCALE.signup.passwordStrength}</span>
                       <span className={`text-xs font-semibold ${strengthColors[passwordStrength]}`}>
                         {strengthLabels[passwordStrength]}
                       </span>
@@ -336,9 +315,9 @@ function SignupForm(): JSX.Element {
                     </div>
                     <div className="space-y-1 mt-3">
                       {[
-                        { ok: hasMinLength, label: "More than 10 characters" },
-                        { ok: hasNumber, label: "At least one number (0-9)" },
-                        { ok: hasSymbol, label: "At least one symbol (!@#$%^&* etc.)" },
+                        { ok: hasMinLength, label: LOCALE.signup.ruleLength },
+                        { ok: hasNumber, label: LOCALE.signup.ruleNumber },
+                        { ok: hasSymbol, label: LOCALE.signup.ruleSymbol },
                       ].map(({ ok, label }) => (
                         <div key={label} className={`text-xs flex items-center gap-2 ${ok ? "text-green-500" : "text-muted-foreground"}`}>
                           <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${ok ? "bg-green-500/20 border border-green-500/50" : "bg-border/30 border border-border/50"}`}>
@@ -357,23 +336,20 @@ function SignupForm(): JSX.Element {
                 disabled={!isDetailsStepValid}
                 className="w-full btn-primary flex items-center justify-center gap-2 group mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continue <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {LOCALE.signup.continue} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <div className="text-center border-t border-border/50 pt-4 mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Already have an account?{" "}
+                  {LOCALE.signup.alreadyHaveAccount}{" "}
                   <Link href="/login" className="text-accent-cyan hover:text-accent-cyan/80 transition-colors">
-                    Sign In
+                    {LOCALE.signup.signIn}
                   </Link>
                 </p>
               </div>
             </motion.form>
           )}
 
-          {/* ================================================================
-              STEP 2: Consent
-          ================================================================ */}
           {step === "consent" && (
             <motion.div
               key="consent"
@@ -386,17 +362,13 @@ function SignupForm(): JSX.Element {
                 <div className="flex items-start gap-3">
                   <ShieldAlert className="w-5 h-5 text-accent-cyan shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-sm">Email Scanning & Real-time Protection</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Sentra requires read access to your inbox to detect and prevent phishing threats in real-time.
-                      Your emails are scanned instantly by our security agents. Messages are not stored unless you request it.
-                    </p>
+                    <h3 className="font-semibold text-sm">{LOCALE.signup.emailScanTitle}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{LOCALE.signup.emailScanDesc}</p>
                   </div>
                 </div>
 
                 <div className="border-t border-accent-cyan/10" />
 
-                {/* Privacy Policy */}
                 <label className={`flex items-start gap-3 cursor-pointer transition-all ${!hasViewedPrivacy ? "opacity-60 cursor-not-allowed" : ""}`}>
                   <div className="mt-1 relative flex items-center justify-center w-5 h-5 rounded border-2 border-border flex-shrink-0">
                     <input type="checkbox" className="absolute opacity-0 w-full h-full cursor-pointer" disabled={!hasViewedPrivacy} checked={privacyAgreed} onChange={(e) => setPrivacyAgreed(e.target.checked)} />
@@ -404,15 +376,14 @@ function SignupForm(): JSX.Element {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className={`text-sm font-medium ${!hasViewedPrivacy ? "opacity-60" : ""}`}>I agree to the Privacy Policy</h4>
+                      <h4 className={`text-sm font-medium ${!hasViewedPrivacy ? "opacity-60" : ""}`}>{LOCALE.signup.agreePrivacy}</h4>
                       <button type="button" onClick={(e) => { e.stopPropagation(); setShowPrivacyModal(true); }} className="text-xs px-2 py-1 rounded bg-white/10 border border-white/20 hover:bg-white/20 transition-colors flex-shrink-0">
-                        {hasViewedPrivacy ? "✓ Read" : "Read"}
+                        {hasViewedPrivacy ? LOCALE.signup.readDone : LOCALE.signup.read}
                       </button>
                     </div>
                   </div>
                 </label>
 
-                {/* Terms */}
                 <label className={`flex items-start gap-3 cursor-pointer transition-all ${!hasViewedTerms ? "opacity-60 cursor-not-allowed" : ""}`}>
                   <div className="mt-1 relative flex items-center justify-center w-5 h-5 rounded border-2 border-border flex-shrink-0">
                     <input type="checkbox" className="absolute opacity-0 w-full h-full cursor-pointer" disabled={!hasViewedTerms} checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} />
@@ -420,37 +391,33 @@ function SignupForm(): JSX.Element {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className={`text-sm font-medium ${!hasViewedTerms ? "opacity-60" : ""}`}>I agree to the Terms & Agreements</h4>
+                      <h4 className={`text-sm font-medium ${!hasViewedTerms ? "opacity-60" : ""}`}>{LOCALE.signup.agreeTerms}</h4>
                       <button type="button" onClick={(e) => { e.stopPropagation(); setShowTermsModal(true); }} className="text-xs px-2 py-1 rounded bg-white/10 border border-white/20 hover:bg-white/20 transition-colors flex-shrink-0">
-                        {hasViewedTerms ? "✓ Read" : "Read"}
+                        {hasViewedTerms ? LOCALE.signup.readDone : LOCALE.signup.read}
                       </button>
                     </div>
                   </div>
                 </label>
               </div>
 
-              {/* Optional training */}
               <label className="flex items-start gap-3 p-4 rounded-lg border border-border/50 cursor-pointer hover:bg-background/50 transition-colors">
                 <div className="w-5 h-5 rounded border-2 border-border flex items-center justify-center flex-shrink-0 mt-0.5">
                   <input type="checkbox" className="absolute opacity-0 w-5 h-5 cursor-pointer" checked={allowTraining} onChange={(e) => setAllowTraining(e.target.checked)} />
                   {allowTraining && <Check className="w-3.5 h-3.5 text-accent-purple" />}
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium">Optional: Help improve Sentra</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Allow Sentra to securely store anonymized metadata to fine-tune our detection models.</p>
+                  <h4 className="text-sm font-medium">{LOCALE.signup.optionalTitle}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">{LOCALE.signup.optionalDesc}</p>
                 </div>
               </label>
 
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setStep("details")} className="flex-1 px-4 py-2 rounded-lg border border-border/50 hover:bg-background/50 text-sm transition-colors">Back</button>
-                <button onClick={handleNextToProvider} disabled={!privacyAgreed || !termsAgreed} className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed">Continue</button>
+                <button type="button" onClick={() => setStep("details")} className="flex-1 px-4 py-2 rounded-lg border border-border/50 hover:bg-background/50 text-sm transition-colors">{LOCALE.common.back}</button>
+                <button onClick={handleNextToProvider} disabled={!privacyAgreed || !termsAgreed} className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed">{LOCALE.common.continue}</button>
               </div>
             </motion.div>
           )}
 
-          {/* ================================================================
-              STEP 3: Provider — send verification email
-          ================================================================ */}
           {step === "provider" && (
             <motion.div
               key="provider"
@@ -463,9 +430,9 @@ function SignupForm(): JSX.Element {
                 <div className="w-14 h-14 rounded-2xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center mx-auto">
                   <MailCheck className="w-7 h-7 text-accent-cyan" />
                 </div>
-                <h2 className="font-semibold text-lg">Verify your email</h2>
+                <h2 className="font-semibold text-lg">{LOCALE.signup.verifyEmailTitle}</h2>
                 <p className="text-sm text-muted-foreground">
-                  We&apos;ll send a verification code to <span className="text-foreground font-medium">{email}</span> to confirm it&apos;s yours.
+                  {LOCALE.signup.verifyEmailDescPrefix} <span className="text-foreground font-medium">{email}</span> {LOCALE.signup.verifyEmailDescSuffix}
                 </p>
               </div>
 
@@ -481,18 +448,15 @@ function SignupForm(): JSX.Element {
                 className="w-full btn-primary flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                {loading ? "Sending…" : "Send Verification Email"}
+                {loading ? LOCALE.common.sending : LOCALE.signup.sendVerificationEmail}
               </button>
 
               <button type="button" onClick={() => setStep("consent")} className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors">
-                Back
+                {LOCALE.common.back}
               </button>
             </motion.div>
           )}
 
-          {/* ================================================================
-              STEP 4: Verify — enter 6-digit code
-          ================================================================ */}
           {step === "verify" && (
             <motion.div
               key="verify"
@@ -505,15 +469,14 @@ function SignupForm(): JSX.Element {
                 <div className="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
                   <Mail className="w-7 h-7 text-green-400" />
                 </div>
-                <h2 className="font-semibold text-lg">Check your inbox</h2>
+                <h2 className="font-semibold text-lg">{LOCALE.signup.checkInboxTitle}</h2>
                 <p className="text-sm text-muted-foreground">
-                  We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>.
-                  Enter it below or click the link in the email.
+                  {LOCALE.signup.checkInboxDescPrefix} <span className="text-foreground font-medium">{email}</span>.{" "}
+                  {LOCALE.signup.checkInboxDescSuffix}
                 </p>
-                <p className="text-xs text-muted-foreground/70">The code expires in 15 minutes.</p>
+                <p className="text-xs text-muted-foreground/70">{LOCALE.signup.codeExpires}</p>
               </div>
 
-              {/* OTP input */}
               <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
                 {otpDigits.map((digit, i) => (
                   <input
@@ -547,11 +510,11 @@ function SignupForm(): JSX.Element {
                 className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                {loading ? "Verifying…" : "Verify Email"}
+                {loading ? LOCALE.signup.verifying : LOCALE.signup.verifyEmail}
               </button>
 
               <div className="text-center space-y-1">
-                <p className="text-xs text-muted-foreground">Didn&apos;t receive it?</p>
+                <p className="text-xs text-muted-foreground">{LOCALE.signup.didntReceive}</p>
                 <button
                   type="button"
                   onClick={handleResend}
@@ -561,7 +524,11 @@ function SignupForm(): JSX.Element {
                   {resendStatus === "sending" && <Loader2 size={12} className="animate-spin" />}
                   {resendStatus === "sent" && <Check size={12} />}
                   {resendStatus === "idle" && <RefreshCw size={12} />}
-                  {resendStatus === "idle" ? "Resend email" : resendStatus === "sending" ? "Sending…" : "Email sent!"}
+                  {resendStatus === "idle"
+                    ? LOCALE.signup.resendEmail
+                    : resendStatus === "sending"
+                    ? LOCALE.common.sending
+                    : LOCALE.signup.emailSent}
                 </button>
               </div>
             </motion.div>
@@ -580,7 +547,7 @@ function SignupForm(): JSX.Element {
       />
     </div>
   );
-  }
+}
 
 export default function SignupPage() {
   return (

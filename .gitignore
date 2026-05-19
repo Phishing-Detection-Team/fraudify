@@ -12,3 +12,4 @@ LLM.log
 frontend/node_modules/*
 frontend/.next/*
 extension/node_modules/*
+.claude

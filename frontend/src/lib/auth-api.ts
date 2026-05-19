@@ -28,6 +28,7 @@ export interface AuthResponse {
     roles: string[];
     created_at: string;
     updated_at: string;
+    preferred_language?: string;
   };
 }
 

@@ -6,85 +6,15 @@ import { motion, useInView } from "framer-motion";
 import { ArrowLeft, ArrowRight, Mail, Github } from "lucide-react";
 import { TeamCard, TeamMember } from "@/components/about/TeamCard";
 import { ContactForm } from "@/components/about/ContactForm";
+import { useLanguage } from "@/components/LanguageProvider";
+import { t } from "@/lib/i18n";
 
-const teamMembers: TeamMember[] = [
-  {
-    name: "Thien Quy Pham",
-    role: "Founder",
-    photo: "/quy.png",
-    affiliation: "Computer Science Student at University of Toledo",
-    bio: "Cybersecurity and AI engineer securing LLMs and stopping zero-day phishing in real time.",
-    contributions: [
-      <span key="1"><strong className="text-cyan-400 font-bold">Browser Defense:</strong> Built a DOM-level interception system that catches and disables hidden HTML payloads before they can trick the AI.</span>,
-      <span key="2"><strong className="text-cyan-400 font-bold">AI Safety & Training:</strong> Pen-tested the LLM with prompt-injection attacks and hardened it to eliminate exploitable vulnerabilities.</span>,
-      <span key="3"><strong className="text-cyan-400 font-bold">Threat Intelligence:</strong> Integrated the VirusTotal API to cross-check suspicious links against 70+ active antivirus scanners in real-time.</span>,
-    ],
-    skills: ["Adversarial Prompt Research", "DOM-Level Prompt Defense", "Database Schema Security", "Penetration Testing"],
-    links: {
-      portfolio: "https://thienquypham.vercel.app/",
-      linkedin: "https://www.linkedin.com/in/thienquypham/",
-      github: "https://github.com/thienquy05",
-    },
-  },
-  {
-    name: "Hoang Nhat Duy Le",
-    role: "Co-Founder",
-    photo: "/hoang.png",
-    affiliation: "Student at University",
-    bio: "Innovative problem solver with a strong background in backend systems and real-time processing architectures.",
-    contributions: [
-      <span key="1"><strong className="text-cyan-400 font-bold">Backend Architecture:</strong> Architected the scalable FastAPI backend infrastructure to handle high-volume real-time requests.</span>,
-      <span key="2"><strong className="text-cyan-400 font-bold">Caching Strategy:</strong> Implemented the Redis caching layer to reduce scan latency by 40%.</span>,
-      <span key="3"><strong className="text-cyan-400 font-bold">AI Orchestration:</strong> Designed the AI agentic orchestration logic for browser extensions.</span>,
-    ],
-    skills: ["FastAPI", "Redis", "Docker", "PostgreSQL", "Cloud Config"],
-    links: {
-      portfolio: "https://hoangnhatduyle.github.io/portfolio/",
-      linkedin: "https://www.linkedin.com/in/hoangnhatduyle/",
-      github: "https://github.com/hoangnhatduyle",
-    },
-  },
-  {
-    name: "Hoang Bao Duy Le",
-    affiliation: "Student at University",
-    role: "Co-Founder",
-    bio: "Dedicated engineer focusing on robust integrations, security protocols, and maintaining flawless user experiences.",
-    contributions: [
-      "Integrated secure authentication and OAuth pipelines.",
-      "Developed the rate-limiting and anti-abuse mechanisms.",
-      "Pioneered the browser extension integration with the Sentra backend via WebSockets.",
-    ],
-    skills: ["Node.js", "Socket.io", "TypeScript", "Security", "REST APIs"],
-    links: {
-      portfolio: "#",
-      linkedin: "https://linkedin.com",
-      github: "https://github.com",
-    },
-  },
-  {
-    name: "Thanh Dang Huynh",
-    affiliation: "Student at University",
-    role: "Fullstack Developer",
-    bio: "Creative developer who bridges the gap between powerful backend logic and beautiful, accessible frontend interfaces.",
-    contributions: [
-      "Built the modern Next.js dashboard and analytic views.",
-      "Implemented the Sentra design system and Framer Motion animations.",
-      "Constructed the secure Chrome Extension UI and popup logic.",
-    ],
-    skills: ["React", "Tailwind CSS", "Framer Motion", "Next.js", "UX/UI"],
-    links: {
-      portfolio: "#",
-      linkedin: "https://linkedin.com",
-      github: "https://github.com",
-    },
-  },
-];
 
-const stats = [
-  { value: 44, prefix: "", suffix: "K+", label: "Emails Trained", sublabel: "Diverse phishing dataset" },
-  { value: 90, prefix: "", suffix: "%", label: "Detection Accuracy", sublabel: "Against zero-day attacks" },
-  { value: 800, prefix: "<", suffix: "µs", label: "Scan Latency", sublabel: "Faster than a blink" },
-  { value: 4, prefix: "", suffix: "", label: "Engineers", sublabel: "Building your shield" },
+const STAT_VALUES = [
+  { value: 44, prefix: "", suffix: "K+", labelKey: "about.emailsTrained", sublabelKey: "about.emailsSubLabel" },
+  { value: 90, prefix: "", suffix: "%", labelKey: "about.accuracy", sublabelKey: "about.accuracySubLabel" },
+  { value: 800, prefix: "<", suffix: "µs", labelKey: "about.latency", sublabelKey: "about.latencySubLabel" },
+  { value: 4, prefix: "", suffix: "", labelKey: "about.engineers", sublabelKey: "about.engineersSubLabel" },
 ];
 
 const pipeline = [
@@ -133,6 +63,81 @@ function StatCounter({
 }
 
 export default function AboutPage() {
+  const { LOCALE, locale } = useLanguage();
+
+  const teamMembers: TeamMember[] = [
+    {
+      name: LOCALE.about.members.quy.name,
+      role: LOCALE.about.members.quy.role,
+      photo: "/quy.png",
+      affiliation: LOCALE.about.members.quy.affiliation,
+      bio: LOCALE.about.members.quy.bio,
+      contributions: [
+        <span key="1"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.quy.contrib1Label}:</strong> {LOCALE.about.members.quy.contrib1Desc}</span>,
+        <span key="2"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.quy.contrib2Label}:</strong> {LOCALE.about.members.quy.contrib2Desc}</span>,
+        <span key="3"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.quy.contrib3Label}:</strong> {LOCALE.about.members.quy.contrib3Desc}</span>,
+      ],
+      skills: ["Adversarial Prompt Research", "DOM-Level Prompt Defense", "Database Schema Security", "Penetration Testing"],
+      links: {
+        portfolio: "https://thienquypham.vercel.app/",
+        linkedin: "https://www.linkedin.com/in/thienquypham/",
+        github: "https://github.com/thienquy05",
+      },
+    },
+    {
+      name: LOCALE.about.members.hoang.name,
+      role: LOCALE.about.members.hoang.role,
+      photo: "/hoang.png",
+      affiliation: LOCALE.about.members.hoang.affiliation,
+      bio: LOCALE.about.members.hoang.bio,
+      contributions: [
+        <span key="1"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.hoang.contrib1Label}:</strong> {LOCALE.about.members.hoang.contrib1Desc}</span>,
+        <span key="2"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.hoang.contrib2Label}:</strong> {LOCALE.about.members.hoang.contrib2Desc}</span>,
+        <span key="3"><strong className="text-cyan-400 font-bold">{LOCALE.about.members.hoang.contrib3Label}:</strong> {LOCALE.about.members.hoang.contrib3Desc}</span>,
+      ],
+      skills: ["FastAPI", "Redis", "Docker", "PostgreSQL", "Cloud Config"],
+      links: {
+        portfolio: "https://hoangnhatduyle.github.io/portfolio/",
+        linkedin: "https://www.linkedin.com/in/hoangnhatduyle/",
+        github: "https://github.com/hoangnhatduyle",
+      },
+    },
+    {
+      name: LOCALE.about.members.bao.name,
+      role: LOCALE.about.members.bao.role,
+      affiliation: LOCALE.about.members.bao.affiliation,
+      bio: LOCALE.about.members.bao.bio,
+      contributions: [
+        LOCALE.about.members.bao.contrib1,
+        LOCALE.about.members.bao.contrib2,
+        LOCALE.about.members.bao.contrib3,
+      ],
+      skills: ["Node.js", "Socket.io", "TypeScript", "Security", "REST APIs"],
+      links: {
+        portfolio: "#",
+        linkedin: "https://linkedin.com",
+        github: "https://github.com",
+      },
+    },
+    {
+      name: LOCALE.about.members.thanh.name,
+      role: LOCALE.about.members.thanh.role,
+      affiliation: LOCALE.about.members.thanh.affiliation,
+      bio: LOCALE.about.members.thanh.bio,
+      contributions: [
+        LOCALE.about.members.thanh.contrib1,
+        LOCALE.about.members.thanh.contrib2,
+        LOCALE.about.members.thanh.contrib3,
+      ],
+      skills: ["React", "Tailwind CSS", "Framer Motion", "Next.js", "UX/UI"],
+      links: {
+        portfolio: "#",
+        linkedin: "https://linkedin.com",
+        github: "https://github.com",
+      },
+    },
+  ];
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
       {/* Aurora backdrop */}
@@ -168,18 +173,17 @@ export default function AboutPage() {
           className="text-center max-w-3xl mx-auto pt-24 pb-4 space-y-6"
         >
           <span className="inline-block text-xs font-bold tracking-[0.25em] uppercase text-cyan-400 border border-cyan-500/30 rounded-full px-4 py-1.5 bg-cyan-500/5">
-            The People Behind the Shield
+            {LOCALE.about.badge}
           </span>
           <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold tracking-tight pb-2">
-            Meet the Minds Behind{" "}
+            {LOCALE.about.heroTitle1}{" "}
             <br />
             <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-              Sentra
+              {LOCALE.about.heroTitle2}
             </span>
           </h1>
           <p className="text-lg md:text-xl text-foreground/70 leading-relaxed">
-            A focused team of developers and security enthusiasts united by one mission:
-            making the web a safer place — before you even know it needs to be.
+            {LOCALE.about.heroSubtitle}
           </p>
         </motion.section>
 
@@ -194,9 +198,9 @@ export default function AboutPage() {
             }}
             className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5"
           >
-            {stats.map((stat) => (
+            {STAT_VALUES.map((stat) => (
               <motion.div
-                key={stat.label}
+                key={stat.labelKey}
                 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                 className="glass-panel rounded-2xl p-6 md:p-7 text-center border border-border/30 hover:border-cyan-500/30 transition-all duration-300 group relative"
               >
@@ -204,8 +208,8 @@ export default function AboutPage() {
                 <div className="text-4xl xl:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 mb-2 leading-none">
                   <StatCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
-                <p className="text-sm font-bold text-foreground/85 mb-0.5">{stat.label}</p>
-                <p className="text-xs text-muted-foreground">{stat.sublabel}</p>
+                <p className="text-sm font-bold text-foreground/85 mb-0.5">{t(locale, stat.labelKey)}</p>
+                <p className="text-xs text-muted-foreground">{t(locale, stat.sublabelKey)}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -224,30 +228,20 @@ export default function AboutPage() {
               className="space-y-5"
             >
               <div className="space-y-3">
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">01 — Origin</span>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Our Story</h2>
+                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{LOCALE.about.storyTag}</span>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{LOCALE.about.storyTitle}</h2>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-500 to-cyan-500/0 rounded-full" />
               </div>
 
               <div className="space-y-4 text-foreground/70 text-sm md:text-base leading-relaxed">
-                <p>
-                  The origins of Sentra are rooted in the rapidly evolving landscape of social engineering.
-                  As malicious actors continuously develop more sophisticated tools to harvest personal data,
-                  traditional security measures often fall short. The catalyst for Sentra was personal: losing
-                  an account to a phishing site that was virtually indistinguishable from the real one.
-                </p>
-                <p>
-                  That moment highlighted a critical vulnerability — if a site looks perfectly legitimate,
-                  even cautious users surrender their information. This realization sparked a deep focus on
-                  cybersecurity and a drive to use AI to proactively fight advanced phishing campaigns.
-                  After joining forces with partners who shared this passion, we built Sentra.
-                </p>
+                <p>{LOCALE.about.storyP1}</p>
+                <p>{LOCALE.about.storyP2}</p>
               </div>
 
               {/* Pull quote */}
               <div className="border-l-2 border-cyan-500/50 pl-4 py-1 mt-6">
                 <p className="text-foreground/60 italic text-sm leading-relaxed">
-                  &ldquo;Security should protect you before you even realize you&apos;re under attack.&rdquo;
+                  &ldquo;{LOCALE.about.storyQuote}&rdquo;
                 </p>
               </div>
             </motion.div>
@@ -261,29 +255,20 @@ export default function AboutPage() {
               className="space-y-5"
             >
               <div className="space-y-3">
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-purple-400">02 — Engineering</span>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">The Architecture</h2>
+                <span className="text-xs font-bold tracking-[0.2em] uppercase text-purple-400">{LOCALE.about.archTag}</span>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{LOCALE.about.archTitle}</h2>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-purple-500/0 rounded-full" />
               </div>
 
               <div className="space-y-4 text-foreground/70 text-sm md:text-base leading-relaxed">
-                <p>
-                  Building something trustworthy enough to protect people required deliberate technical decisions.
-                  We recognized early that a simple approach would not withstand today&apos;s threat landscape,
-                  so we engineered an architecture focused entirely on speed, privacy, and reliability.
-                </p>
-                <p>
-                  We bridged a lightweight browser extension with a high-performance backend via WebSockets for
-                  instant communication, and Redis for threat lookups faster than a single frame of video. At
-                  the core is a custom LLM pipeline that analyzes emerging threats without ever storing your
-                  personal data.
-                </p>
+                <p>{LOCALE.about.archP1}</p>
+                <p>{LOCALE.about.archP2}</p>
               </div>
 
               {/* Pipeline visual */}
               <div className="mt-6 glass-panel rounded-xl p-4 border border-border/30">
                 <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-4">
-                  Detection Pipeline
+                  {LOCALE.about.pipelineTitle}
                 </p>
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
                   {pipeline.map((node, i) => (
@@ -322,15 +307,15 @@ export default function AboutPage() {
             transition={{ duration: 0.5 }}
             className="text-center mb-14 space-y-3"
           >
-            <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">03 — People</span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{LOCALE.about.teamTag}</span>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              The{" "}
+              {LOCALE.about.teamTitle1}{" "}
               <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                Core Team
+                {LOCALE.about.teamTitle2}
               </span>
             </h2>
             <p className="text-foreground/55 max-w-md mx-auto text-sm md:text-base">
-              Click any card to see the full profile, contributions, and tech stack.
+              {LOCALE.about.teamSubtitle}
             </p>
           </motion.div>
 
@@ -363,20 +348,19 @@ export default function AboutPage() {
               className="space-y-8"
             >
               <div className="space-y-3">
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">04 — Connect</span>
+                <span className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-400">{LOCALE.about.contactTag}</span>
                 <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
-                  Work with
+                  {LOCALE.about.contactTitle1}
                   <br />
                   <span className="neon-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                    our team
+                    {LOCALE.about.contactTitle2}
                   </span>
                 </h2>
                 <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-500 to-cyan-500/0 rounded-full" />
               </div>
 
               <p className="text-foreground/65 text-sm md:text-base leading-relaxed">
-                Reach out for partnerships, security research collaboration, or questions about integrating
-                Sentra into your organization. We respond to every message.
+                {LOCALE.about.contactDesc}
               </p>
 
               <div className="space-y-3">
@@ -388,7 +372,7 @@ export default function AboutPage() {
                     <Mail size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium mb-0.5">Email us directly</p>
+                    <p className="text-xs text-muted-foreground font-medium mb-0.5">{LOCALE.about.emailLabel}</p>
                     <p className="text-sm font-semibold text-foreground group-hover:text-cyan-400 transition-colors truncate">
                       thisshoulebechanged
                     </p>
@@ -405,7 +389,7 @@ export default function AboutPage() {
                     <Github size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium mb-0.5">Open source</p>
+                    <p className="text-xs text-muted-foreground font-medium mb-0.5">{LOCALE.about.openSource}</p>
                     <p className="text-sm font-semibold text-foreground group-hover:text-purple-400 transition-colors truncate">
                       github.com/Phishing-Detection-Team
                     </p>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, ShieldAlert, Copy } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface VerdictDisplayProps {
   verdict: "phishing" | "safe";
@@ -47,6 +48,7 @@ export default function VerdictDisplay({
   reasoning,
   subject,
 }: VerdictDisplayProps) {
+  const { LOCALE } = useLanguage();
   const isPhishing = verdict === "phishing";
   const confidencePercent = Math.round(confidence * 100);
   const countedPercent = useCountUp(confidencePercent);
@@ -136,13 +138,13 @@ export default function VerdictDisplay({
             initial="hidden"
             animate="visible"
           >
-            {verdict === "phishing" ? "PHISHING" : "SAFE"}
+            {verdict === "phishing" ? LOCALE.verdict.phishing : LOCALE.verdict.safe}
           </motion.p>
         </div>
 
         <div className="space-y-1.5">
           <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-            Threat Level
+            {LOCALE.verdict.threatLevel}
           </p>
           <div className="h-2.5 bg-background/50 rounded-full overflow-hidden">
             <motion.div
@@ -159,7 +161,7 @@ export default function VerdictDisplay({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                Reasoning
+                {LOCALE.verdict.reasoning}
               </p>
               <button
                 onClick={handleCopy}
@@ -167,7 +169,7 @@ export default function VerdictDisplay({
                 aria-label="Copy reasoning"
               >
                 <Copy size={12} />
-                Copy
+                {LOCALE.verdict.copy}
               </button>
             </div>
             <motion.ul

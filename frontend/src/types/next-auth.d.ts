@@ -1,6 +1,7 @@
 
 import { DefaultSession } from "next-auth";
 import { DefaultJWT } from "next-auth/jwt";
+import type { Locale } from "@/lib/i18n";
 
 declare module "next-auth" {
   interface User {
@@ -10,6 +11,7 @@ declare module "next-auth" {
     fromBackend?: boolean;
     accessToken?: string;
     refreshToken?: string;
+    language?: Locale;
   }
   interface Session {
     accessToken?: string;
@@ -19,6 +21,7 @@ declare module "next-auth" {
       role?: string;
       fromDemo?: boolean;
       fromBackend?: boolean;
+      language?: Locale;
     } & DefaultSession["user"]
   }
 }
@@ -31,5 +34,6 @@ declare module "next-auth/jwt" {
     fromBackend?: boolean;
     fromDemo?: boolean;
     id?: string;
+    language?: Locale;
   }
 }

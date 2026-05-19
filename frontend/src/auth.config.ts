@@ -43,9 +43,13 @@ export const authConfig = {
         token.id = user.id;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
+        token.language = user.language;
       }
       if (trigger === "update" && session?.role) {
         token.role = session.role;
+      }
+      if (trigger === "update" && session?.language) {
+        token.language = session.language;
       }
       return token;
     },
@@ -55,6 +59,7 @@ export const authConfig = {
         session.user.fromBackend = token.fromBackend as boolean;
         session.user.fromDemo = token.fromDemo as boolean;
         session.user.id = token.id as string;
+        session.user.language = token.language as string | undefined;
       }
       session.accessToken = token.accessToken as string | undefined;
       session.refreshToken = token.refreshToken as string | undefined;
